@@ -1007,8 +1007,6 @@ class BeneficiaryDetails {
   String get insufficientStorageContent =>
       'INSUFFICIENT_STORAGE_WARNING_CONTENT';
   String get recordCycle => 'BENEFICIARY_DETAILS_RECORD_CYCLE';
-  String get insufficientStockHeading => 'INSUFFICIENT_STOCK_HEADING';
-  String get insufficientStockMessage => 'INSUFFICIENT_STOCK_MESSAGE';
 }
 
 class PrivacyPolicy {

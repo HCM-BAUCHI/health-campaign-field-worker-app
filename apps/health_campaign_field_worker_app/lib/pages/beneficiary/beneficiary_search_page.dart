@@ -3,23 +3,18 @@ import 'package:digit_data_model/data_model.dart';
 import 'package:digit_data_model/models/entities/household_type.dart';
 import 'package:digit_scanner/blocs/scanner.dart';
 import 'package:digit_scanner/pages/qr_scanner.dart';
-import 'package:digit_ui_components/enum/app_enums.dart';
+import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/services/location_bloc.dart';
 import 'package:digit_ui_components/theme/digit_extended_theme.dart';
-import 'package:digit_ui_components/theme/digit_theme.dart';
-import 'package:digit_ui_components/theme/spacers.dart';
 import 'package:digit_ui_components/widgets/atoms/digit_chip.dart';
 import 'package:digit_ui_components/widgets/atoms/digit_search_bar.dart';
 import 'package:digit_ui_components/widgets/atoms/pop_up_card.dart';
 import 'package:digit_ui_components/widgets/atoms/switch.dart';
 import 'package:digit_ui_components/widgets/molecules/digit_card.dart';
-import 'package:digit_ui_components/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:health_campaign_field_worker_app/router/app_router.dart';
 import 'package:registration_delivery/registration_delivery.dart';
-import 'package:digit_components/widgets/digit_dialog.dart';
 
 import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
 import 'package:registration_delivery/models/entities/status.dart';
@@ -31,7 +26,6 @@ import 'package:registration_delivery/widgets/beneficiary/view_beneficiary_card.
 import 'package:registration_delivery/widgets/localized.dart';
 import 'package:registration_delivery/widgets/status_filter/status_filter.dart';
 import '../../../utils/i18_key_constants.dart' as i18local;
-import '../../utils/extensions/extensions.dart';
 
 @RoutePage()
 class CustomSearchBeneficiaryPage extends LocalizedStatefulWidget {
@@ -435,44 +429,18 @@ class _CustomSearchBeneficiaryPageState
                       ? false
                       : true,
                   onPressed: () {
-                    final router = context.router;
-                    final spaq1 = context.spaq1;
-                    final spaq2 = context.spaq2;
-
-                    if (spaq1 >= 2 && spaq2 >= 2) {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      context.read<DigitScannerBloc>().add(
-                            const DigitScannerEvent.handleScanner(),
-                          );
-                      context.router.push(BeneficiaryRegistrationWrapperRoute(
-                        initialState: BeneficiaryRegistrationCreateState(
-                          searchQuery: searchHouseholdsState.searchQuery,
-                        ),
-                      ));
-                      searchController.clear();
-                      selectedFilters = [];
-                      blocWrapper.clearEvent();
-                    } else {
-                      DigitDialog.show(
-                        context,
-                        options: DigitDialogOptions(
-                          titleText: 'INSUFFICIENT STOCK MESSAGE',
-                          titleIcon: Icon(
-                            Icons.warning,
-                            color: DigitTheme.instance.colorScheme.error,
-                          ),
-                          contentText: 'INSUFFICIENT STOCK MESSAGE',
-                          primaryAction: DigitDialogActions(
-                            label: "Back Home",
-                            action: (ctx) {
-                              Navigator.of(context, rootNavigator: true).pop();
-                              context.router
-                                  .popUntilRouteWithName(HomeRoute.name);
-                            },
-                          ),
-                        ),
-                      );
-                    }
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    context.read<DigitScannerBloc>().add(
+                          const DigitScannerEvent.handleScanner(),
+                        );
+                    context.router.push(BeneficiaryRegistrationWrapperRoute(
+                      initialState: BeneficiaryRegistrationCreateState(
+                        searchQuery: searchHouseholdsState.searchQuery,
+                      ),
+                    ));
+                    searchController.clear();
+                    selectedFilters = [];
+                    blocWrapper.clearEvent();
                   },
                 ),
                 DigitButton(
