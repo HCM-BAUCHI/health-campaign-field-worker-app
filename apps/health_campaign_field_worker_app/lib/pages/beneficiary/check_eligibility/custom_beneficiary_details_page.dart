@@ -19,6 +19,7 @@ import 'package:registration_delivery/blocs/household_overview/household_overvie
 import 'package:registration_delivery/models/entities/additional_fields_type.dart';
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
 import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
+import '../../../models/entities/identifier_types.dart';
 import '../../../utils/i18_key_constants.dart' as i18_local;
 import 'package:registration_delivery/utils/utils.dart';
 import 'package:registration_delivery/widgets/back_navigation_help_header.dart';
@@ -35,7 +36,8 @@ class CustomBeneficiaryDetailsPage extends LocalizedStatefulWidget {
   });
 
   @override
-  State<CustomBeneficiaryDetailsPage> createState() => CustomBeneficiaryDetailsPageState();
+  State<CustomBeneficiaryDetailsPage> createState() =>
+      CustomBeneficiaryDetailsPageState();
 }
 
 class CustomBeneficiaryDetailsPageState
@@ -254,7 +256,8 @@ class CustomBeneficiaryDetailsPageState
                               margin: const EdgeInsets.all(spacer2),
                               children: [
                                 Text(
-                                  localizations.translate(i18_local.deliverIntervention
+                                  localizations.translate(i18_local
+                                      .deliverIntervention
                                       .deliversmcintervention),
                                   style: textTheme.headingXl.copyWith(
                                       color: theme.colorTheme.primary.primary2),
@@ -262,51 +265,92 @@ class CustomBeneficiaryDetailsPageState
                                 DigitTableCard(
                                   element: {
                                     localizations.translate(
-                                      RegistrationDeliverySingleton().beneficiaryType != BeneficiaryType.individual
-                                          ? i18.householdOverView.householdOverViewHouseholdHeadLabel
+                                      RegistrationDeliverySingleton()
+                                                  .beneficiaryType !=
+                                              BeneficiaryType.individual
+                                          ? i18.householdOverView
+                                              .householdOverViewHouseholdHeadLabel
                                           : i18.common.coreCommonName,
-                                    ): RegistrationDeliverySingleton().beneficiaryType != BeneficiaryType.individual
-                                        ? householdMemberWrapper.headOfHousehold?.name?.givenName
-                                        : state.selectedIndividual?.name?.givenName ?? '--',
+                                    ): RegistrationDeliverySingleton()
+                                                .beneficiaryType !=
+                                            BeneficiaryType.individual
+                                        ? householdMemberWrapper
+                                            .headOfHousehold?.name?.givenName
+                                        : state.selectedIndividual?.name
+                                                ?.givenName ??
+                                            '--',
+                                    localizations.translate(
+                                      i18_local.beneficiaryDetails.beneficiaryId
+                                    ): () {
+                                      final String? beneficiaryId =
+                                      state.selectedIndividual?.identifiers
+                                              ?.lastWhereOrNull((e) =>
+                                                  e.identifierType ==
+                                                  IdentifierTypes
+                                                      .uniqueBeneficiaryID
+                                                      .toValue())
+                                              ?.identifierId; 
+                                      return beneficiaryId ?? '--';
+                                    }(),
                                     localizations.translate(
                                       i18.common.coreCommonAge,
                                     ): () {
-                                      final dob = RegistrationDeliverySingleton().beneficiaryType != BeneficiaryType.individual
-                                          ? householdMemberWrapper.headOfHousehold?.dateOfBirth
-                                          : state.selectedIndividual?.dateOfBirth;
+                                      final dob =
+                                          RegistrationDeliverySingleton()
+                                                      .beneficiaryType !=
+                                                  BeneficiaryType.individual
+                                              ? householdMemberWrapper
+                                                  .headOfHousehold?.dateOfBirth
+                                              : state.selectedIndividual
+                                                  ?.dateOfBirth;
                                       if (dob == null || dob.isEmpty) {
                                         return '--';
                                       }
 
-                                      final int years = DigitDateUtils.calculateAge(
-                                        DigitDateUtils.getFormattedDateToDateTime(dob) ?? DateTime.now(),
+                                      final int years =
+                                          DigitDateUtils.calculateAge(
+                                        DigitDateUtils
+                                                .getFormattedDateToDateTime(
+                                                    dob) ??
+                                            DateTime.now(),
                                       ).years;
-                                      final int months = DigitDateUtils.calculateAge(
-                                        DigitDateUtils.getFormattedDateToDateTime(dob) ?? DateTime.now(),
+                                      final int months =
+                                          DigitDateUtils.calculateAge(
+                                        DigitDateUtils
+                                                .getFormattedDateToDateTime(
+                                                    dob) ??
+                                            DateTime.now(),
                                       ).months;
 
-                                      return "$years  ${localizations.translate(months.toString().toUpperCase())} ${localizations.translate(i18.memberCard.deliverDetailsMonthsText)}";
+                                      return "$years ${localizations.translate(i18.memberCard.deliverDetailsYearText)} ${localizations.translate(months.toString().toUpperCase())} ${localizations.translate(i18.memberCard.deliverDetailsMonthsText)}";
                                     }(),
                                     localizations.translate(
                                       i18.common.coreCommonGender,
-                                    ): RegistrationDeliverySingleton().beneficiaryType != BeneficiaryType.individual
-                                        ? householdMemberWrapper.headOfHousehold?.gender?.name.sentenceCase
-                                        : state.selectedIndividual?.gender?.name.sentenceCase ?? '--',
+                                    ): RegistrationDeliverySingleton()
+                                                .beneficiaryType !=
+                                            BeneficiaryType.individual
+                                        ? householdMemberWrapper.headOfHousehold
+                                            ?.gender?.name.sentenceCase
+                                        : state.selectedIndividual?.gender?.name
+                                                .sentenceCase ??
+                                            '--',
+                                    
                                     localizations.translate(
-                                      i18.common.coreCommonMobileNumber,
-                                    ): RegistrationDeliverySingleton().beneficiaryType != BeneficiaryType.individual
-                                        ? householdMemberWrapper.headOfHousehold?.mobileNumber
-                                        : state.selectedIndividual?.mobileNumber ?? 'Not Available',
-                                    localizations.translate(
-                                      i18.deliverIntervention.dateOfRegistrationLabel,
+                                      i18.deliverIntervention
+                                          .dateOfRegistrationLabel,
                                     ): () {
-                                      final date = projectBeneficiary?.first?.dateOfRegistration;
+                                      final date = projectBeneficiary
+                                          ?.first?.dateOfRegistration;
 
-                                      final registrationDate = DateTime.fromMillisecondsSinceEpoch(
-                                        date ?? DateTime.now().millisecondsSinceEpoch,
+                                      final registrationDate =
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                        date ??
+                                            DateTime.now()
+                                                .millisecondsSinceEpoch,
                                       );
 
-                                      return DateFormat('dd MMMM yyyy').format(registrationDate);
+                                      return DateFormat('dd MMMM yyyy')
+                                          .format(registrationDate);
                                     }(),
                                   },
                                 ),

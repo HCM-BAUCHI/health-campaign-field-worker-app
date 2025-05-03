@@ -1,7 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
-import 'package:digit_components/widgets/digit_dialog.dart' as dialog;
-// import 'package:digit_components/digit_components.dart';
 import 'package:digit_data_model/data_model.dart';
 import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/services/location_bloc.dart';
@@ -15,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:registration_delivery/models/entities/deliver_strategy_type.dart';
 import 'package:registration_delivery/registration_delivery.dart';
@@ -107,7 +106,7 @@ class CustomDeliverInterventionPageState
               navigateToSummary: true,
               householdMemberWrapper: householdMember),
         );
-    context.router.push(SplashAcknowledgementRoute());
+    context.router.push(DeliverySummaryRoute());
   }
 
   void handleLocationState(
@@ -345,51 +344,111 @@ class CustomDeliverInterventionPageState
                                                               type: ToastType
                                                                   .error);
                                                         } else {
-  
-                                                          final shouldSubmit = await dialog.DigitDialog.show<bool>(
-                                                            context,
-                                                            options: dialog.DigitDialogOptions(
-                                                              titleText: localizations.translate(
-                                                                i18.deliverIntervention.dialogTitle,
+                                                            final shouldSubmit =
+                                                              await showDialog<
+                                                                  bool>(
+                                                            context: context,
+                                                            builder: (ctx) =>
+                                                                Popup(
+                                                              title:
+                                                                  localizations
+                                                                      .translate(
+                                                                i18.deliverIntervention
+                                                                    .dialogTitle,
                                                               ),
-                                                              contentText: localizations.translate(
-                                                                i18.deliverIntervention.dialogContent,
+                                                              description:
+                                                                  localizations
+                                                                      .translate(
+                                                                i18.deliverIntervention
+                                                                    .dialogContent,
                                                               ),
-                                                              primaryAction: dialog.DigitDialogActions(
-                                                                label: localizations.translate(
-                                                                  i18.common.coreCommonSubmit,
+                                                              actions: [
+                                                                DigitButton(
+                                                                  label: localizations
+                                                                      .translate(
+                                                                    i18.common
+                                                                        .coreCommonSubmit,
+                                                                  ),
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            ctx,
+                                                                            rootNavigator:
+                                                                                true)
+                                                                        .pop(
+                                                                            true);
+                                                                  },
+                                                                  type: DigitButtonType
+                                                                      .primary,
+                                                                  size:
+                                                                      DigitButtonSize
+                                                                          .large,
                                                                 ),
-                                                                action: (ctx) {
-                                                                  Navigator.of(ctx, rootNavigator: true).pop(true);
-                                                                },
-                                                              ),
-                                                              secondaryAction: dialog.DigitDialogActions(
-                                                                label: localizations.translate(
-                                                                  i18.common.coreCommonCancel,
+                                                                DigitButton(
+                                                                  label: localizations
+                                                                      .translate(
+                                                                    i18.common
+                                                                        .coreCommonCancel,
+                                                                  ),
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            ctx,
+                                                                            rootNavigator:
+                                                                                true)
+                                                                        .pop(
+                                                                            false);
+                                                                  },
+                                                                  type: DigitButtonType
+                                                                      .secondary,
+                                                                  size:
+                                                                      DigitButtonSize
+                                                                          .large,
                                                                 ),
-                                                                action: (ctx) {
-                                                                  Navigator.of(ctx, rootNavigator: true).pop(false);
-                                                                },
-                                                              ),
+                                                              ],
                                                             ),
                                                           );
 
-                                                          // Check the result of the dialog
-                                                          if (shouldSubmit == true) {
+                                                          if (shouldSubmit ==
+                                                              true) {
                                                             // Proceed with submission
-                                                            context.read<LocationBloc>().add(const LoadLocationEvent());
+                                                            context
+                                                                .read<
+                                                                    LocationBloc>()
+                                                                .add(
+                                                                    const LoadLocationEvent());
                                                             handleLocationState(
                                                               locationState,
                                                               context,
                                                               deliveryInterventionState,
                                                               form,
                                                               householdMemberWrapper,
-                                                              projectBeneficiary!.first,
+                                                              projectBeneficiary!
+                                                                  .first,
+                                                            );
+                                                          }
+
+                                                          // Check the result of the dialog
+                                                          if (shouldSubmit ==
+                                                              true) {
+                                                            // Proceed with submission
+                                                            context
+                                                                .read<
+                                                                    LocationBloc>()
+                                                                .add(
+                                                                    const LoadLocationEvent());
+                                                            handleLocationState(
+                                                              locationState,
+                                                              context,
+                                                              deliveryInterventionState,
+                                                              form,
+                                                              householdMemberWrapper,
+                                                              projectBeneficiary!
+                                                                  .first,
                                                             );
                                                           }
                                                         }
                                                       },
-                                                      
                                                     );
                                                   });
                                                 },
@@ -399,7 +458,8 @@ class CustomDeliverInterventionPageState
                                     ),
                                     header: const Column(children: [
                                       Padding(
-                                        padding: EdgeInsets.only(bottom:spacer2),
+                                        padding:
+                                            EdgeInsets.only(bottom: spacer2),
                                         child: BackNavigationHelpHeaderWidget(
                                           showHelp: false,
                                         ),
@@ -417,7 +477,12 @@ class CustomDeliverInterventionPageState
                                                     i18.deliverIntervention
                                                         .deliverInterventionLabel,
                                                   ),
-                                                  style: textTheme.headingXl.copyWith(color: theme.colorTheme.primary.primary2),
+                                                  style: textTheme.headingXl
+                                                      .copyWith(
+                                                          color: theme
+                                                              .colorTheme
+                                                              .primary
+                                                              .primary2),
                                                 ),
                                                 if (RegistrationDeliverySingleton()
                                                         .beneficiaryType ==
@@ -499,9 +564,12 @@ class CustomDeliverInterventionPageState
                                                     i18.deliverIntervention
                                                         .deliverInterventionResourceLabel,
                                                   ),
-                                                  style: textTheme.headingXl.copyWith(
-                                                    color: theme.colorTheme.primary.primary2
-                                                  ),
+                                                  style: textTheme.headingXl
+                                                      .copyWith(
+                                                          color: theme
+                                                              .colorTheme
+                                                              .primary
+                                                              .primary2),
                                                 ),
                                                 ..._controllers.map((e) =>
                                                     ResourceBeneficiaryCard(
@@ -574,9 +642,12 @@ class CustomDeliverInterventionPageState
                                                     i18.deliverIntervention
                                                         .deliveryCommentHeading,
                                                   ),
-                                                  style: textTheme.headingXl.copyWith(
-                                                    color: theme.colorTheme.primary.primary2
-                                                  ),
+                                                  style: textTheme.headingXl
+                                                      .copyWith(
+                                                          color: theme
+                                                              .colorTheme
+                                                              .primary
+                                                              .primary2),
                                                 ),
                                                 ReactiveWrapperField(
                                                   formControlName:

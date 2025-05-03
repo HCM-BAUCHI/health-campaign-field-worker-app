@@ -726,32 +726,35 @@ class CustomIndividualDetailsPageState
                               : null,
                         ),
                         individualDetailsShowcaseData.mobile.buildWith(
-                          child: ReactiveWrapperField(
-                            formControlName: _mobileNumberKey,
-                            validationMessages: {
-                              'maxLength': (object) => localizations.translate(
-                                  i18.individualDetails
-                                      .mobileNumberLengthValidationMessage),
-                              'minLength': (object) => localizations.translate(
-                                  i18.individualDetails
-                                      .mobileNumberLengthValidationMessage),
-                            },
-                            builder: (field) => LabeledField(
-                              label: localizations.translate(
-                                i18.individualDetails.mobileNumberLabelText,
-                              ),
-                              child: DigitTextFormInput(
-                                keyboardType: TextInputType.number,
-                                maxLength: 11,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                ],
-                                initialValue:
-                                    form.control(_mobileNumberKey).value,
-                                onChange: (value) {
-                                  form.control(_mobileNumberKey).value = value;
-                                },
-                                errorMessage: field.errorText,
+                          child: Offstage(
+                            offstage: !widget.isHeadOfHousehold,
+                            child: ReactiveWrapperField(
+                              formControlName: _mobileNumberKey,
+                              validationMessages: {
+                                'maxLength': (object) => localizations.translate(
+                                    i18.individualDetails
+                                        .mobileNumberLengthValidationMessage),
+                                'minLength': (object) => localizations.translate(
+                                    i18.individualDetails
+                                        .mobileNumberLengthValidationMessage),
+                              },
+                              builder: (field) => LabeledField(
+                                label: localizations.translate(
+                                  i18.individualDetails.mobileNumberLabelText,
+                                ),
+                                child: DigitTextFormInput(
+                                  keyboardType: TextInputType.number,
+                                  maxLength: 11,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  initialValue:
+                                      form.control(_mobileNumberKey).value,
+                                  onChange: (value) {
+                                    form.control(_mobileNumberKey).value = value;
+                                  },
+                                  errorMessage: field.errorText,
+                                ),
                               ),
                             ),
                           ),
