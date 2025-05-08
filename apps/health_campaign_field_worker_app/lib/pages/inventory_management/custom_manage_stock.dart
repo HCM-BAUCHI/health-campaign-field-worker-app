@@ -1,9 +1,12 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:digit_components/widgets/digit_dialog.dart';
 import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/theme/digit_extended_theme.dart';
 import 'package:digit_ui_components/widgets/atoms/menu_card.dart';
 import 'package:digit_ui_components/widgets/scrollable_content.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:inventory_management/router/inventory_router.gm.dart';
 
 import 'package:inventory_management/utils/i18_key_constants.dart' as i18;
@@ -38,7 +41,9 @@ class CustomManageStocksPageState
 
     return Scaffold(
       body: ScrollableContent(
-        header: const BackNavigationHelpHeaderWidget(showHelp: true,),
+        header: const BackNavigationHelpHeaderWidget(
+          showHelp: true,
+        ),
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,11 +71,99 @@ class CustomManageStocksPageState
                         i18.manageStock.recordStockReceiptDescription),
                     icon: Icons.file_download_outlined,
                     onTap: () {
-                      context.router.push(
-                        RecordStockWrapperRoute(
-                          type: StockRecordEntryType.receipt,
-                        ),
-                      );
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      context.router.push(
+                                        RecordStockWrapperRoute(
+                                          type: StockRecordEntryType.receipt,
+                                        ),
+                                      );
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.orange[800]!,
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.white,
+                                      ),
+                                      padding: const EdgeInsets.all(16),
+                                      child: Center(
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.file_download_outlined,
+                                              size: 24,
+                                              color: Colors.orange[800],
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              "Create New Transaction",
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.orange[800],
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      height:
+                                          16), // Add spacing between buttons
+                                  Container(
+                                    width: 400,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.orange[800]!,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.white,
+                                    ),
+                                    padding: const EdgeInsets.all(16),
+                                    child: Center(
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.remove_red_eye,
+                                            size: 24,
+                                            color: Colors.orange[800],
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            "View Create Transaction",
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.orange[800],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          });
+                      // context.router.push(
+                      //   RecordStockWrapperRoute(
+                      //     type: StockRecordEntryType.receipt,
+                      //   ),
+                      // );
                     },
                   ),
                 ),

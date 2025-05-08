@@ -244,15 +244,15 @@ class CustomIndividualDetailsPageState
                                     );
 
                               if (age.years < 18 && widget.isHeadOfHousehold) {
-                                await DigitToast.show(
-                                  context,
-                                  options: DigitToastOptions(
-                                    localizations.translate(i18
-                                        .individualDetails.headAgeValidError),
-                                    true,
-                                    theme,
-                                  ),
-                                );
+                                // await DigitToast.show(
+                                //   context,
+                                //   options: DigitToastOptions(
+                                //     localizations.translate(i18
+                                //         .individualDetails.headAgeValidError),
+                                //     true,
+                                //     theme,
+                                //   ),
+                                // );
 
                                 return;
                               }
