@@ -5,7 +5,7 @@ import 'package:registration_delivery/blocs/household_overview/household_overvie
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
 
 import '../../../router/app_router.dart';
-import '../../../utils/i18_key_constants.dart' as i18;
+import '../../../utils/i18_key_constants.dart' as i18_local;
 import '../../../widgets/localized.dart';
 
 @RoutePage()
@@ -54,16 +54,17 @@ class CustomHouseholdAcknowledgementSMCPageState
               },
               enableViewHousehold: widget.enableViewHousehold ?? false,
               secondaryLabel: localizations.translate(
-                i18.householdDetails.viewHouseHoldDetailsActionSMC,
+                i18_local.householdDetails.viewHouseHoldDetailsActionSMC,
               ),
               actionLabel: localizations
-                  .translate(i18.acknowledgementSuccess.actionLabelText),
+                  .translate(i18_local.acknowledgementSuccess.actionLabelText),
               description: localizations.translate(
-                i18.acknowledgementSuccess.acknowledgementDescriptionText,
+                i18_local.acknowledgementSuccess.acknowledgementDescriptionText,
               ),
               label: localizations.translate(widget.isReferral == true
-                  ? i18.acknowledgementSuccess.referAcknowledgementLabelText
-                  : i18.acknowledgementSuccess.acknowledgementLabelText),
+                  ? i18_local
+                      .acknowledgementSuccess.referAcknowledgementLabelText
+                  : i18_local.acknowledgementSuccess.acknowledgementLabelText),
             );
           },
         ),

@@ -1,10 +1,10 @@
 name: health_campaign_field_worker_app
 description: A new Flutter project.
-publish_to: "none"
-version: 1.7.0
+publish_to: 'none'
+version: 1.7.4
 
 environment:
-  sdk: ">=3.0.0 <=4.0.0"
+  sdk: '>=3.3.0 <=4.0.0'
 
 dependencies:
   flutter:
@@ -18,7 +18,8 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.11+1
   path_provider: ^2.1.3
   path: ^1.9.0
-  digit_ui_components: ^0.2.1
+  digit_ui_components: 0.0.2-dev.15
+  digit_components: 1.0.3
   auto_route: ^8.3.0
   flutter_bloc: ^8.1.5
   collection: ^1.18.0
@@ -59,18 +60,17 @@ dependencies:
   sync_service: ^1.0.1
   attendance_management: ^1.0.4+1
   digit_scanner: ^1.0.5
-  digit_data_model: ^1.0.6
+  digit_data_model: 1.0.6-dev.1
   disable_battery_optimization: ^1.1.1
   digit_dss: ^1.0.4
   digit_location_tracker: ^1.0.0
   permission_handler: ^11.3.1
-  inventory_management: ^1.0.5
+  inventory_management: 1.0.5
+  registration_delivery: 1.0.6
+  survey_form: 1.0.1
+  crypto: 3.0.3
+  referral_reconciliation: 1.0.4
   complaints: ^1.0.2
-  referral_reconciliation: ^1.0.4
-  registration_delivery: ^1.0.6+2
-  crypto: ^3.0.3
-  digit_components: ^1.0.3
-  logger: ^2.5.0
 
 dev_dependencies:
   flutter_test:
@@ -85,26 +85,21 @@ dev_dependencies:
   auto_route_generator: ^8.0.0
   bloc_test: ^9.1.0
   mocktail: ^1.0.2
-  inventory_management: ^1.0.5
-  complaints: ^1.0.2
-  referral_reconciliation: ^1.0.4
-  registration_delivery: ^1.0.6
-  survey_form: ^1.0.1+3
-
+  
   dart_mappable_builder:
     git:
       url: https://github.com/egovernments/health-campaign-field-worker-app/
       ref: master
       path: ./packages/dart_mappable_builder
-
   isar_generator: ^3.1.0+1
   flutter_launcher_icons: ^0.13.1
   hrk_flutter_test_batteries: ^0.8.0
 
+
 flutter_icons:
-  android: "ic_launcher"
+  android: 'ic_launcher'
   ios: true
-  image_path: "assets/icons/app_icon.png"
+  image_path: 'assets/icons/app_icon.png'
   min_sdk_android: 21
 
 flutter:
@@ -115,7 +110,6 @@ flutter:
     - assets/images/
     - assets/audio/add.wav
     - assets/audio/buzzer.wav
-    - .env
 
   fonts:
     - family: Roboto

@@ -1,6 +1,5 @@
+import 'package:complaints/models/pgr_complaints.dart';
 import 'package:digit_data_model/data_model.dart';
-
-import '../models/entities/assessment_checklist/service.dart';
 
 typedef FacilityDataRepository
     = DataRepository<FacilityModel, FacilitySearchModel>;
@@ -23,5 +22,5 @@ typedef ProjectResourceDataRepository
 typedef ProjectStaffDataRepository
     = DataRepository<ProjectStaffModel, ProjectStaffSearchModel>;
 typedef UserDataRepository = DataRepository<UserModel, UserSearchModel>;
-typedef ServiceDataRepository
-    = DataRepository<ServiceModel, ServiceSearchModel>;
+typedef PgrServiceDataRepository
+    = DataRepository<PgrServiceModel, PgrServiceSearchModel>;

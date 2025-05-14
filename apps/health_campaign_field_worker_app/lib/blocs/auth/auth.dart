@@ -37,7 +37,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on(_onLogin);
     on(_onLogout);
     on(_onAutoLogin);
-    on(_onAuthLogoutWithoutToken);
     on(_onAddSpaqCounts);
   }
 
@@ -102,6 +101,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         "enabled": true,
       });
       await localSecureStore.setBoundaryRefetch(true);
+      final spaq1 = await localSecureStore.spaq1;
+      final spaq2 = await localSecureStore.spaq2;
 
       await localSecureStore.setRoleActions(actionsWrapper);
       if (result.userRequestModel.roles
@@ -124,6 +125,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           userModel: result.userRequestModel,
           actionsWrapper: actionsWrapper,
           individualId: await localSecureStore.userIndividualId,
+          spaq1Count: spaq1,
+          spaq2Count: spaq2,
         ),
       );
     } on DioException catch (error) {
@@ -150,14 +153,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (error) {
       rethrow;
     }
-    emit(const AuthUnauthenticatedState());
-  }
-
-  FutureOr<void> _onAuthLogoutWithoutToken(
-    AuthLogoutWithoutTokenEvent event,
-    AuthEmitter emit,
-  ) async {
-    await localSecureStore.deleteAll();
     emit(const AuthUnauthenticatedState());
   }
 
@@ -217,19 +212,16 @@ class AuthEvent with _$AuthEvent {
     required String tenantId,
   }) = AuthLoginEvent;
 
-  const factory AuthEvent.autoLogin({
-    required String tenantId,
-  }) = AuthAutoLoginEvent;
-
-  const factory AuthEvent.logout() = AuthLogoutEvent;
-
   const factory AuthEvent.addSpaqCounts({
     required int spaq1Count,
     required int spaq2Count,
   }) = AuthAddSpaqCountsEvent;
 
-  const factory AuthEvent.logoutWithoutAuthToken() =
-      AuthLogoutWithoutTokenEvent;
+  const factory AuthEvent.autoLogin({
+    required String tenantId,
+  }) = AuthAutoLoginEvent;
+
+  const factory AuthEvent.logout() = AuthLogoutEvent;
 }
 
 @freezed
@@ -238,15 +230,14 @@ class AuthState with _$AuthState {
 
   const factory AuthState.loading() = AuthLoadingState;
 
-  const factory AuthState.authenticated({
-    required String accessToken,
-    required String refreshToken,
-    required UserRequestModel userModel,
-    required RoleActionsWrapperModel actionsWrapper,
-    String? individualId,
-    int? spaq1Count,
-    int? spaq2Count,
-  }) = AuthAuthenticatedState;
+  const factory AuthState.authenticated(
+      {required String accessToken,
+      required String refreshToken,
+      required UserRequestModel userModel,
+      required RoleActionsWrapperModel actionsWrapper,
+      String? individualId,
+      final int? spaq1Count,
+      final int? spaq2Count}) = AuthAuthenticatedState;
 
   const factory AuthState.error([String? error]) = AuthErrorState;
 }

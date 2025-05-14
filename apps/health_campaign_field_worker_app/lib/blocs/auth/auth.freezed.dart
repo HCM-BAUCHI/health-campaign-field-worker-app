@@ -20,58 +20,50 @@ mixin _$AuthEvent {
   TResult when<TResult extends Object?>({
     required TResult Function(String userId, String password, String tenantId)
         login,
+    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
     required TResult Function(String tenantId) autoLogin,
     required TResult Function() logout,
-    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
-    required TResult Function() logoutWithoutAuthToken,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String userId, String password, String tenantId)? login,
+    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult? Function(String tenantId)? autoLogin,
     TResult? Function()? logout,
-    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult? Function()? logoutWithoutAuthToken,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String userId, String password, String tenantId)? login,
+    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult Function(String tenantId)? autoLogin,
     TResult Function()? logout,
-    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult Function()? logoutWithoutAuthToken,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(AuthLoginEvent value) login,
+    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
     required TResult Function(AuthAutoLoginEvent value) autoLogin,
     required TResult Function(AuthLogoutEvent value) logout,
-    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
-    required TResult Function(AuthLogoutWithoutTokenEvent value)
-        logoutWithoutAuthToken,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(AuthLoginEvent value)? login,
+    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult? Function(AuthAutoLoginEvent value)? autoLogin,
     TResult? Function(AuthLogoutEvent value)? logout,
-    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult? Function(AuthLogoutWithoutTokenEvent value)?
-        logoutWithoutAuthToken,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(AuthLoginEvent value)? login,
+    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult Function(AuthAutoLoginEvent value)? autoLogin,
     TResult Function(AuthLogoutEvent value)? logout,
-    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult Function(AuthLogoutWithoutTokenEvent value)? logoutWithoutAuthToken,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -180,10 +172,9 @@ class _$AuthLoginEventImpl implements AuthLoginEvent {
   TResult when<TResult extends Object?>({
     required TResult Function(String userId, String password, String tenantId)
         login,
+    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
     required TResult Function(String tenantId) autoLogin,
     required TResult Function() logout,
-    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
-    required TResult Function() logoutWithoutAuthToken,
   }) {
     return login(userId, password, tenantId);
   }
@@ -192,10 +183,9 @@ class _$AuthLoginEventImpl implements AuthLoginEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String userId, String password, String tenantId)? login,
+    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult? Function(String tenantId)? autoLogin,
     TResult? Function()? logout,
-    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult? Function()? logoutWithoutAuthToken,
   }) {
     return login?.call(userId, password, tenantId);
   }
@@ -204,10 +194,9 @@ class _$AuthLoginEventImpl implements AuthLoginEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String userId, String password, String tenantId)? login,
+    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult Function(String tenantId)? autoLogin,
     TResult Function()? logout,
-    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult Function()? logoutWithoutAuthToken,
     required TResult orElse(),
   }) {
     if (login != null) {
@@ -220,11 +209,9 @@ class _$AuthLoginEventImpl implements AuthLoginEvent {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(AuthLoginEvent value) login,
+    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
     required TResult Function(AuthAutoLoginEvent value) autoLogin,
     required TResult Function(AuthLogoutEvent value) logout,
-    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
-    required TResult Function(AuthLogoutWithoutTokenEvent value)
-        logoutWithoutAuthToken,
   }) {
     return login(this);
   }
@@ -233,11 +220,9 @@ class _$AuthLoginEventImpl implements AuthLoginEvent {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(AuthLoginEvent value)? login,
+    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult? Function(AuthAutoLoginEvent value)? autoLogin,
     TResult? Function(AuthLogoutEvent value)? logout,
-    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult? Function(AuthLogoutWithoutTokenEvent value)?
-        logoutWithoutAuthToken,
   }) {
     return login?.call(this);
   }
@@ -246,10 +231,9 @@ class _$AuthLoginEventImpl implements AuthLoginEvent {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(AuthLoginEvent value)? login,
+    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult Function(AuthAutoLoginEvent value)? autoLogin,
     TResult Function(AuthLogoutEvent value)? logout,
-    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult Function(AuthLogoutWithoutTokenEvent value)? logoutWithoutAuthToken,
     required TResult orElse(),
   }) {
     if (login != null) {
@@ -271,286 +255,6 @@ abstract class AuthLoginEvent implements AuthEvent {
   @JsonKey(ignore: true)
   _$$AuthLoginEventImplCopyWith<_$AuthLoginEventImpl> get copyWith =>
       throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class _$$AuthAutoLoginEventImplCopyWith<$Res> {
-  factory _$$AuthAutoLoginEventImplCopyWith(_$AuthAutoLoginEventImpl value,
-          $Res Function(_$AuthAutoLoginEventImpl) then) =
-      __$$AuthAutoLoginEventImplCopyWithImpl<$Res>;
-  @useResult
-  $Res call({String tenantId});
-}
-
-/// @nodoc
-class __$$AuthAutoLoginEventImplCopyWithImpl<$Res>
-    extends _$AuthEventCopyWithImpl<$Res, _$AuthAutoLoginEventImpl>
-    implements _$$AuthAutoLoginEventImplCopyWith<$Res> {
-  __$$AuthAutoLoginEventImplCopyWithImpl(_$AuthAutoLoginEventImpl _value,
-      $Res Function(_$AuthAutoLoginEventImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? tenantId = null,
-  }) {
-    return _then(_$AuthAutoLoginEventImpl(
-      tenantId: null == tenantId
-          ? _value.tenantId
-          : tenantId // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
-}
-
-/// @nodoc
-
-class _$AuthAutoLoginEventImpl implements AuthAutoLoginEvent {
-  const _$AuthAutoLoginEventImpl({required this.tenantId});
-
-  @override
-  final String tenantId;
-
-  @override
-  String toString() {
-    return 'AuthEvent.autoLogin(tenantId: $tenantId)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _$AuthAutoLoginEventImpl &&
-            (identical(other.tenantId, tenantId) ||
-                other.tenantId == tenantId));
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, tenantId);
-
-  @JsonKey(ignore: true)
-  @override
-  @pragma('vm:prefer-inline')
-  _$$AuthAutoLoginEventImplCopyWith<_$AuthAutoLoginEventImpl> get copyWith =>
-      __$$AuthAutoLoginEventImplCopyWithImpl<_$AuthAutoLoginEventImpl>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String userId, String password, String tenantId)
-        login,
-    required TResult Function(String tenantId) autoLogin,
-    required TResult Function() logout,
-    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
-    required TResult Function() logoutWithoutAuthToken,
-  }) {
-    return autoLogin(tenantId);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String userId, String password, String tenantId)? login,
-    TResult? Function(String tenantId)? autoLogin,
-    TResult? Function()? logout,
-    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult? Function()? logoutWithoutAuthToken,
-  }) {
-    return autoLogin?.call(tenantId);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String userId, String password, String tenantId)? login,
-    TResult Function(String tenantId)? autoLogin,
-    TResult Function()? logout,
-    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult Function()? logoutWithoutAuthToken,
-    required TResult orElse(),
-  }) {
-    if (autoLogin != null) {
-      return autoLogin(tenantId);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(AuthLoginEvent value) login,
-    required TResult Function(AuthAutoLoginEvent value) autoLogin,
-    required TResult Function(AuthLogoutEvent value) logout,
-    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
-    required TResult Function(AuthLogoutWithoutTokenEvent value)
-        logoutWithoutAuthToken,
-  }) {
-    return autoLogin(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(AuthLoginEvent value)? login,
-    TResult? Function(AuthAutoLoginEvent value)? autoLogin,
-    TResult? Function(AuthLogoutEvent value)? logout,
-    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult? Function(AuthLogoutWithoutTokenEvent value)?
-        logoutWithoutAuthToken,
-  }) {
-    return autoLogin?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(AuthLoginEvent value)? login,
-    TResult Function(AuthAutoLoginEvent value)? autoLogin,
-    TResult Function(AuthLogoutEvent value)? logout,
-    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult Function(AuthLogoutWithoutTokenEvent value)? logoutWithoutAuthToken,
-    required TResult orElse(),
-  }) {
-    if (autoLogin != null) {
-      return autoLogin(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class AuthAutoLoginEvent implements AuthEvent {
-  const factory AuthAutoLoginEvent({required final String tenantId}) =
-      _$AuthAutoLoginEventImpl;
-
-  String get tenantId;
-  @JsonKey(ignore: true)
-  _$$AuthAutoLoginEventImplCopyWith<_$AuthAutoLoginEventImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class _$$AuthLogoutEventImplCopyWith<$Res> {
-  factory _$$AuthLogoutEventImplCopyWith(_$AuthLogoutEventImpl value,
-          $Res Function(_$AuthLogoutEventImpl) then) =
-      __$$AuthLogoutEventImplCopyWithImpl<$Res>;
-}
-
-/// @nodoc
-class __$$AuthLogoutEventImplCopyWithImpl<$Res>
-    extends _$AuthEventCopyWithImpl<$Res, _$AuthLogoutEventImpl>
-    implements _$$AuthLogoutEventImplCopyWith<$Res> {
-  __$$AuthLogoutEventImplCopyWithImpl(
-      _$AuthLogoutEventImpl _value, $Res Function(_$AuthLogoutEventImpl) _then)
-      : super(_value, _then);
-}
-
-/// @nodoc
-
-class _$AuthLogoutEventImpl implements AuthLogoutEvent {
-  const _$AuthLogoutEventImpl();
-
-  @override
-  String toString() {
-    return 'AuthEvent.logout()';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is _$AuthLogoutEventImpl);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>({
-    required TResult Function(String userId, String password, String tenantId)
-        login,
-    required TResult Function(String tenantId) autoLogin,
-    required TResult Function() logout,
-    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
-    required TResult Function() logoutWithoutAuthToken,
-  }) {
-    return logout();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(String userId, String password, String tenantId)? login,
-    TResult? Function(String tenantId)? autoLogin,
-    TResult? Function()? logout,
-    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult? Function()? logoutWithoutAuthToken,
-  }) {
-    return logout?.call();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>({
-    TResult Function(String userId, String password, String tenantId)? login,
-    TResult Function(String tenantId)? autoLogin,
-    TResult Function()? logout,
-    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult Function()? logoutWithoutAuthToken,
-    required TResult orElse(),
-  }) {
-    if (logout != null) {
-      return logout();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>({
-    required TResult Function(AuthLoginEvent value) login,
-    required TResult Function(AuthAutoLoginEvent value) autoLogin,
-    required TResult Function(AuthLogoutEvent value) logout,
-    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
-    required TResult Function(AuthLogoutWithoutTokenEvent value)
-        logoutWithoutAuthToken,
-  }) {
-    return logout(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>({
-    TResult? Function(AuthLoginEvent value)? login,
-    TResult? Function(AuthAutoLoginEvent value)? autoLogin,
-    TResult? Function(AuthLogoutEvent value)? logout,
-    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult? Function(AuthLogoutWithoutTokenEvent value)?
-        logoutWithoutAuthToken,
-  }) {
-    return logout?.call(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>({
-    TResult Function(AuthLoginEvent value)? login,
-    TResult Function(AuthAutoLoginEvent value)? autoLogin,
-    TResult Function(AuthLogoutEvent value)? logout,
-    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult Function(AuthLogoutWithoutTokenEvent value)? logoutWithoutAuthToken,
-    required TResult orElse(),
-  }) {
-    if (logout != null) {
-      return logout(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class AuthLogoutEvent implements AuthEvent {
-  const factory AuthLogoutEvent() = _$AuthLogoutEventImpl;
 }
 
 /// @nodoc
@@ -633,10 +337,9 @@ class _$AuthAddSpaqCountsEventImpl implements AuthAddSpaqCountsEvent {
   TResult when<TResult extends Object?>({
     required TResult Function(String userId, String password, String tenantId)
         login,
+    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
     required TResult Function(String tenantId) autoLogin,
     required TResult Function() logout,
-    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
-    required TResult Function() logoutWithoutAuthToken,
   }) {
     return addSpaqCounts(spaq1Count, spaq2Count);
   }
@@ -645,10 +348,9 @@ class _$AuthAddSpaqCountsEventImpl implements AuthAddSpaqCountsEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String userId, String password, String tenantId)? login,
+    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult? Function(String tenantId)? autoLogin,
     TResult? Function()? logout,
-    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult? Function()? logoutWithoutAuthToken,
   }) {
     return addSpaqCounts?.call(spaq1Count, spaq2Count);
   }
@@ -657,10 +359,9 @@ class _$AuthAddSpaqCountsEventImpl implements AuthAddSpaqCountsEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String userId, String password, String tenantId)? login,
+    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult Function(String tenantId)? autoLogin,
     TResult Function()? logout,
-    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult Function()? logoutWithoutAuthToken,
     required TResult orElse(),
   }) {
     if (addSpaqCounts != null) {
@@ -673,11 +374,9 @@ class _$AuthAddSpaqCountsEventImpl implements AuthAddSpaqCountsEvent {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(AuthLoginEvent value) login,
+    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
     required TResult Function(AuthAutoLoginEvent value) autoLogin,
     required TResult Function(AuthLogoutEvent value) logout,
-    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
-    required TResult Function(AuthLogoutWithoutTokenEvent value)
-        logoutWithoutAuthToken,
   }) {
     return addSpaqCounts(this);
   }
@@ -686,11 +385,9 @@ class _$AuthAddSpaqCountsEventImpl implements AuthAddSpaqCountsEvent {
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(AuthLoginEvent value)? login,
+    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult? Function(AuthAutoLoginEvent value)? autoLogin,
     TResult? Function(AuthLogoutEvent value)? logout,
-    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult? Function(AuthLogoutWithoutTokenEvent value)?
-        logoutWithoutAuthToken,
   }) {
     return addSpaqCounts?.call(this);
   }
@@ -699,10 +396,9 @@ class _$AuthAddSpaqCountsEventImpl implements AuthAddSpaqCountsEvent {
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(AuthLoginEvent value)? login,
+    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult Function(AuthAutoLoginEvent value)? autoLogin,
     TResult Function(AuthLogoutEvent value)? logout,
-    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult Function(AuthLogoutWithoutTokenEvent value)? logoutWithoutAuthToken,
     required TResult orElse(),
   }) {
     if (addSpaqCounts != null) {
@@ -725,38 +421,184 @@ abstract class AuthAddSpaqCountsEvent implements AuthEvent {
 }
 
 /// @nodoc
-abstract class _$$AuthLogoutWithoutTokenEventImplCopyWith<$Res> {
-  factory _$$AuthLogoutWithoutTokenEventImplCopyWith(
-          _$AuthLogoutWithoutTokenEventImpl value,
-          $Res Function(_$AuthLogoutWithoutTokenEventImpl) then) =
-      __$$AuthLogoutWithoutTokenEventImplCopyWithImpl<$Res>;
+abstract class _$$AuthAutoLoginEventImplCopyWith<$Res> {
+  factory _$$AuthAutoLoginEventImplCopyWith(_$AuthAutoLoginEventImpl value,
+          $Res Function(_$AuthAutoLoginEventImpl) then) =
+      __$$AuthAutoLoginEventImplCopyWithImpl<$Res>;
+  @useResult
+  $Res call({String tenantId});
 }
 
 /// @nodoc
-class __$$AuthLogoutWithoutTokenEventImplCopyWithImpl<$Res>
-    extends _$AuthEventCopyWithImpl<$Res, _$AuthLogoutWithoutTokenEventImpl>
-    implements _$$AuthLogoutWithoutTokenEventImplCopyWith<$Res> {
-  __$$AuthLogoutWithoutTokenEventImplCopyWithImpl(
-      _$AuthLogoutWithoutTokenEventImpl _value,
-      $Res Function(_$AuthLogoutWithoutTokenEventImpl) _then)
+class __$$AuthAutoLoginEventImplCopyWithImpl<$Res>
+    extends _$AuthEventCopyWithImpl<$Res, _$AuthAutoLoginEventImpl>
+    implements _$$AuthAutoLoginEventImplCopyWith<$Res> {
+  __$$AuthAutoLoginEventImplCopyWithImpl(_$AuthAutoLoginEventImpl _value,
+      $Res Function(_$AuthAutoLoginEventImpl) _then)
       : super(_value, _then);
+
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? tenantId = null,
+  }) {
+    return _then(_$AuthAutoLoginEventImpl(
+      tenantId: null == tenantId
+          ? _value.tenantId
+          : tenantId // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
 }
 
 /// @nodoc
 
-class _$AuthLogoutWithoutTokenEventImpl implements AuthLogoutWithoutTokenEvent {
-  const _$AuthLogoutWithoutTokenEventImpl();
+class _$AuthAutoLoginEventImpl implements AuthAutoLoginEvent {
+  const _$AuthAutoLoginEventImpl({required this.tenantId});
+
+  @override
+  final String tenantId;
 
   @override
   String toString() {
-    return 'AuthEvent.logoutWithoutAuthToken()';
+    return 'AuthEvent.autoLogin(tenantId: $tenantId)';
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$AuthLogoutWithoutTokenEventImpl);
+            other is _$AuthAutoLoginEventImpl &&
+            (identical(other.tenantId, tenantId) ||
+                other.tenantId == tenantId));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, tenantId);
+
+  @JsonKey(ignore: true)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$AuthAutoLoginEventImplCopyWith<_$AuthAutoLoginEventImpl> get copyWith =>
+      __$$AuthAutoLoginEventImplCopyWithImpl<_$AuthAutoLoginEventImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String userId, String password, String tenantId)
+        login,
+    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
+    required TResult Function(String tenantId) autoLogin,
+    required TResult Function() logout,
+  }) {
+    return autoLogin(tenantId);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String userId, String password, String tenantId)? login,
+    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
+    TResult? Function(String tenantId)? autoLogin,
+    TResult? Function()? logout,
+  }) {
+    return autoLogin?.call(tenantId);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String userId, String password, String tenantId)? login,
+    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
+    TResult Function(String tenantId)? autoLogin,
+    TResult Function()? logout,
+    required TResult orElse(),
+  }) {
+    if (autoLogin != null) {
+      return autoLogin(tenantId);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(AuthLoginEvent value) login,
+    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
+    required TResult Function(AuthAutoLoginEvent value) autoLogin,
+    required TResult Function(AuthLogoutEvent value) logout,
+  }) {
+    return autoLogin(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(AuthLoginEvent value)? login,
+    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
+    TResult? Function(AuthAutoLoginEvent value)? autoLogin,
+    TResult? Function(AuthLogoutEvent value)? logout,
+  }) {
+    return autoLogin?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(AuthLoginEvent value)? login,
+    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
+    TResult Function(AuthAutoLoginEvent value)? autoLogin,
+    TResult Function(AuthLogoutEvent value)? logout,
+    required TResult orElse(),
+  }) {
+    if (autoLogin != null) {
+      return autoLogin(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class AuthAutoLoginEvent implements AuthEvent {
+  const factory AuthAutoLoginEvent({required final String tenantId}) =
+      _$AuthAutoLoginEventImpl;
+
+  String get tenantId;
+  @JsonKey(ignore: true)
+  _$$AuthAutoLoginEventImplCopyWith<_$AuthAutoLoginEventImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$AuthLogoutEventImplCopyWith<$Res> {
+  factory _$$AuthLogoutEventImplCopyWith(_$AuthLogoutEventImpl value,
+          $Res Function(_$AuthLogoutEventImpl) then) =
+      __$$AuthLogoutEventImplCopyWithImpl<$Res>;
+}
+
+/// @nodoc
+class __$$AuthLogoutEventImplCopyWithImpl<$Res>
+    extends _$AuthEventCopyWithImpl<$Res, _$AuthLogoutEventImpl>
+    implements _$$AuthLogoutEventImplCopyWith<$Res> {
+  __$$AuthLogoutEventImplCopyWithImpl(
+      _$AuthLogoutEventImpl _value, $Res Function(_$AuthLogoutEventImpl) _then)
+      : super(_value, _then);
+}
+
+/// @nodoc
+
+class _$AuthLogoutEventImpl implements AuthLogoutEvent {
+  const _$AuthLogoutEventImpl();
+
+  @override
+  String toString() {
+    return 'AuthEvent.logout()';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is _$AuthLogoutEventImpl);
   }
 
   @override
@@ -767,38 +609,35 @@ class _$AuthLogoutWithoutTokenEventImpl implements AuthLogoutWithoutTokenEvent {
   TResult when<TResult extends Object?>({
     required TResult Function(String userId, String password, String tenantId)
         login,
+    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
     required TResult Function(String tenantId) autoLogin,
     required TResult Function() logout,
-    required TResult Function(int spaq1Count, int spaq2Count) addSpaqCounts,
-    required TResult Function() logoutWithoutAuthToken,
   }) {
-    return logoutWithoutAuthToken();
+    return logout();
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(String userId, String password, String tenantId)? login,
+    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult? Function(String tenantId)? autoLogin,
     TResult? Function()? logout,
-    TResult? Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult? Function()? logoutWithoutAuthToken,
   }) {
-    return logoutWithoutAuthToken?.call();
+    return logout?.call();
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(String userId, String password, String tenantId)? login,
+    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
     TResult Function(String tenantId)? autoLogin,
     TResult Function()? logout,
-    TResult Function(int spaq1Count, int spaq2Count)? addSpaqCounts,
-    TResult Function()? logoutWithoutAuthToken,
     required TResult orElse(),
   }) {
-    if (logoutWithoutAuthToken != null) {
-      return logoutWithoutAuthToken();
+    if (logout != null) {
+      return logout();
     }
     return orElse();
   }
@@ -807,48 +646,42 @@ class _$AuthLogoutWithoutTokenEventImpl implements AuthLogoutWithoutTokenEvent {
   @optionalTypeArgs
   TResult map<TResult extends Object?>({
     required TResult Function(AuthLoginEvent value) login,
+    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
     required TResult Function(AuthAutoLoginEvent value) autoLogin,
     required TResult Function(AuthLogoutEvent value) logout,
-    required TResult Function(AuthAddSpaqCountsEvent value) addSpaqCounts,
-    required TResult Function(AuthLogoutWithoutTokenEvent value)
-        logoutWithoutAuthToken,
   }) {
-    return logoutWithoutAuthToken(this);
+    return logout(this);
   }
 
   @override
   @optionalTypeArgs
   TResult? mapOrNull<TResult extends Object?>({
     TResult? Function(AuthLoginEvent value)? login,
+    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult? Function(AuthAutoLoginEvent value)? autoLogin,
     TResult? Function(AuthLogoutEvent value)? logout,
-    TResult? Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult? Function(AuthLogoutWithoutTokenEvent value)?
-        logoutWithoutAuthToken,
   }) {
-    return logoutWithoutAuthToken?.call(this);
+    return logout?.call(this);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeMap<TResult extends Object?>({
     TResult Function(AuthLoginEvent value)? login,
+    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
     TResult Function(AuthAutoLoginEvent value)? autoLogin,
     TResult Function(AuthLogoutEvent value)? logout,
-    TResult Function(AuthAddSpaqCountsEvent value)? addSpaqCounts,
-    TResult Function(AuthLogoutWithoutTokenEvent value)? logoutWithoutAuthToken,
     required TResult orElse(),
   }) {
-    if (logoutWithoutAuthToken != null) {
-      return logoutWithoutAuthToken(this);
+    if (logout != null) {
+      return logout(this);
     }
     return orElse();
   }
 }
 
-abstract class AuthLogoutWithoutTokenEvent implements AuthEvent {
-  const factory AuthLogoutWithoutTokenEvent() =
-      _$AuthLogoutWithoutTokenEventImpl;
+abstract class AuthLogoutEvent implements AuthEvent {
+  const factory AuthLogoutEvent() = _$AuthLogoutEventImpl;
 }
 
 /// @nodoc

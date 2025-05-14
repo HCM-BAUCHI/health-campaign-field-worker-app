@@ -123,6 +123,22 @@ class MockAutoRouterObserver extends _i1.Mock
       );
 
   @override
+  void didChangeTop(
+    _i3.Route<dynamic>? topRoute,
+    _i3.Route<dynamic>? previousTopRoute,
+  ) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #didChangeTop,
+          [
+            topRoute,
+            previousTopRoute,
+          ],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   void didStartUserGesture(
     _i3.Route<dynamic>? route,
     _i3.Route<dynamic>? previousRoute,

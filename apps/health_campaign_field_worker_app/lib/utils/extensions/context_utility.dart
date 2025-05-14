@@ -82,40 +82,6 @@ extension ContextUtilityExtensions on BuildContext {
     }
   }
 
-    bool get isHealthFacilitySupervisor {
-    try {
-      // todo : verify this make this healthFacilitySupervsior as per kebbi
-      bool isDownSyncEnabled = loggedInUserRoles
-          .where(
-            (role) =>
-                role.code == RolesType.healthFacilityWorker.toValue() ||
-                role.code == RolesType.healthFacilitySupervisor.toValue(),
-          )
-          .toList()
-          .isNotEmpty;
-
-      return isDownSyncEnabled;
-    } catch (_) {
-      return false;
-    }
-  }
-
-    bool get isCommunityDistributor {
-    try {
-      bool communityDistributor = loggedInUserRoles
-          .where(
-            (role) => role.code == RolesType.communityDistributor.toValue(),
-          )
-          .toList()
-          .isNotEmpty;
-
-      return communityDistributor;
-    } catch (_) {
-      return false;
-    }
-  }
-
-
   BeneficiaryType get beneficiaryType {
     final projectBloc = _get<ProjectBloc>();
 
@@ -144,14 +110,14 @@ extension ContextUtilityExtensions on BuildContext {
       throw AppException('No boundary is selected');
     }
     // INFO: Set Boundary for packages
-    RegistrationDeliverySingleton().setBoundary(boundary: selectedBoundary);
     ReferralReconSingleton().setBoundary(boundary: selectedBoundary);
+    RegistrationDeliverySingleton().setBoundary(boundary: selectedBoundary);
     InventorySingleton().setBoundaryName(boundaryName: selectedBoundary.name!);
-    InventorySingleton().setBoundary(boundary: selectedBoundary);
-    ComplaintsSingleton().setBoundary(boundary: selectedBoundary);
     AttendanceSingleton().setBoundary(boundary: selectedBoundary);
     LocationTrackerSingleton()
         .setBoundaryName(boundaryName: selectedBoundary.code!);
+    InventorySingleton().setBoundaryName(boundaryName: selectedBoundary.code!);
+    ComplaintsSingleton().setBoundary(boundary: selectedBoundary);
     return selectedBoundary;
   }
 
@@ -161,6 +127,65 @@ extension ContextUtilityExtensions on BuildContext {
     } catch (_) {
       return null;
     }
+  }
+
+  bool get isRegistrar {
+    UserRequestModel loggedInUser;
+
+    try {
+      loggedInUser = this.loggedInUser;
+    } catch (_) {
+      return false;
+    }
+
+    for (final role in loggedInUser.roles) {
+      switch (role.code) {
+        case "REGISTRAR":
+          return true;
+        default:
+          break;
+      }
+    }
+
+    return false;
+  }
+
+  bool get isDistributor {
+    try {
+      bool isDistributorUser = loggedInUserRoles
+          .where(
+            (role) => role.code == RolesType.communityDistributor.toValue(),
+          )
+          .toList()
+          .isNotEmpty;
+
+      return isDistributorUser;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool get isCDD {
+    UserRequestModel loggedInUser;
+
+    try {
+      loggedInUser = this.loggedInUser;
+    } catch (_) {
+      return false;
+    }
+
+    List<String> targetedRoles = [
+      "WAREHOUSE_MANAGER",
+      "DISTRIBUTOR",
+    ];
+
+    for (final role in loggedInUser.roles) {
+      if (targetedRoles.contains(role.code)) {
+        targetedRoles.remove(role.code);
+      }
+    }
+
+    return targetedRoles.isEmpty;
   }
 
   List<UserRoleModel> get loggedInUserRoles {
@@ -207,52 +232,6 @@ extension ContextUtilityExtensions on BuildContext {
     }
 
     return individualUUID;
-  }
-
-  int get spaq1 {
-    final authBloc = _get<AuthBloc>();
-    final spaq1 = authBloc.state.whenOrNull(
-      authenticated: (
-        accessToken,
-        refreshToken,
-        userModel,
-        actionsWrapper,
-        individualId,
-        spaq1,
-        spaq2,
-      ) {
-        return spaq1;
-      },
-    );
-
-    if (spaq1 == null) {
-      return 0;
-    }
-
-    return spaq1;
-  }
-
-  int get spaq2 {
-    final authBloc = _get<AuthBloc>();
-    final spaq2 = authBloc.state.whenOrNull(
-      authenticated: (
-        accessToken,
-        refreshToken,
-        userModel,
-        actionsWrapper,
-        individualId,
-        spaq1,
-        spaq2,
-      ) {
-        return spaq2;
-      },
-    );
-
-    if (spaq2 == null) {
-      return 0;
-    }
-
-    return spaq2;
   }
 
   UserModel? get loggedInUserModel {
@@ -315,6 +294,85 @@ extension ContextUtilityExtensions on BuildContext {
     }
 
     return false;
+  }
+
+  int get spaq1 {
+    final authBloc = _get<AuthBloc>();
+    final spaq1 = authBloc.state.whenOrNull(
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+      ) {
+        return spaq1;
+      },
+    );
+
+    if (spaq1 == null) {
+      return 0;
+    }
+
+    return spaq1;
+  }
+
+  int get spaq2 {
+    final authBloc = _get<AuthBloc>();
+    final spaq2 = authBloc.state.whenOrNull(
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+      ) {
+        return spaq2;
+      },
+    );
+
+    if (spaq2 == null) {
+      return 0;
+    }
+
+    return spaq2;
+  }
+
+  bool get isCommunityDistributor {
+    try {
+      bool communityDistributor = loggedInUserRoles
+          .where(
+            (role) => role.code == RolesType.communityDistributor.toValue(),
+          )
+          .toList()
+          .isNotEmpty;
+
+      return communityDistributor;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool get isHealthFacilitySupervisor {
+    try {
+      // todo : verify this make this healthFacilitySupervsior as per kebbi
+      bool isDownSyncEnabled = loggedInUserRoles
+          .where(
+            (role) =>
+                role.code == RolesType.healthFacilityWorker.toValue() ||
+                role.code == RolesType.healthFacilitySupervisor.toValue(),
+          )
+          .toList()
+          .isNotEmpty;
+
+      return isDownSyncEnabled;
+    } catch (_) {
+      return false;
+    }
   }
 
   NetworkManager get networkManager => read<NetworkManager>();

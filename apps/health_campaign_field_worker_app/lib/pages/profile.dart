@@ -228,7 +228,7 @@ class _ProfilePageState extends LocalizedState<ProfilePage> {
                           ),
                         ]),
                     header: const Column(children: [
-                      BackNavigationHelpHeaderWidget(),
+                      BackNavigationHelpHeaderWidget(showHelp: true,),
                     ]),
                     children: [
                       DigitCard(
