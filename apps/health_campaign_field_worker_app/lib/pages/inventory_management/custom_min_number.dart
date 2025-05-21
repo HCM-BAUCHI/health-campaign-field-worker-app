@@ -37,6 +37,8 @@ class CustomMinNumberPage extends LocalizedStatefulWidget {
 
 class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
   List<StockModel> stockList = [];
+  String? selectedMRN;
+  List<StockModel> selectedStockList = [];
 
   @override
   void initState() {
@@ -131,7 +133,23 @@ class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
                   label: localizations.translate(
                     i18.householdDetails.actionLabel,
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    if (selectedMRN != null && selectedStockList.isNotEmpty) {
+                      context.router.push(
+                        ViewStockRecordsRoute(
+                          mrnNumber: selectedMRN!,
+                          stockRecords: selectedStockList,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Please select a record"),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ],
             ),
@@ -168,6 +186,7 @@ class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
                                       .add(condenseStockObject(stockModel));
                                 }
                                 final stocks = groupedEntries[index].value;
+                                final isSelected = selectedMRN == mrn;
                                 final jsonStr = jsonEncode(finalStocks);
 
                                 final compressed =
@@ -178,12 +197,15 @@ class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: GestureDetector(
                                     onTap: () {
-                                      context.router.push(
-                                        ViewStockRecordsRoute(
-                                          mrnNumber: mrn,
-                                          stockRecords: stocks,
-                                        ),
-                                      );
+                                      setState(() {
+                                        if (selectedMRN == mrn) {
+                                          selectedMRN = null;
+                                          selectedStockList = [];
+                                        } else {
+                                          selectedMRN = mrn;
+                                          selectedStockList = stocks;
+                                        }
+                                      });
                                     },
                                     child: MinNumberCard(
                                       data: encoded,
@@ -221,6 +243,7 @@ class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
                                               .isDistributor
                                           ? null
                                           : stocks.first.wayBillNumber ?? "",
+                                      isSelected: isSelected,
                                     ),
                                   ),
                                 );
