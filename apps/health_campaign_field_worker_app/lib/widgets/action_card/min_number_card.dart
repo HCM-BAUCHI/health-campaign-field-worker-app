@@ -15,16 +15,17 @@ class MinNumberCard extends StatelessWidget {
   final List<Map<String, String>> items;
   final String data;
   String? waybillNumber;
+  final bool? isSelected;
 
-  MinNumberCard({
-    super.key,
-    required this.minNumber,
-    required this.cddCode,
-    required this.date,
-    required this.items,
-    required this.data,
-    this.waybillNumber,
-  });
+  MinNumberCard(
+      {super.key,
+      required this.minNumber,
+      required this.cddCode,
+      required this.date,
+      required this.items,
+      required this.data,
+      this.waybillNumber,
+      this.isSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +34,14 @@ class MinNumberCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: isSelected != null && isSelected!
+            ? const Color.fromARGB(255, 250, 158, 105)
+            : Colors.grey[200],
         border: Border.all(
-          color: Colors.grey[400]!,
-          width: 1,
+          color: isSelected != null && isSelected!
+              ? const Color.fromARGB(255, 223, 107, 41)
+              : Colors.grey[400]!,
+          width: 2,
         ),
         borderRadius: BorderRadius.circular(8.0), // Replace spacer2 with 8.0
       ),
@@ -49,7 +54,9 @@ class MinNumberCard extends StatelessWidget {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isSelected != null && isSelected!
+                    ? const Color.fromARGB(255, 238, 190, 162)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(8.0), // Replace spacer2
               ),
               padding: const EdgeInsets.all(8.0), // Replace spacer2
