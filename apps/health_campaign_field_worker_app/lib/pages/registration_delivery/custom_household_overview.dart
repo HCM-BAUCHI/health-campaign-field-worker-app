@@ -1090,51 +1090,75 @@ class _CustomHouseholdOverviewPageState
                                   ),
                                   DigitButton(
                                     mainAxisSize: MainAxisSize.max,
-                                    onPressed: () => (context.spaq1 > 0 ||
-                                            context.spaq2 > 0 ||
-                                            context.blueVas > 0 ||
-                                            context.redVas > 0)
-                                        ? addIndividual(
-                                            context,
-                                            state.householdMemberWrapper
-                                                .household,
-                                          )
-                                        : showCustomPopup(
-                                            context: context,
-                                            builder: (popupContext) => Popup(
-                                              title: localizations.translate(
-                                                  i18_local.beneficiaryDetails
-                                                      .insufficientStockHeading),
-                                              onOutsideTap: () {
-                                                Navigator.of(popupContext)
-                                                    .pop(false);
-                                              },
-                                              description:
-                                                  localizations.translate(
+                                    onPressed: () {
+                                      int spaq1 = context.spaq1;
+                                      int spaq2 = context.spaq2;
+                                      int blueVas = context.blueVas;
+                                      int redVas = context.redVas;
+                                      String descriptionText =
+                                          localizations.translate(i18_local
+                                              .beneficiaryDetails
+                                              .insufficientStockMessage);
+                                      if (spaq1 == 0) {
+                                        descriptionText +=
+                                            "\n ${localizations.translate(i18_local.beneficiaryDetails.spaq1DoseUnit)}";
+                                      }
+                                      if (spaq2 == 0) {
+                                        descriptionText +=
+                                            "\n ${localizations.translate(i18_local.beneficiaryDetails.spaq2DoseUnit)}";
+                                      }
+                                      if (blueVas == 0) {
+                                        descriptionText +=
+                                            "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
+                                      }
+                                      if (redVas == 0) {
+                                        descriptionText +=
+                                            "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
+                                      }
+
+                                      if (context.spaq1 > 0 ||
+                                          context.spaq2 > 0 ||
+                                          context.blueVas > 0 ||
+                                          context.redVas > 0) {
+                                        addIndividual(
+                                          context,
+                                          state
+                                              .householdMemberWrapper.household,
+                                        );
+                                      } else {
+                                        showCustomPopup(
+                                          context: context,
+                                          builder: (popupContext) => Popup(
+                                            title: localizations.translate(
                                                 i18_local.beneficiaryDetails
-                                                    .insufficientStockMessage,
-                                              ),
-                                              type: PopUpType.simple,
-                                              actions: [
-                                                DigitButton(
-                                                  label:
-                                                      localizations.translate(
-                                                    i18_local.beneficiaryDetails
-                                                        .goToHome,
-                                                  ),
-                                                  onPressed: () {
-                                                    Navigator.of(
-                                                      popupContext,
-                                                      rootNavigator: true,
-                                                    ).pop();
-                                                    //
-                                                  },
-                                                  type: DigitButtonType.primary,
-                                                  size: DigitButtonSize.large,
+                                                    .insufficientStockHeading),
+                                            onOutsideTap: () {
+                                              Navigator.of(popupContext)
+                                                  .pop(false);
+                                            },
+                                            description: descriptionText,
+                                            type: PopUpType.simple,
+                                            actions: [
+                                              DigitButton(
+                                                label: localizations.translate(
+                                                  i18_local.beneficiaryDetails
+                                                      .goToHome,
                                                 ),
-                                              ],
-                                            ),
+                                                onPressed: () {
+                                                  Navigator.of(
+                                                    popupContext,
+                                                    rootNavigator: true,
+                                                  ).pop();
+                                                  //
+                                                },
+                                                type: DigitButtonType.primary,
+                                                size: DigitButtonSize.large,
+                                              ),
+                                            ],
                                           ),
+                                        );
+                                      }
+                                    },
                                     label: localizations.translate(
                                       i18.householdOverView
                                           .householdOverViewAddActionText,
