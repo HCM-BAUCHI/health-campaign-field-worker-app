@@ -694,6 +694,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                               );
                             },
                           ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
