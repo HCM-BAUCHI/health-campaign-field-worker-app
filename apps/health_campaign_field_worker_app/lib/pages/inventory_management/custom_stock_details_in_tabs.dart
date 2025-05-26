@@ -931,7 +931,9 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
       additionalFields: currentStock.additionalFields?.copyWith(
         fields: [
           ...(currentStock.additionalFields?.fields ?? []),
-          if (entryType == StockRecordEntryType.returned) ...[
+          if ((entryType == StockRecordEntryType.dispatch &&
+                  context.isCommunityDistributor) ||
+              entryType == StockRecordEntryType.returned) ...[
             AdditionalField(
                 'partialBlistersReturned',
                 form
