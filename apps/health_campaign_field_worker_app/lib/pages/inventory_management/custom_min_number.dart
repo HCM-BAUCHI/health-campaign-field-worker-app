@@ -200,7 +200,7 @@ class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16.0),
-                          Text("Select the MRN number",
+                          Text("Select the MIN number",
                               style: textTheme.headingL),
                           const SizedBox(height: 16.0),
                           SizedBox(
