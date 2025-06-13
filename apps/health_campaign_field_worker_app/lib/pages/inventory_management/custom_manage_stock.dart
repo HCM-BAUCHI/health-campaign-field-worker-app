@@ -135,7 +135,7 @@ class CustomManageStocksPageState
                                   ? Icons.settings_backup_restore
                                   : Icons.file_upload_outlined,
                               onTap: () {
-                                showStockIssueOrReturnDialog(context);
+                                showStockIssueDialog(context);
                               }),
                         ),
                       ),
@@ -146,7 +146,7 @@ class CustomManageStocksPageState
                         child: Center(
                             child: GestureDetector(
                           onTap: () {
-                            showStockIssueOrReturnDialog(context);
+                            showStockIssueDialog(context);
                           },
                           child: Icon(
                             Icons.arrow_circle_right,
@@ -318,7 +318,7 @@ class CustomManageStocksPageState
         });
   }
 
-  void showStockIssueOrReturnDialog(BuildContext context) {
+  void showStockIssueDialog(BuildContext context) {
     showDialog(
         context: context,
         builder: (context) {
@@ -328,19 +328,11 @@ class CustomManageStocksPageState
               children: [
                 GestureDetector(
                   onTap: () {
-                    // if (context.isCDD) {
                     context.router.push(
                       RecordStockWrapperRoute(
                         type: StockRecordEntryType.dispatch,
                       ),
                     );
-                    // } else {
-                    //   context.router.push(
-                    //     RecordStockWrapperRoute(
-                    //       type: StockRecordEntryType.dispatch,
-                    //     ),
-                    //   );
-                    // }
                     Navigator.of(context).pop();
                   },
                   child: Container(
@@ -379,20 +371,11 @@ class CustomManageStocksPageState
                 const SizedBox(height: 16), // Add spacing between buttons
                 GestureDetector(
                   onTap: () {
-                    // if (context.isCDD) {
                     context.router.push(
                       CustomMinNumberRoute(
                         type: StockRecordEntryType.dispatch,
                       ),
                     );
-                    // }
-                    // else {
-                    //   context.router.push(
-                    //     CustomMinNumberRoute(
-                    //       type: StockRecordEntryType.dispatch,
-                    //     ),
-                    //   );
-                    // }
                     Navigator.of(context).pop();
                   },
                   child: Container(

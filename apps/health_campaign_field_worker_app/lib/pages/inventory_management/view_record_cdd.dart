@@ -92,7 +92,7 @@ class _ViewStockRecordsCDDPageState
     final currentComment = currentForm.control('comments').value;
     if ((quantityReceived == null ||
             (quantityReceived is int && quantityReceived < stockQuantity)) &&
-        (currentComment == null || currentComment.trim() == '' )) {
+        (currentComment == null || currentComment.trim() == '')) {
       await DigitToast.show(context,
           options: DigitToastOptions('Comment is required', true, theme));
       return;
@@ -341,7 +341,8 @@ class _ViewStockRecordsCDDPageState
                   const SizedBox(height: 12),
                   InputField(
                     type: InputType.text,
-                    label: localizations.translate(i18_local.inventoryReportDetails.waybillNumberText),
+                    label: localizations.translate(
+                        i18_local.inventoryReportDetails.waybillNumberText),
                     initialValue: stock.wayBillNumber ?? '',
                     isDisabled: true,
                     readOnly: true,
@@ -349,7 +350,8 @@ class _ViewStockRecordsCDDPageState
                   const SizedBox(height: 12),
                   InputField(
                     type: InputType.text,
-                    label: localizations.translate(i18_local.inventoryReportDetails.batchNumberText),
+                    label: localizations.translate(
+                        i18_local.inventoryReportDetails.batchNumberText),
                     initialValue: stock.additionalFields?.fields
                             .firstWhere(
                               (field) => field.key == 'batchNumber',
@@ -364,7 +366,7 @@ class _ViewStockRecordsCDDPageState
                   const SizedBox(height: 12),
                   InputField(
                     type: InputType.text,
-                    label:localizations.translate( i18_local
+                    label: localizations.translate(i18_local
                         .inventoryReportDetails.quantityReceivedByWarehouse),
                     initialValue: stock.quantity ?? '',
                     isDisabled: true,
@@ -408,7 +410,8 @@ class _ViewStockRecordsCDDPageState
                     builder: (field) => InputField(
                       isRequired: commentsRequired,
                       type: InputType.textArea,
-                      label: localizations.translate(i18_local.inventoryReportDetails.commentsText),
+                      label: localizations.translate(
+                          i18_local.inventoryReportDetails.commentsText),
                       errorMessage: field.errorText,
                       onChange: (value) => field.control.value = value,
                     ),
