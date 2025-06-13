@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inventory_management/blocs/record_stock.dart';
 import 'package:inventory_management/models/entities/stock.dart';
+import 'package:inventory_management/models/entities/transaction_reason.dart';
+import 'package:inventory_management/models/entities/transaction_type.dart';
 import 'package:inventory_management/utils/i18_key_constants.dart' as i18;
 import '../../utils/i18_key_constants.dart' as i18_local;
 import 'package:inventory_management/utils/utils.dart';
@@ -20,14 +22,12 @@ import '../../utils/utils.dart';
 class ViewStockRecordsPage extends LocalizedStatefulWidget {
   final String mrnNumber;
   final List<StockModel> stockRecords;
-  StockRecordEntryType entryType;
 
   ViewStockRecordsPage({
     super.key,
     super.appLocalizations,
     required this.mrnNumber,
     required this.stockRecords,
-    this.entryType = StockRecordEntryType.dispatch,
   });
 
   @override
@@ -101,31 +101,72 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
             .value
             ?.toString() ??
         '';
-    StockRecordEntryType entryType = widget.entryType;
+    Map<String, StockRecordEntryType> transactionToEntryType = {
+      TransactionReason.received.toValue(): StockRecordEntryType.receipt,
+      TransactionReason.returned.toValue(): StockRecordEntryType.returned,
+      TransactionType.dispatched.toValue(): StockRecordEntryType.dispatch,
+    };
+    final transaction = (stock.transactionReason ?? stock.transactionType ?? '')
+        .toString()
+        .toUpperCase();
+    StockRecordEntryType entryType = StockRecordEntryType.values.firstWhere(
+      (e) {
+        final enumName = e.toString().toUpperCase().split('.').last;
+        if (transaction != '' &&
+            transactionToEntryType.containsKey(transaction)) {
+          return enumName ==
+              transactionToEntryType[transaction]!
+                  .toString()
+                  .toUpperCase()
+                  .split('.')
+                  .last;
+        } else {
+          return enumName == transaction;
+        }
+      },
+      orElse: () => StockRecordEntryType.receipt,
+    );
 
     String quantityCountLabel;
     String unusedQuantityCountLabel = 'unusedQuantityCountLabel';
     String partiallyUsedQuantityCountLabel = 'partiallyUsedQuantityCountLabel';
     String wastedQuantityCountLabel = 'wastedQuantityCountLabel';
+    String quantitySentByWarehouse = 'quantitySentByWarehouse';
 
     switch (entryType) {
       case StockRecordEntryType.receipt:
         if (productName == "Blue VAS" || productName == "Red VAS") {
           quantityCountLabel =
               i18_local.stockDetails.quantityCapsuleReceivedLabel;
+          quantitySentByWarehouse =
+              i18_local.inventoryReportDetails.quantityCapsuleSentByWarehouse;
         } else {
           quantityCountLabel = i18.stockDetails.quantityReceivedLabel;
+          quantitySentByWarehouse =
+              i18_local.inventoryReportDetails.quantitySentByWarehouse;
         }
         break;
       case StockRecordEntryType.dispatch:
         if (productName == "Blue VAS" || productName == "Red VAS") {
           quantityCountLabel = InventorySingleton().isWareHouseMgr
               ? i18_local.stockDetails.quantityCapsuleSentLabel
-              : i18_local.stockDetails.quantityCapsuleReturnedLabel;
+              : i18_local.stockDetails.quantityCapsuleUnusedReturnedLabel;
+          unusedQuantityCountLabel =
+              i18_local.stockDetails.quantityCapsuleUnusedReturnedLabel;
+          partiallyUsedQuantityCountLabel =
+              i18_local.stockDetails.quantityCapsulePartiallyUsedReturnedLabel;
+          wastedQuantityCountLabel =
+              i18_local.stockDetails.quantityCapsuleWastedReturnedLabel;
         } else {
           quantityCountLabel = InventorySingleton().isWareHouseMgr
               ? i18.stockDetails.quantitySentLabel
               : i18.stockDetails.quantityReturnedLabel;
+          unusedQuantityCountLabel =
+              i18_local.stockDetails.quantityUnusedReturnedLabel;
+          partiallyUsedQuantityCountLabel =
+              i18_local.stockDetails.quantityPartiallyUsedReturnedLabel;
+          wastedQuantityCountLabel =
+              i18_local.stockDetails.quantityWastedReturnedLabel;
         }
         break;
       case StockRecordEntryType.returned:
@@ -174,7 +215,10 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Expanded(child: Text('MRN Number')),
+                      Expanded(
+                          child: Text(entryType == StockRecordEntryType.dispatch
+                              ? 'MIN Number'
+                              : 'MRN Number')),
                       Expanded(child: Text(widget.mrnNumber)),
                     ],
                   ),
@@ -230,7 +274,7 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                     'Stock Details',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   if (InventorySingleton().isDistributor != true) ...[
                     // Waybill Number
                     InputField(
@@ -263,11 +307,13 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                   // Quantity
                   Offstage(
                       offstage: (stock.additionalFields?.fields ?? [])
-                          .any((e) => e.key == "unusedBlistersReturned"),
+                          .any((e) => e.key == "partialBlistersReturned"),
                       child: InputField(
                         type: InputType.text,
-                        label:
-                            '${localizations.translate(quantityCountLabel)} *',
+                        label: (stock.additionalFields?.fields ?? [])
+                                .any((e) => e.key == "quantityReceived")
+                            ? '${localizations.translate(quantitySentByWarehouse)} *'
+                            : '${localizations.translate(quantityCountLabel)} *',
                         initialValue: (stock.additionalFields?.fields ?? [])
                                 .any((e) => e.key == "quantityReceived")
                             ? (stock.additionalFields?.fields ?? [])
@@ -284,26 +330,9 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                       )),
                   Offstage(
                       offstage: !(stock.additionalFields?.fields ?? [])
-                          .any((e) => e.key == "unusedBlistersReturned"),
+                          .any((e) => e.key == "partialBlistersReturned"),
                       child: Column(
                         children: [
-                          InputField(
-                            type: InputType.text,
-                            label:
-                                '${localizations.translate(unusedQuantityCountLabel)} *',
-                            initialValue: (stock.additionalFields?.fields ?? [])
-                                    .firstWhere(
-                                      (e) => e.key == "unusedBlistersReturned",
-                                      orElse: () => const AdditionalField(
-                                          'unusedBlistersReturned', ''),
-                                    )
-                                    .value
-                                    ?.toString() ??
-                                '',
-                            isDisabled: true,
-                            readOnly: true,
-                          ),
-                          const SizedBox(height: 12),
                           InputField(
                             type: InputType.text,
                             label:
@@ -320,23 +349,56 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                             isDisabled: true,
                             readOnly: true,
                           ),
+                          if (context.isCDD) ...{
+                            const SizedBox(height: 12),
+                            InputField(
+                              type: InputType.text,
+                              label:
+                                  '${localizations.translate(wastedQuantityCountLabel)} *',
+                              initialValue: (stock.additionalFields?.fields ??
+                                          [])
+                                      .firstWhere(
+                                        (e) =>
+                                            e.key == "wastedBlistersReturned",
+                                        orElse: () => const AdditionalField(
+                                            'wastedBlistersReturned', ''),
+                                      )
+                                      .value
+                                      ?.toString() ??
+                                  '',
+                              isDisabled: true,
+                              readOnly: true,
+                            ),
+                          },
                           const SizedBox(height: 12),
                           InputField(
                             type: InputType.text,
                             label:
-                                '${localizations.translate(wastedQuantityCountLabel)} *',
-                            initialValue: (stock.additionalFields?.fields ?? [])
-                                    .firstWhere(
-                                      (e) => e.key == "wastedBlistersReturned",
-                                      orElse: () => const AdditionalField(
-                                          'wastedBlistersReturned', ''),
-                                    )
-                                    .value
-                                    ?.toString() ??
-                                '',
+                                '${localizations.translate(unusedQuantityCountLabel)} *',
+                            initialValue: (() {
+                              final unusedBlisters =
+                                  (stock.additionalFields?.fields ?? [])
+                                      .firstWhere(
+                                        (e) =>
+                                            e.key == "unusedBlistersReturned",
+                                        orElse: () => const AdditionalField(
+                                            'unusedBlistersReturned', ''),
+                                      )
+                                      .value;
+                              if (unusedBlisters != null &&
+                                  unusedBlisters.toString().isNotEmpty &&
+                                  int.tryParse(unusedBlisters.toString()) !=
+                                      null &&
+                                  int.parse(unusedBlisters.toString()) > 0) {
+                                return unusedBlisters.toString();
+                              } else {
+                                return stock.quantity ?? '';
+                              }
+                            })(),
                             isDisabled: true,
                             readOnly: true,
                           ),
+                          const SizedBox(height: 12),
                         ],
                       )),
                   const SizedBox(height: 12),

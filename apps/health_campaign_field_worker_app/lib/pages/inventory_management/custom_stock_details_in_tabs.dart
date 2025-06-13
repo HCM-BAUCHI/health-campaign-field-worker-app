@@ -421,7 +421,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         } else {
           quantityCountLabel = InventorySingleton().isWareHouseMgr
               ? i18.stockDetails.quantitySentLabel
-              : i18.stockDetails.quantityReturnedLabel;
+              : i18_local.stockDetails.quantityUnusedReturnedLabel;
           partiallyUsedQuantityCountLabel =
               i18_local.stockDetails.quantityPartiallyUsedReturnedLabel;
           wastedQuantityCountLabel =
@@ -694,6 +694,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                               );
                             },
                           ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -930,7 +931,9 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
       additionalFields: currentStock.additionalFields?.copyWith(
         fields: [
           ...(currentStock.additionalFields?.fields ?? []),
-          if (entryType == StockRecordEntryType.returned) ...[
+          if (entryType == StockRecordEntryType.returned ||
+              (entryType == StockRecordEntryType.dispatch &&
+                  context.isCDD)) ...[
             AdditionalField(
                 'partialBlistersReturned',
                 form
@@ -942,6 +945,8 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                     //     ?.value
                     //     ?.toString() ??
                     '0'),
+          ],
+          if (entryType == StockRecordEntryType.dispatch && context.isCDD) ...[
             AdditionalField(
                 'wastedBlistersReturned',
                 form.control(_wastedBlistersReturnedKey).value?.toString() ??
@@ -1061,9 +1066,18 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                 ?.toString() ??
             '0');
 
+        int quantityPartiallyUsed = int.parse(stockModel
+                .additionalFields?.fields
+                .firstWhereOrNull(
+                    (element) => element.key == 'partialBlistersReturned')
+                ?.value
+                ?.toString() ??
+            '0');
+
         final totalQty =
             ((entryType == StockRecordEntryType.dispatch) ? ss * -1 : ss) -
-                quantityWasted;
+                quantityWasted -
+                ((context.isCDD) ? quantityPartiallyUsed : 0);
 
         String? productName = stockModel.additionalFields?.fields
             .firstWhereOrNull((element) => element.key == 'productName')
