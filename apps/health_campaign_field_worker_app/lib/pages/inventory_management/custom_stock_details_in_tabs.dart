@@ -61,6 +61,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
   String? receiverType;
   String? transactionType;
   String? transactionReason;
+  String? receiverIdForCDD;
 
   static const _productVariantKey = 'productVariant';
   static const _secondaryPartyKey = 'secondaryParty';
@@ -244,7 +245,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         receiverId = primaryId;
         receiverType = primaryType;
         senderIdToShowOnTab = senderId;
-
+        receiverIdForCDD = primaryId?.split(Constants.pipeSeparator).first;
         break;
       case StockRecordEntryType.dispatch:
         receiverId = secondaryPartyType == 'STAFF'
@@ -254,6 +255,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         senderId = primaryId;
         senderType = primaryType;
         senderIdToShowOnTab = senderId;
+        receiverIdForCDD = secondartParty.split(Constants.pipeSeparator).first;
         break;
     }
 
@@ -515,16 +517,22 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                   '${pageTitle}_${i18.stockReconciliationDetails.stockLabel}')),
                         ),
                         Expanded(
-                            child: Text(
-                          senderIdToShowOnTab == null
-                              ? localizations.translate(i18.common.noMatchFound)
-                              : (entryType == StockRecordEntryType.dispatch ||
-                                      entryType ==
-                                          StockRecordEntryType.returned)
-                                  ? localizations.translate('FAC_$receiverId')
-                                  : localizations
-                                      .translate('FAC_$senderIdToShowOnTab'),
-                        )),
+                          child: Text(
+                            senderIdToShowOnTab == null
+                                ? localizations
+                                    .translate(i18.common.noMatchFound)
+                                : (entryType == StockRecordEntryType.dispatch ||
+                                        entryType ==
+                                            StockRecordEntryType.returned)
+                                    ? (context.isHealthFacilitySupervisor)
+                                        ? localizations
+                                            .translate(receiverIdForCDD!)
+                                        : localizations
+                                            .translate('FAC_$receiverId')
+                                    : localizations
+                                        .translate('FAC_$senderIdToShowOnTab'),
+                          ),
+                        ),
                       ],
                     ),
                   ],
