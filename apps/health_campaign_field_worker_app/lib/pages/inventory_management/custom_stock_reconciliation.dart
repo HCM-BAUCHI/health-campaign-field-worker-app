@@ -514,14 +514,16 @@ class CustomStockReconciliationPageState
                                                       localizations.translate(
                                                     i18.common.noMatchFound,
                                                   ),
+                                                  sentenceCaseEnabled: false,
                                                   items: productVariants
                                                       .map((variant) {
                                                     return DropdownItem(
                                                       name: localizations
                                                           .translate(
-                                                        variant.sku ??
-                                                            variant.id,
-                                                      ),
+                                                            variant.sku ??
+                                                                variant.id,
+                                                          )
+                                                          .toUpperCase(),
                                                       code: variant.id,
                                                     );
                                                   }).toList(),
@@ -531,14 +533,14 @@ class CustomStockReconciliationPageState
                                                       ? DropdownItem(
                                                           name: localizations
                                                               .translate(
-                                                            (field.control.value
-                                                                        as ProductVariantModel)
-                                                                    .sku ??
-                                                                (field.control
-                                                                            .value
-                                                                        as ProductVariantModel)
-                                                                    .id,
-                                                          ),
+                                                                (field.control.value
+                                                                            as ProductVariantModel)
+                                                                        .sku ??
+                                                                    (field.control.value
+                                                                            as ProductVariantModel)
+                                                                        .id,
+                                                              )
+                                                              .toUpperCase(),
                                                           code: (field.control
                                                                       .value
                                                                   as ProductVariantModel)
