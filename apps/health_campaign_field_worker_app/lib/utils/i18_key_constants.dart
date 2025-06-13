@@ -155,6 +155,8 @@ class Common {
 
 class HouseholdOverView {
   const HouseholdOverView();
+  String get householdOverViewSMCAndVASDeliveredIconLabel =>
+      'HOUSEHOLD_OVER_VIEW_SMC_AND_VAS_DELIVERED_ICON_LABEL';
 
   String get householdOverViewHouseholderHeadLabel =>
       'HOUSEHOLD_OVER_VIEW_HOUSEHOLDER_HEAD_LABEL';
@@ -516,6 +518,11 @@ class StockReconciliationDetails {
 
 class InventoryReportDetails {
   const InventoryReportDetails();
+  String get quantityCapsuleSentByWarehouse =>
+      "QUANTITY_CAPSULE_SENT_BY_WAREHOUSE";
+
+  String get quantitySentByWarehouse => "QUANTITY_SENT_BY_WAREHOUSE";
+
   String get partialReturnedQuantityLabel =>
       "INVENTORY_REPORT_DETAILS_PARTIAL_RETURNED_QUANTITY_LABEL";
 
