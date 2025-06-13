@@ -169,145 +169,149 @@ class _ViewAllTransactionsScreenState
     return Scaffold(
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: ScrollableContent(
-          header: const Column(
-            children: [
-              CustomBackNavigationHelpHeaderWidget(showHelp: false),
-            ],
-          ),
-          footer: SizedBox(
-            height: 130,
-            child: DigitCard(
-              margin: const EdgeInsets.fromLTRB(0, spacer2, 0, 0),
-              children: [
-                DigitButton(
-                  type: DigitButtonType.primary,
-                  mainAxisSize: MainAxisSize.max,
-                  size: DigitButtonSize.large,
-                  label: localizations.translate(
-                    i18.householdDetails.actionLabel,
-                  ),
-                  onPressed: () {
-                    if (pressedIndex != -1) {
-                      _navigateToDetails(selectedStock!);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(localizations.translate(
-                            i18_local.householdDetails.selectRecordErrorMsg,
-                          )),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
+        child: Column(
           children: [
-            if (filteredStock.isEmpty)
-              const Center(child: Text('No transactions available.'))
-            else
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(spacer2),
-                ),
-                margin: const EdgeInsets.all(spacer2),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16.0),
-                      Text("Select the MIN number", style: textTheme.headingL),
-                      const SizedBox(height: 16.0),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.65,
-                        child: BlocBuilder<StockBloc, StockState>(
-                          builder: (context, state) {
-                            return ListView.builder(
-                              // reverse: true,
-                              itemCount: filteredStock.length,
-                              itemBuilder: (context, index) {
-                                final stock = filteredStock[index];
-                                final isSelected = pressedIndex == index;
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        if (pressedIndex == index) {
-                                          pressedIndex = -1;
-                                          selectedStock = null;
-                                        } else {
-                                          pressedIndex = index;
-                                          selectedStock = stock;
-                                        }
-                                      });
+            const CustomBackNavigationHelpHeaderWidget(showHelp: false),
+            Expanded(
+              child: filteredStock.isEmpty
+                  ? const Center(child: Text('No transactions available.'))
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(spacer2),
+                      ),
+                      margin: const EdgeInsets.all(spacer2),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16.0),
+                            Text("Select the MIN number",
+                                style: textTheme.headingL),
+                            const SizedBox(height: 16.0),
+                            Expanded(
+                              child: BlocBuilder<StockBloc, StockState>(
+                                builder: (context, state) {
+                                  return ListView.builder(
+                                    // reverse: true,
+                                    itemCount: filteredStock.length,
+                                    itemBuilder: (context, index) {
+                                      final stock = filteredStock[index];
+                                      final isSelected = pressedIndex == index;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8),
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              if (pressedIndex == index) {
+                                                pressedIndex = -1;
+                                                selectedStock = null;
+                                              } else {
+                                                pressedIndex = index;
+                                                selectedStock = stock;
+                                              }
+                                            });
+                                          },
+                                          child: TransactionsCard(
+                                            isSelected: isSelected,
+                                            minNumber:
+                                                stock.additionalFields?.fields
+                                                        .firstWhere(
+                                                          (field) =>
+                                                              field.key ==
+                                                              'materialNoteNumber',
+                                                          orElse: () =>
+                                                              const AdditionalField(
+                                                                  'materialNoteNumber',
+                                                                  ''),
+                                                        )
+                                                        .value
+                                                        ?.toString() ??
+                                                    'N/A',
+                                            cddCode: InventorySingleton()
+                                                    .loggedInUser
+                                                    ?.name ??
+                                                (stock.senderId ?? ''),
+                                            date: (stock.dateOfEntry != null)
+                                                ? DateFormat('d MMMM yyyy')
+                                                    .format(
+                                                        (stock.dateOfEntryTime ??
+                                                                DateTime.now())
+                                                            .toLocal())
+                                                : formatDateFromMillis(stock
+                                                        .auditDetails
+                                                        ?.createdTime ??
+                                                    0),
+                                            items: [
+                                              {
+                                                'name': stock.additionalFields
+                                                        ?.fields
+                                                        .firstWhere(
+                                                          (field) =>
+                                                              field.key ==
+                                                              'productName',
+                                                          orElse: () =>
+                                                              const AdditionalField(
+                                                                  'productName',
+                                                                  'N/A'),
+                                                        )
+                                                        .value
+                                                        ?.toString() ??
+                                                    'N/A',
+                                                'quantity':
+                                                    (stock.quantity ?? 0)
+                                                        .toString()
+                                              }
+                                            ],
+                                            data: {},
+                                            waybillNumber:
+                                                ' ${stock.wayBillNumber ?? 'N/A'}',
+                                          ),
+                                        ),
+                                      );
                                     },
-                                    child: TransactionsCard(
-                                      isSelected: isSelected,
-                                      minNumber: stock.additionalFields?.fields
-                                              .firstWhere(
-                                                (field) =>
-                                                    field.key ==
-                                                    'materialNoteNumber',
-                                                orElse: () =>
-                                                    const AdditionalField(
-                                                        'materialNoteNumber',
-                                                        ''),
-                                              )
-                                              .value
-                                              ?.toString() ??
-                                          'N/A',
-                                      cddCode: InventorySingleton()
-                                              .loggedInUser
-                                              ?.name ??
-                                          (stock.senderId ?? ''),
-                                      date: (stock.dateOfEntry != null)
-                                          ? DateFormat('d MMMM yyyy').format(
-                                              (stock.dateOfEntryTime ??
-                                                      DateTime.now())
-                                                  .toLocal())
-                                          : formatDateFromMillis(
-                                              stock.auditDetails?.createdTime ??
-                                                  0),
-                                      items: [
-                                        {
-                                          'name': stock.additionalFields?.fields
-                                                  .firstWhere(
-                                                    (field) =>
-                                                        field.key ==
-                                                        'productName',
-                                                    orElse: () =>
-                                                        const AdditionalField(
-                                                            'productName',
-                                                            'N/A'),
-                                                  )
-                                                  .value
-                                                  ?.toString() ??
-                                              'N/A',
-                                          'quantity':
-                                              (stock.quantity ?? 0).toString()
-                                        }
-                                      ],
-                                      data: {},
-                                      waybillNumber:
-                                          ' ${stock.wayBillNumber ?? 'N/A'}',
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                                  );
+                                },
+                              ),
+                            )
+                          ],
                         ),
-                      )
-                    ],
+                      ),
+                    ),
+            ),
+            // footer:
+            SizedBox(
+              height: 80,
+              child: DigitCard(
+                margin: const EdgeInsets.fromLTRB(0, spacer2, 0, 0),
+                children: [
+                  DigitButton(
+                    type: DigitButtonType.primary,
+                    mainAxisSize: MainAxisSize.max,
+                    size: DigitButtonSize.large,
+                    label: localizations.translate(
+                      i18.householdDetails.actionLabel,
+                    ),
+                    onPressed: () {
+                      if (pressedIndex != -1) {
+                        _navigateToDetails(selectedStock!);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(localizations.translate(
+                              i18_local.householdDetails.selectRecordErrorMsg,
+                            )),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      }
+                    },
                   ),
-                ),
-              )
+                ],
+              ),
+            ),
           ],
         ),
       ),

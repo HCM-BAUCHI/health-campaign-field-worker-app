@@ -61,6 +61,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
   String? receiverType;
   String? transactionType;
   String? transactionReason;
+  String? receiverIdForCDD;
 
   static const _productVariantKey = 'productVariant';
   static const _secondaryPartyKey = 'secondaryParty';
@@ -244,7 +245,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         receiverId = primaryId;
         receiverType = primaryType;
         senderIdToShowOnTab = senderId;
-
+        receiverIdForCDD = primaryId?.split(Constants.pipeSeparator).first;
         break;
       case StockRecordEntryType.dispatch:
         receiverId = secondaryPartyType == 'STAFF'
@@ -254,6 +255,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         senderId = primaryId;
         senderType = primaryType;
         senderIdToShowOnTab = senderId;
+        receiverIdForCDD = secondartParty.split(Constants.pipeSeparator).first;
         break;
     }
 
@@ -421,7 +423,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         } else {
           quantityCountLabel = InventorySingleton().isWareHouseMgr
               ? i18.stockDetails.quantitySentLabel
-              : i18.stockDetails.quantityReturnedLabel;
+              : i18_local.stockDetails.quantityUnusedReturnedLabel;
           partiallyUsedQuantityCountLabel =
               i18_local.stockDetails.quantityPartiallyUsedReturnedLabel;
           wastedQuantityCountLabel =
@@ -515,16 +517,22 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                   '${pageTitle}_${i18.stockReconciliationDetails.stockLabel}')),
                         ),
                         Expanded(
-                            child: Text(
-                          senderIdToShowOnTab == null
-                              ? localizations.translate(i18.common.noMatchFound)
-                              : (entryType == StockRecordEntryType.dispatch ||
-                                      entryType ==
-                                          StockRecordEntryType.returned)
-                                  ? localizations.translate('FAC_$receiverId')
-                                  : localizations
-                                      .translate('FAC_$senderIdToShowOnTab'),
-                        )),
+                          child: Text(
+                            senderIdToShowOnTab == null
+                                ? localizations
+                                    .translate(i18.common.noMatchFound)
+                                : (entryType == StockRecordEntryType.dispatch ||
+                                        entryType ==
+                                            StockRecordEntryType.returned)
+                                    ? (context.isHealthFacilitySupervisor)
+                                        ? localizations
+                                            .translate(receiverIdForCDD!)
+                                        : localizations
+                                            .translate('FAC_$receiverId')
+                                    : localizations
+                                        .translate('FAC_$senderIdToShowOnTab'),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -694,6 +702,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                               );
                             },
                           ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -930,7 +939,9 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
       additionalFields: currentStock.additionalFields?.copyWith(
         fields: [
           ...(currentStock.additionalFields?.fields ?? []),
-          if (entryType == StockRecordEntryType.returned) ...[
+          if (entryType == StockRecordEntryType.returned ||
+              (entryType == StockRecordEntryType.dispatch &&
+                  context.isCDD)) ...[
             AdditionalField(
                 'partialBlistersReturned',
                 form
@@ -942,6 +953,8 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                     //     ?.value
                     //     ?.toString() ??
                     '0'),
+          ],
+          if (entryType == StockRecordEntryType.dispatch && context.isCDD) ...[
             AdditionalField(
                 'wastedBlistersReturned',
                 form.control(_wastedBlistersReturnedKey).value?.toString() ??
@@ -1061,9 +1074,18 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                 ?.toString() ??
             '0');
 
+        int quantityPartiallyUsed = int.parse(stockModel
+                .additionalFields?.fields
+                .firstWhereOrNull(
+                    (element) => element.key == 'partialBlistersReturned')
+                ?.value
+                ?.toString() ??
+            '0');
+
         final totalQty =
             ((entryType == StockRecordEntryType.dispatch) ? ss * -1 : ss) -
-                quantityWasted;
+                quantityWasted -
+                ((context.isCDD) ? quantityPartiallyUsed : 0);
 
         String? productName = stockModel.additionalFields?.fields
             .firstWhereOrNull((element) => element.key == 'productName')

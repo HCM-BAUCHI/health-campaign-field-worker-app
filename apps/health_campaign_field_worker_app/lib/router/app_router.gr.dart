@@ -584,6 +584,20 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    DigitScannerRoute.name: (routeData) {
+      final args = routeData.argsAs<DigitScannerRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: DigitScannerPage(
+          key: args.key,
+          appLocalizations: args.appLocalizations,
+          quantity: args.quantity,
+          isGS1code: args.isGS1code,
+          singleValue: args.singleValue,
+          isEditEnabled: args.isEditEnabled,
+        ),
+      );
+    },
     EligibilityChecklistViewRoute.name: (routeData) {
       final args = routeData.argsAs<EligibilityChecklistViewRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -705,6 +719,7 @@ abstract class _$AppRouter extends RootStackRouter {
         routeData: routeData,
         child: ViewAllTransactionsScreen(
           key: args.key,
+          appLocalizations: args.appLocalizations,
           warehouseId: args.warehouseId,
         ),
       );
@@ -742,7 +757,6 @@ abstract class _$AppRouter extends RootStackRouter {
           appLocalizations: args.appLocalizations,
           mrnNumber: args.mrnNumber,
           stockRecords: args.stockRecords,
-          entryType: args.entryType,
         ),
       );
     },
@@ -2864,6 +2878,64 @@ class CustomWarehouseDetailsRouteArgs {
 }
 
 /// generated route for
+/// [DigitScannerPage]
+class DigitScannerRoute extends PageRouteInfo<DigitScannerRouteArgs> {
+  DigitScannerRoute({
+    Key? key,
+    ScannerLocalization? appLocalizations,
+    required int quantity,
+    required bool isGS1code,
+    bool singleValue = false,
+    bool isEditEnabled = false,
+    List<PageRouteInfo>? children,
+  }) : super(
+          DigitScannerRoute.name,
+          args: DigitScannerRouteArgs(
+            key: key,
+            appLocalizations: appLocalizations,
+            quantity: quantity,
+            isGS1code: isGS1code,
+            singleValue: singleValue,
+            isEditEnabled: isEditEnabled,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'DigitScannerRoute';
+
+  static const PageInfo<DigitScannerRouteArgs> page =
+      PageInfo<DigitScannerRouteArgs>(name);
+}
+
+class DigitScannerRouteArgs {
+  const DigitScannerRouteArgs({
+    this.key,
+    this.appLocalizations,
+    required this.quantity,
+    required this.isGS1code,
+    this.singleValue = false,
+    this.isEditEnabled = false,
+  });
+
+  final Key? key;
+
+  final ScannerLocalization? appLocalizations;
+
+  final int quantity;
+
+  final bool isGS1code;
+
+  final bool singleValue;
+
+  final bool isEditEnabled;
+
+  @override
+  String toString() {
+    return 'DigitScannerRouteArgs{key: $key, appLocalizations: $appLocalizations, quantity: $quantity, isGS1code: $isGS1code, singleValue: $singleValue, isEditEnabled: $isEditEnabled}';
+  }
+}
+
+/// generated route for
 /// [EligibilityChecklistViewPage]
 class EligibilityChecklistViewRoute
     extends PageRouteInfo<EligibilityChecklistViewRouteArgs> {
@@ -3270,12 +3342,14 @@ class ViewAllTransactionsRoute
     extends PageRouteInfo<ViewAllTransactionsRouteArgs> {
   ViewAllTransactionsRoute({
     Key? key,
+    AppLocalizations? appLocalizations,
     required String? warehouseId,
     List<PageRouteInfo>? children,
   }) : super(
           ViewAllTransactionsRoute.name,
           args: ViewAllTransactionsRouteArgs(
             key: key,
+            appLocalizations: appLocalizations,
             warehouseId: warehouseId,
           ),
           initialChildren: children,
@@ -3290,16 +3364,19 @@ class ViewAllTransactionsRoute
 class ViewAllTransactionsRouteArgs {
   const ViewAllTransactionsRouteArgs({
     this.key,
+    this.appLocalizations,
     required this.warehouseId,
   });
 
   final Key? key;
 
+  final AppLocalizations? appLocalizations;
+
   final String? warehouseId;
 
   @override
   String toString() {
-    return 'ViewAllTransactionsRouteArgs{key: $key, warehouseId: $warehouseId}';
+    return 'ViewAllTransactionsRouteArgs{key: $key, appLocalizations: $appLocalizations, warehouseId: $warehouseId}';
   }
 }
 
@@ -3409,7 +3486,6 @@ class ViewStockRecordsRoute extends PageRouteInfo<ViewStockRecordsRouteArgs> {
     RegistrationDeliveryLocalization? appLocalizations,
     required String mrnNumber,
     required List<StockModel> stockRecords,
-    StockRecordEntryType entryType = StockRecordEntryType.dispatch,
     List<PageRouteInfo>? children,
   }) : super(
           ViewStockRecordsRoute.name,
@@ -3418,7 +3494,6 @@ class ViewStockRecordsRoute extends PageRouteInfo<ViewStockRecordsRouteArgs> {
             appLocalizations: appLocalizations,
             mrnNumber: mrnNumber,
             stockRecords: stockRecords,
-            entryType: entryType,
           ),
           initialChildren: children,
         );
@@ -3435,7 +3510,6 @@ class ViewStockRecordsRouteArgs {
     this.appLocalizations,
     required this.mrnNumber,
     required this.stockRecords,
-    this.entryType = StockRecordEntryType.dispatch,
   });
 
   final Key? key;
@@ -3446,11 +3520,9 @@ class ViewStockRecordsRouteArgs {
 
   final List<StockModel> stockRecords;
 
-  final StockRecordEntryType entryType;
-
   @override
   String toString() {
-    return 'ViewStockRecordsRouteArgs{key: $key, appLocalizations: $appLocalizations, mrnNumber: $mrnNumber, stockRecords: $stockRecords, entryType: $entryType}';
+    return 'ViewStockRecordsRouteArgs{key: $key, appLocalizations: $appLocalizations, mrnNumber: $mrnNumber, stockRecords: $stockRecords}';
   }
 }
 

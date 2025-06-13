@@ -1083,19 +1083,17 @@ class _CustomHouseholdOverviewPageState
                                         descriptionText +=
                                             "\n ${localizations.translate(i18_local.beneficiaryDetails.spaq2DoseUnit)}";
                                       }
-                                      if (blueVas == 0) {
-                                        descriptionText +=
-                                            "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
-                                      }
-                                      if (redVas == 0) {
-                                        descriptionText +=
-                                            "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
-                                      }
+                                      // if (blueVas == 0) {
+                                      //   descriptionText +=
+                                      //       "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
+                                      // }
+                                      // if (redVas == 0) {
+                                      //   descriptionText +=
+                                      //       "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
+                                      // }
 
-                                      if (context.spaq1 > 0 ||
-                                          context.spaq2 > 0 ||
-                                          context.blueVas > 0 ||
-                                          context.redVas > 0) {
+                                      if (context.spaq1 > 0 &&
+                                          context.spaq2 > 0) {
                                         addIndividual(
                                           context,
                                           state

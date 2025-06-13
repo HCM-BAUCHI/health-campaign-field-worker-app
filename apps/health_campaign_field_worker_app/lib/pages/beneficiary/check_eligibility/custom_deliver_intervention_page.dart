@@ -1039,18 +1039,21 @@ class CustomResourceBeneficiaryCardState
                     child: DigitDropdown(
                       isDisabled: true,
                       readOnly: true,
+                      sentenceCaseEnabled: false,
                       selectedOption: DropdownItem(
                         code: getFormattedSku(
                             selectedVariant?.sku ?? selectedVariant?.id ?? ''),
-                        name: getFormattedSku(
-                            selectedVariant?.sku ?? selectedVariant?.id ?? ''),
+                        name: getFormattedSku(selectedVariant?.sku ??
+                                selectedVariant?.id ??
+                                '')
+                            .toUpperCase(),
                       ),
                       items: productVariants
                           .map((variant) => DropdownItem(
                                 code:
                                     getFormattedSku(variant.sku ?? variant.id),
-                                name:
-                                    getFormattedSku(variant.sku ?? variant.id),
+                                name: getFormattedSku(variant.sku ?? variant.id)
+                                    .toUpperCase(),
                               ))
                           .toList(),
                     ),

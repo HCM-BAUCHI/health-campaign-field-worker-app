@@ -17,8 +17,9 @@ import 'package:inventory_management/widgets/component_wrapper/facility_bloc_wra
 import 'package:inventory_management/widgets/component_wrapper/product_variant_bloc_wrapper.dart';
 import 'package:inventory_management/widgets/inventory/no_facilities_assigned_dialog.dart';
 import 'package:inventory_management/widgets/localized.dart';
-import 'package:inventory_management/widgets/reports/readonly_pluto_grid.dart';
+// import 'package:inventory_management/widgets/reports/readonly_pluto_grid.dart';
 // import 'package:inventory_management/blocs/inventory_report.dart';
+import '../../widgets/reports/readonly_pluto_grid.dart';
 import 'package:inventory_management/blocs/product_variant.dart';
 import 'package:inventory_management/blocs/stock_reconciliation.dart';
 import 'package:inventory_management/models/entities/stock.dart';
@@ -413,14 +414,18 @@ class CustomInventoryReportDetailsPageState
                                                           i18.common
                                                               .noMatchFound,
                                                         ),
+                                                        sentenceCaseEnabled:
+                                                            false,
                                                         items: productVariants
                                                             .map((variant) {
                                                           return DropdownItem(
                                                             name: localizations
                                                                 .translate(
-                                                              variant.sku ??
-                                                                  variant.id,
-                                                            ),
+                                                                  variant.sku ??
+                                                                      variant
+                                                                          .id,
+                                                                )
+                                                                .toUpperCase(),
                                                             code: variant.id,
                                                           );
                                                         }).toList(),
@@ -455,13 +460,18 @@ class CustomInventoryReportDetailsPageState
                                                                     .value !=
                                                                 null)
                                                             ? DropdownItem(
-                                                                name: localizations.translate((form.control(_productVariantKey).value
-                                                                            as ProductVariantModel)
-                                                                        .sku ??
-                                                                    (form.control(_productVariantKey).value
-                                                                            as ProductVariantModel)
-                                                                        .id),
-                                                                code: (form.control(_productVariantKey).value
+                                                                name: localizations
+                                                                    .translate((form.control(_productVariantKey).value
+                                                                                as ProductVariantModel)
+                                                                            .sku ??
+                                                                        (form.control(_productVariantKey).value
+                                                                                as ProductVariantModel)
+                                                                            .id)
+                                                                    .toUpperCase(),
+                                                                code: (form
+                                                                            .control(
+                                                                                _productVariantKey)
+                                                                            .value
                                                                         as ProductVariantModel)
                                                                     .id)
                                                             : const DropdownItem(

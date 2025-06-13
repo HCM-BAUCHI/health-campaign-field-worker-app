@@ -12,6 +12,7 @@ import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
 import 'package:registration_delivery/widgets/localized.dart';
 import '../../../utils/app_enums.dart';
 import '../../router/app_router.dart';
+import '../../utils/extensions/extensions.dart';
 import '../../utils/i18_key_constants.dart' as i18_local;
 import '../../widgets/digit_ui_component/custom_panel_card.dart';
 
@@ -38,20 +39,34 @@ class CustomAcknowledgementPageState
     extends LocalizedState<CustomAcknowledgementPage> {
   @override
   Widget build(BuildContext context) {
+    var showLabel = localizations
+        .translate(i18_local.acknowledgementSuccess.mrnNumberLabel);
+    var showDescription = localizations
+        .translate(i18_local.acknowledgementSuccess.mrrnNumberDescription);
+    var showHeading = localizations
+        .translate(i18_local.acknowledgementSuccess.mrrnNumberHeading);
 
-    var showLabel = localizations.translate(i18_local.acknowledgementSuccess.mrnNumberLabel);
-    var showDescription = localizations.translate(i18_local.acknowledgementSuccess.mrrnNumberDescription);
-    var showHeading = localizations.translate(i18_local.acknowledgementSuccess.mrrnNumberHeading);
-
-    if(widget.entryType == StockRecordEntryType.dispatch) {
-        showLabel = localizations.translate(i18_local.acknowledgementSuccess.minNumberLabel);
-        showDescription = localizations.translate(i18_local.acknowledgementSuccess.minNumberDescription);
-        showHeading = localizations.translate(i18_local.acknowledgementSuccess.minNumberHeading);
-    }
-    else if(widget.entryType == StockRecordEntryType.returned) {
-        showLabel = localizations.translate(i18_local.acknowledgementSuccess.mrnNumberLabel);
-        showDescription = localizations.translate(i18_local.acknowledgementSuccess.mrnNumberDescription);
-        showHeading = localizations.translate(i18_local.acknowledgementSuccess.mrnNumberHeading);
+    if (widget.entryType == StockRecordEntryType.dispatch && context.isCDD) {
+      showLabel = localizations
+          .translate(i18_local.acknowledgementSuccess.mrnNumberLabel);
+      showDescription = localizations
+          .translate(i18_local.acknowledgementSuccess.mrnNumberDescription);
+      showHeading = localizations
+          .translate(i18_local.acknowledgementSuccess.mrnNumberHeading);
+    } else if (widget.entryType == StockRecordEntryType.dispatch) {
+      showLabel = localizations
+          .translate(i18_local.acknowledgementSuccess.minNumberLabel);
+      showDescription = localizations
+          .translate(i18_local.acknowledgementSuccess.minNumberDescription);
+      showHeading = localizations
+          .translate(i18_local.acknowledgementSuccess.minNumberHeading);
+    } else if (widget.entryType == StockRecordEntryType.returned) {
+      showLabel = localizations
+          .translate(i18_local.acknowledgementSuccess.mrnNumberLabel);
+      showDescription = localizations
+          .translate(i18_local.acknowledgementSuccess.mrnNumberDescription);
+      showHeading = localizations
+          .translate(i18_local.acknowledgementSuccess.mrnNumberHeading);
     }
 
     Map<String, String> mrnnumber = {
@@ -78,7 +93,6 @@ class CustomAcknowledgementPageState
                     ViewStockRecordsRoute(
                       mrnNumber: widget.mrnNumber,
                       stockRecords: widget.stockRecords,
-                      entryType: widget.entryType,
                     ),
                   );
                 },

@@ -809,6 +809,7 @@ class CustomTransactionalDetailsPageState
                                                   localizations.translate(
                                                 i18.common.noMatchFound,
                                               ),
+                                              sentenceCaseEnabled: false,
                                               items: productVariants
                                                   .map((variant) {
                                                 return DropdownItem(

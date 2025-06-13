@@ -209,9 +209,7 @@ class CustomSurveyFormPreviewPageState
                                                                 'SingleValueList'
                                                             ? localizations
                                                                 .translate(
-                                                                e.value
-                                                                    .toString()
-                                                                    .toUpperCase(),
+                                                                '${item2?.code}.${e.value.toString().trim()}',
                                                               )
                                                             : e.value ?? "",
                                                     isInline: false,

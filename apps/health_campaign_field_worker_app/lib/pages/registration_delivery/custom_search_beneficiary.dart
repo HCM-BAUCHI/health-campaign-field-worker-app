@@ -295,10 +295,13 @@ class _CustomSearchBeneficiaryPageState
                                             Row(
                                               children: [
                                                 Padding(
-                                                  padding: const EdgeInsets.all(spacer2),
+                                                  padding: const EdgeInsets.all(
+                                                      spacer2),
                                                   child: DigitSwitch(
-                                                    label: localizations.translate(
-                                                        i18_local.beneficiaryDetails.searchbybeneficiaryidtextupdate),
+                                                    label: localizations
+                                                        .translate(i18_local
+                                                            .beneficiaryDetails
+                                                            .searchbybeneficiaryidtextupdate),
                                                     value:
                                                         isSearchByBeneficaryIdEnabled,
                                                     onChanged: (value) {
@@ -317,8 +320,10 @@ class _CustomSearchBeneficiaryPageState
                                                             value;
                                                         isProximityEnabled =
                                                             false;
-                                                        searchController.clear();
-                                                        blocWrapper.clearEvent();
+                                                        searchController
+                                                            .clear();
+                                                        blocWrapper
+                                                            .clearEvent();
                                                       });
                                                     },
                                                   ),
@@ -711,7 +716,10 @@ class _CustomSearchBeneficiaryPageState
                               "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
                         }
 
-                        if ((spaq1 > 0 || spaq2 > 0 || blueVas > 0 || redVas > 0)) {
+                        if ((spaq1 > 0 &&
+                            spaq2 > 0 &&
+                            blueVas > 0 &&
+                            redVas > 0)) {
                           FocusManager.instance.primaryFocus?.unfocus();
                           context.read<DigitScannerBloc>().add(
                                 const DigitScannerEvent.handleScanner(),

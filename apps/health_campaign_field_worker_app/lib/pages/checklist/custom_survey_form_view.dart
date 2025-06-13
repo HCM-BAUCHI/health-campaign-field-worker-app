@@ -503,6 +503,7 @@ class CustomSurveyFormViewPageState
                               ),
                               BlocBuilder<ServiceBloc, ServiceState>(
                                 builder: (context, state) {
+                                  visibleSurveyFormIndexes.add(index);
                                   return Column(
                                     children: e.values!
                                         .where((e1) =>
@@ -511,7 +512,8 @@ class CustomSurveyFormViewPageState
                                         .map((e) => Column(
                                               children: [
                                                 DigitCheckbox(
-                                                  label: e,
+                                                  label: localizations
+                                                      .translate(e),
                                                   value: controller[index]
                                                       .text
                                                       .split('.')
@@ -671,7 +673,7 @@ class CustomSurveyFormViewPageState
                                                       return localizations
                                                           .translate(
                                                         i18.common
-                                                            .coreCommonReasonRequired,
+                                                            .corecommonRequired,
                                                       );
                                                     }
 
@@ -814,7 +816,7 @@ class CustomSurveyFormViewPageState
                                 (controller[index].text == null ||
                                     controller[index].text == '')) {
                               return localizations.translate(
-                                i18.common.coreCommonReasonRequired,
+                                i18.common.corecommonRequired,
                               );
                             }
 
@@ -907,7 +909,7 @@ class CustomSurveyFormViewPageState
                                   (additionalController[index].text == null ||
                                       additionalController[index].text == '')) {
                                 return localizations.translate(
-                                  i18.common.coreCommonReasonRequired,
+                                  i18.common.corecommonRequired,
                                 );
                               }
 
@@ -1052,6 +1054,7 @@ class CustomSurveyFormViewPageState
             );
           });
     } else if (item.dataType == 'MultiValueList') {
+      visibleSurveyFormIndexes.add(index);
       return Column(children: [
         Align(
           alignment: Alignment.topLeft,
@@ -1077,7 +1080,7 @@ class CustomSurveyFormViewPageState
                 .map((e) => Column(
                       children: [
                         DigitCheckbox(
-                          label: e,
+                          label: localizations.translate(e),
                           value: controller[index].text.split('.').contains(e),
                           onChanged: (value) {
                             context.read<ServiceBloc>().add(
@@ -1194,7 +1197,7 @@ class CustomSurveyFormViewPageState
                         (controller[index].text == null ||
                             controller[index].text == '')) {
                       return localizations.translate(
-                        i18.common.coreCommonReasonRequired,
+                        i18.common.corecommonRequired,
                       );
                     }
 
