@@ -175,8 +175,10 @@ class CustomViewBeneficiaryCardState
           currentCycle,
         );
 
-        final isIneligibleForSMC = util_local.checkBeneficiaryInEligibleSMC(taskData);
-        final isIneligibleForVAS = util_local.checkBeneficiaryInEligibleVAS(taskData);
+        final isIneligibleForSMC =
+            util_local.checkBeneficiaryInEligibleSMC(taskData);
+        final isIneligibleForVAS =
+            util_local.checkBeneficiaryInEligibleVAS(taskData);
 
         final isSMCDelivered =
             !util_local.checkStatusSMC(taskData, currentCycle);
@@ -211,7 +213,8 @@ class CustomViewBeneficiaryCardState
             cellKey: 'delivery',
             style: TextStyle(
               color: getTableCellTextColor(
-                isNotEligible: isNotEligible || isIneligibleForVAS || isIneligibleForSMC,
+                isNotEligible:
+                    isNotEligible || isIneligibleForVAS || isIneligibleForSMC,
                 taskdata: taskData,
                 isBeneficiaryRefused:
                     isBeneficiaryRefused || isBeneficiaryReferred,
@@ -401,11 +404,10 @@ class CustomViewBeneficiaryCardState
     CustomStatusKeys statusKeys,
     List<TaskModel>? taskData,
   ) {
-    if(statusKeys.isNotEligible) {
-      return localizations.translate(i18_local
-              .householdOverView.householdOverViewHouseholderHeadLabel);
-    }
-    else if (statusKeys.isIneligibleForSMC || statusKeys.isIneligibleForVAS) {
+    if (statusKeys.isNotEligible) {
+      return localizations.translate(
+          i18_local.householdOverView.householdOverViewHouseholderHeadLabel);
+    } else if (statusKeys.isIneligibleForSMC || statusKeys.isIneligibleForVAS) {
       return localizations.translate(
           i18.householdOverView.householdOverViewNotEligibleIconLabel);
     } else if (statusKeys.isBeneficiaryReferred) {
@@ -414,10 +416,8 @@ class CustomViewBeneficiaryCardState
       if (taskData.isEmpty) {
         return localizations.translate(Status.notVisited.toValue());
       } else if (statusKeys.isVASDelivered && statusKeys.isSMCDelivered) {
-        print("Is it even been called?");
-        // You can concatenate both, or pick one as per your business logic
-        return localizations.translate(
-            i18_local.householdOverView.householdOverViewVASDeliveredIconLabel);
+        return localizations.translate(i18_local
+            .householdOverView.householdOverViewSMCAndVASDeliveredIconLabel);
       } else if (statusKeys.isSMCDelivered) {
         return localizations.translate(
             i18_local.householdOverView.householdOverViewSMCDeliveredIconLabel);
