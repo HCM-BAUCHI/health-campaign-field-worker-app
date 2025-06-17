@@ -218,7 +218,11 @@ class CustomIndividualDetailsPageState
                             if (submit ?? false) {
                               if (form.control(_dobKey).value == null) {
                                 setState(() {
-                                  form.control(_dobKey).setErrors({'': true});
+                                  widget.isHeadOfHousehold
+                                      ? form.control(_dobKey).removeError('')
+                                      : form
+                                          .control(_dobKey)
+                                          .setErrors({'': true});
                                 });
                               }
                               if (form.control(_genderKey).value == null) {
@@ -250,6 +254,23 @@ class CustomIndividualDetailsPageState
                                   options: DigitToastOptions(
                                     localizations.translate(i18_local
                                         .individualDetails.headAgeValidError),
+                                    true,
+                                    theme,
+                                  ),
+                                );
+
+                                return;
+                              }
+                              final ageInMonthsForChild =
+                                  age.years * 12 + age.months;
+                              if ((ageInMonthsForChild < 3 ||
+                                      ageInMonthsForChild > 59) &&
+                                  !widget.isHeadOfHousehold) {
+                                await DigitToast.show(
+                                  context,
+                                  options: DigitToastOptions(
+                                    localizations.translate(i18_local
+                                        .individualDetails.childAgeValidError),
                                     true,
                                     theme,
                                   ),

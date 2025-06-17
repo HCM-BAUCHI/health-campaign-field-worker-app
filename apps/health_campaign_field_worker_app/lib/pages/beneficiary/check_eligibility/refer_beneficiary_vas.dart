@@ -98,6 +98,9 @@ class CustomReferBeneficiaryVASPageState
               },
             ) ??
             [];
+        if (healthFacilities.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
         facilities.addAll(healthFacilities);
 
         final reasons = widget.isReadministrationUnSuccessful
@@ -160,6 +163,7 @@ class CustomReferBeneficiaryVASPageState
                                             widget
                                                 .projectBeneficiaryClientRefId,
                                         referrerId: context.loggedInUserUuid,
+                                        recipientType: "STAFF",
                                         reasons: [reason],
                                         tenantId: envConfig.variables.tenantId,
                                         rowVersion: 1,

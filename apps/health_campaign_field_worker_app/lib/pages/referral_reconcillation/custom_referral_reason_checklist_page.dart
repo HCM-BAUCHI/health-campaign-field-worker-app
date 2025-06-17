@@ -134,7 +134,7 @@ class _CustomReferralReasonChecklistPageState
                                       .code!
                                       .split('.')
                                       .length ==
-                                  3) {
+                                  1) {
                                 parentIndexes.add(i);
                               }
                             }
@@ -149,7 +149,7 @@ class _CustomReferralReasonChecklistPageState
                                       (itemsAttributes?[i].dataType !=
                                               'SingleValueList' &&
                                           (controller[i].text == '' &&
-                                              !(widget.referralClientRefId !=
+                                              (widget.referralClientRefId !=
                                                   null))))) {
                                 return;
                               }
