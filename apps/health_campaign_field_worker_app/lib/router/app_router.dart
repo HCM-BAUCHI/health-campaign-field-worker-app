@@ -13,12 +13,14 @@ import 'package:registration_delivery/router/registration_delivery_router.gm.dar
 import 'package:auto_route/auto_route.dart';
 import 'package:digit_data_model/data_model.dart';
 import 'package:flutter/material.dart';
+import '../pages/registration_delivery/custom_complaints_inbox_search.dart';
 import 'package:inventory_management/blocs/app_localization.dart';
 // import 'package:inventory_management/blocs/inventory_report.dart';
 import 'package:inventory_management/router/inventory_router.dart';
 import 'package:inventory_management/router/inventory_router.gm.dart';
 import 'package:inventory_management/blocs/record_stock.dart' as _i15;
-
+import 'package:complaints/blocs/localization/app_localization.dart';
+// import '../pages/registration_delivery/custom_complaints_inbox_search.dart';
 import '../blocs/inventory_management/custom_inventory_report.dart';
 import '../blocs/localization/app_localization.dart';
 import '../pages/acknowledgement.dart';
@@ -588,6 +590,14 @@ class AppRouter extends _$AppRouter {
             AutoRoute(
               page: ComplaintsInboxSearchRoute.page,
               path: 'complaints-inbox-search',
+            ),
+            AutoRoute(
+              page: CustomComplaintsInboxSearchRoute.page,
+              path: 'custom-complaints-inbox-search',
+            ),
+            RedirectRoute(
+              path: 'complaints-inbox-search',
+              redirectTo: 'custom-complaints-inbox-search',
             ),
             AutoRoute(
               page: ComplaintsInboxSortRoute.page,

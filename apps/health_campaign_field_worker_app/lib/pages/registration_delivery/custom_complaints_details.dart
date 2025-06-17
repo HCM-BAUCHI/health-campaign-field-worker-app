@@ -385,6 +385,10 @@ class CustomComplaintsDetailsPageState
                               'maxLength': (object) => localizations
                                   .translate(i18.common.maxCharsRequired)
                                   .replaceAll('{}', '50'),
+                              'onlyAlphabets': (object) =>
+                                  localizations.translate(
+                                    i18.individualDetails.onlyAlphabetsValidationMessage,
+                                  ),
                             },
                             builder: (field) {
                               return LabeledField(
@@ -454,6 +458,10 @@ class CustomComplaintsDetailsPageState
                               'maxLength': (object) => localizations
                                   .translate(i18.common.maxCharsRequired)
                                   .replaceAll('{}', '64'),
+                              'onlyAlphabets': (object) =>
+                                  localizations.translate(
+                                    i18.individualDetails.onlyAlphabetsValidationMessage,
+                                  ),
                             },
                             builder: (field) {
                               return LabeledField(
@@ -571,7 +579,18 @@ class CustomComplaintsDetailsPageState
       _complainantName: FormControl<String>(
         value: complaintDetails?.complainantName,
         disabled: shouldDisableForm,
-        validators: [Validators.required, Validators.maxLength(50)],
+        validators: [
+          Validators.required, 
+          Validators.maxLength(50),
+          Validators.delegate((control) {
+            final value = control.value?.toString().trim();
+            if (value == null || value.isEmpty) return null;
+            final regExp = RegExp(r'^[A-Za-z\s]+$');
+            return regExp.hasMatch(value)
+                ? null
+                : {'onlyAlphabets': true};
+          }),
+        ],
       ),
       _complainantContactNumber: FormControl<String>(
         value: complaintDetails?.complainantContactNumber,
@@ -587,7 +606,17 @@ class CustomComplaintsDetailsPageState
       _supervisorName: FormControl<String>(
         value: complaintDetails?.supervisorName,
         disabled: shouldDisableForm,
-        validators: [Validators.maxLength(64)],
+        validators: [
+          Validators.maxLength(64),
+          Validators.delegate((control) {
+            final value = control.value?.toString().trim();
+            if (value == null || value.isEmpty) return null;
+            final regExp = RegExp(r'^[A-Za-z\s]+$');
+            return regExp.hasMatch(value)
+                ? null
+                : {'onlyAlphabets': true};
+          }),
+        ],
       ),
       _supervisorContactNumber: FormControl<String>(
         value: complaintDetails?.supervisorContactNumber,

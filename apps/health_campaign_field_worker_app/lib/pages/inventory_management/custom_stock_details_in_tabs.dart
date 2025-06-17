@@ -146,7 +146,17 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                   ? [
                       Validators.minLength(2),
                       Validators.maxLength(200),
-                      Validators.required
+                      Validators.required,
+                      Validators.delegate((control) {
+                        final value = control.value?.toString();
+                        if (value == null || value.isEmpty) return null;
+                        // Regex to detect emoji characters
+                        final emojiRegex = RegExp(
+                            r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])');
+                        return emojiRegex.hasMatch(value)
+                            ? {'noEmojis': true}
+                            : null;
+                      }),
                     ]
                   : [],
             ),
@@ -555,6 +565,15 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                     if (isWareHouseMgr)
                       ReactiveWrapperField(
                           formControlName: _waybillNumberKey,
+                          validationMessages: {
+                            'required': (object) => 'Waybill number is required',
+                            'minLength': (object) => 
+                                'Waybill number must be at least 2 characters',
+                            'maxLength': (object) => 
+                                'Waybill number cannot exceed 200 characters',
+                            'noEmojis': (object) => 
+                                'Waybill number cannot contain emoji characters',
+                          },
                           builder: (field) {
                             return InputField(
                               type: InputType.text,
