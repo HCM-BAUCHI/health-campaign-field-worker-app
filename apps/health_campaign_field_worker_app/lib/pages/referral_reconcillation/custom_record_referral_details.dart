@@ -826,9 +826,11 @@ class _CustomRecordReferralDetailsPageState
                                           builder: (field) {
                                             return CustomLabeledField(
                                               isRequired: true,
-                                              label: localizations.translate(
-                                                  i18_local.beneficiaryDetails
-                                                      .beneficiaryId).toString(),
+                                              label: localizations
+                                                  .translate(i18_local
+                                                      .beneficiaryDetails
+                                                      .beneficiaryId)
+                                                  .toString(),
                                               child: DigitTextFormInput(
                                                 onChange: (val) => {
                                                   form

@@ -926,7 +926,18 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
     //     return false;
     //   }
     // }
+    final existingFields = currentStock.additionalFields?.fields ?? [];
 
+    final filteredFields = existingFields
+        .where(
+          (field) => ![
+            'partialBlistersReturned',
+            'wastedBlistersReturned',
+            'batchNumber',
+            'comments',
+          ].contains(field.key),
+        )
+        .toList();
     _tabStocks[productName] = currentStock.copyWith(
       quantity: form.control(_transactionQuantityKey).value?.toString() != "0"
           ? form.control(_transactionQuantityKey).value?.toString()
@@ -938,7 +949,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
               transactionReason,
       additionalFields: currentStock.additionalFields?.copyWith(
         fields: [
-          ...(currentStock.additionalFields?.fields ?? []),
+          ...filteredFields,
           if (entryType == StockRecordEntryType.returned ||
               (entryType == StockRecordEntryType.dispatch &&
                   context.isCDD)) ...[

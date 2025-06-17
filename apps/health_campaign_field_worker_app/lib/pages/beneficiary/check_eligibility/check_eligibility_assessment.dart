@@ -433,6 +433,31 @@ class _EligibilityChecklistViewPage
                                     // added the deliversubmitevent here
                                     final clientReferenceId =
                                         IdGen.i.identifier;
+                                    final List<AdditionalField>
+                                        additionalFields = [];
+
+                                    if (ineligibilityReasons.isNotEmpty) {
+                                      additionalFields.add(
+                                        AdditionalField(
+                                          'ineligibleReasons',
+                                          ineligibilityReasons.join(","),
+                                        ),
+                                      );
+                                    }
+
+                                    additionalFields.add(
+                                      AdditionalField(
+                                        additional_fields_local
+                                            .AdditionalFieldsType.deliveryType
+                                            .toValue(),
+                                        (widget.eligibilityAssessmentType ==
+                                                EligibilityAssessmentType.smc)
+                                            ? EligibilityAssessmentStatus
+                                                .smcDone.name
+                                            : EligibilityAssessmentStatus
+                                                .vasDone.name,
+                                      ),
+                                    );
                                     context.read<DeliverInterventionBloc>().add(
                                           DeliverInterventionSubmitEvent(
                                               task: TaskModel(
@@ -467,32 +492,7 @@ class _EligibilityChecklistViewPage
                                                 additionalFields:
                                                     TaskAdditionalFields(
                                                   version: 1,
-                                                  fields: [
-                                                    // AdditionalField(
-                                                    //   'taskStatus',
-                                                    //   status_local.Status
-                                                    //       .beneficiaryInEligible
-                                                    //       .toValue(),
-                                                    // ),
-                                                    AdditionalField(
-                                                      'ineligibleReasons',
-                                                      ineligibilityReasons
-                                                          .join(","),
-                                                    ),
-                                                    AdditionalField(
-                                                      additional_fields_local
-                                                          .AdditionalFieldsType
-                                                          .deliveryType
-                                                          .toValue(),
-                                                      (widget.eligibilityAssessmentType ==
-                                                              EligibilityAssessmentType
-                                                                  .smc)
-                                                          ? EligibilityAssessmentStatus
-                                                              .smcDone.name
-                                                          : EligibilityAssessmentStatus
-                                                              .vasDone.name,
-                                                    ),
-                                                  ],
+                                                  fields: additionalFields,
                                                 ),
                                                 address: widget
                                                     .individual!.address?.first
