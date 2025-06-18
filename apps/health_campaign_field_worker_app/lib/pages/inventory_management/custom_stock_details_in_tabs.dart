@@ -189,13 +189,13 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                         Validators.number(),
                         Validators.required,
                         Validators.min(1),
-                        Validators.max(1000000),
+                        Validators.max(1000000000),
                       ]
                     : [
                         Validators.number(),
                         Validators.required,
                         Validators.min(1),
-                        Validators.max(1000000),
+                        Validators.max(1000000000),
                       ]),
             // _waybillQuantityKey:
             //     FormControl<String>(validators: [Validators.required]),
@@ -501,7 +501,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         Validators.number(),
         Validators.required,
         Validators.min(0),
-        Validators.max(1000000),
+        Validators.max(1000000000),
       ], autoValidate: true);
     }
     if (entryType == StockRecordEntryType.dispatch &&
@@ -510,7 +510,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         Validators.number(),
         Validators.required,
         Validators.min(0),
-        Validators.max(1000000),
+        Validators.max(1000000000),
       ], autoValidate: true);
     }
 
@@ -701,7 +701,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                     FilteringTextInputFormatter.allow(
                                       RegExp(r'[0-9]'),
                                     ),
-                                    LengthLimitingTextInputFormatter(9),
+                                    LengthLimitingTextInputFormatter(10),
                                   ],
                                   onChange: (val) {
                                     field.control.markAsTouched();
@@ -759,7 +759,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                     FilteringTextInputFormatter.allow(
                                       RegExp(r'[0-9]'),
                                     ),
-                                    LengthLimitingTextInputFormatter(9),
+                                    LengthLimitingTextInputFormatter(10),
                                   ],
                                   onChange: (val) {
                                     field.control.markAsTouched();
@@ -813,7 +813,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                 FilteringTextInputFormatter.allow(
                                   RegExp(r'[0-9]'),
                                 ),
-                                LengthLimitingTextInputFormatter(9),
+                                LengthLimitingTextInputFormatter(10),
                               ],
                               onChange: (val) {
                                 field.control.markAsTouched();
