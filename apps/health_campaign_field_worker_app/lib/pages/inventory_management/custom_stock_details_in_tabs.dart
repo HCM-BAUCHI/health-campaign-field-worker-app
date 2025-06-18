@@ -150,12 +150,35 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                       Validators.delegate((control) {
                         final value = control.value?.toString();
                         if (value == null || value.isEmpty) return null;
-                        // Regex to detect emoji characters
+                        
+                        // More comprehensive regex to detect emoji characters
                         final emojiRegex = RegExp(
-                            r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])');
-                        return emojiRegex.hasMatch(value)
-                            ? {'noEmojis': true}
-                            : null;
+                            r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])', 
+                            unicode: true);
+                        if (emojiRegex.hasMatch(value)) {
+                          return {'noEmojis': true};
+                        }
+                        
+                        // Check for valid waybill characters - only allowing alphanumerics and specific special chars
+                        final validWaybillRegex = RegExp(r'^[a-zA-Z0-9\-_/#:.,() ]+$');
+                        if (!validWaybillRegex.hasMatch(value)) {
+                          return {'invalidCharacters': true};
+                        }
+                        
+                        // Check for excessive repetition of specific special characters
+                        for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+                          if (value.contains('$specialChar$specialChar$specialChar')) {
+                            return {'repeatedChars': true};
+                          }
+                        }
+                        
+                        // Additional check for any character repeated more than 3 times
+                        final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+                        if (repeatedCharsPattern.hasMatch(value)) {
+                          return {'repeatedChars': true};
+                        }
+                        
+                        return null;
                       }),
                     ]
                   : [],
@@ -573,18 +596,51 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                 'Waybill number cannot exceed 200 characters',
                             'noEmojis': (object) => 
                                 'Waybill number cannot contain emoji characters',
+                            'invalidCharacters': (object) => 
+                                'Waybill number contains invalid characters. Only use letters, numbers, and basic punctuation',
+                            'repeatedChars': (object) => 
+                                'Waybill number cannot contain excessive repetition of the same character',
                           },
                           builder: (field) {
-                            return InputField(
-                              type: InputType.text,
+                            return LabeledField(
                               label: localizations.translate(
                                 i18.stockDetails.waybillNumberLabel,
                               ),
-                              errorMessage: field.errorText,
-                              onChange: (val) {
-                                field.control.value = val;
-                              },
                               isRequired: true,
+                              child: BaseDigitFormInput(
+                                errorMessage: field.errorText,
+                                inputFormatters: [
+                                  // Allow only letters, numbers, and specific special characters commonly used in waybill numbers
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'[a-zA-Z0-9\-_/#:.,() ]'),
+                                  ),
+                                  LengthLimitingTextInputFormatter(200),
+                                  // Prevent excessive repetition of characters
+                                  TextInputFormatter.withFunction(
+                                    (oldValue, newValue) {
+                                      final text = newValue.text;
+                                      // Check for repetitions of special characters
+                                      for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+                                        if (text.contains('$specialChar$specialChar$specialChar')) {
+                                          return oldValue;
+                                        }
+                                      }
+                                      
+                                      // Check for any character repeated excessively (4+ times)
+                                      final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+                                      if (repeatedCharsPattern.hasMatch(text)) {
+                                        return oldValue;
+                                      }
+                                      
+                                      return newValue;
+                                    },
+                                  ),
+                                ],
+                                onChange: (val) {
+                                  field.control.markAsTouched();
+                                  field.control.value = val;
+                                },
+                              ),
                             );
                           }),
                     if (isWareHouseMgr &&
