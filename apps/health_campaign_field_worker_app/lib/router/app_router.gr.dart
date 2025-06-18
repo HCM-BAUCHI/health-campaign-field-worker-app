@@ -100,6 +100,7 @@ abstract class _$AppRouter extends RootStackRouter {
           eligibilityAssessmentType: args.eligibilityAssessmentType,
           key: args.key,
           appLocalizations: args.appLocalizations,
+          smcSuccess: args.smcSuccess,
         ),
       );
     },
@@ -157,6 +158,7 @@ abstract class _$AppRouter extends RootStackRouter {
           appLocalizations: args.appLocalizations,
           eligibilityAssessmentType: args.eligibilityAssessmentType,
           isEditing: args.isEditing,
+          smcSuccess: args.smcSuccess,
         ),
       );
     },
@@ -376,6 +378,7 @@ abstract class _$AppRouter extends RootStackRouter {
           quantityWasted: args.quantityWasted,
           productVariantId: args.productVariantId,
           referralReasons: args.referralReasons,
+          smcSuccess: args.smcSuccess,
         ),
       );
     },
@@ -1075,6 +1078,7 @@ class CustomBeneficiaryDetailsRoute
     required EligibilityAssessmentType eligibilityAssessmentType,
     Key? key,
     RegistrationDeliveryLocalization? appLocalizations,
+    String? smcSuccess = 'false',
     List<PageRouteInfo>? children,
   }) : super(
           CustomBeneficiaryDetailsRoute.name,
@@ -1082,6 +1086,7 @@ class CustomBeneficiaryDetailsRoute
             eligibilityAssessmentType: eligibilityAssessmentType,
             key: key,
             appLocalizations: appLocalizations,
+            smcSuccess: smcSuccess,
           ),
           initialChildren: children,
         );
@@ -1097,6 +1102,7 @@ class CustomBeneficiaryDetailsRouteArgs {
     required this.eligibilityAssessmentType,
     this.key,
     this.appLocalizations,
+    this.smcSuccess = 'false',
   });
 
   final EligibilityAssessmentType eligibilityAssessmentType;
@@ -1105,9 +1111,11 @@ class CustomBeneficiaryDetailsRouteArgs {
 
   final RegistrationDeliveryLocalization? appLocalizations;
 
+  final String? smcSuccess;
+
   @override
   String toString() {
-    return 'CustomBeneficiaryDetailsRouteArgs{eligibilityAssessmentType: $eligibilityAssessmentType, key: $key, appLocalizations: $appLocalizations}';
+    return 'CustomBeneficiaryDetailsRouteArgs{eligibilityAssessmentType: $eligibilityAssessmentType, key: $key, appLocalizations: $appLocalizations, smcSuccess: $smcSuccess}';
   }
 }
 
@@ -1276,6 +1284,7 @@ class CustomDeliverInterventionRoute
     RegistrationDeliveryLocalization? appLocalizations,
     required EligibilityAssessmentType eligibilityAssessmentType,
     bool isEditing = false,
+    String? smcSuccess = 'false',
     List<PageRouteInfo>? children,
   }) : super(
           CustomDeliverInterventionRoute.name,
@@ -1284,6 +1293,7 @@ class CustomDeliverInterventionRoute
             appLocalizations: appLocalizations,
             eligibilityAssessmentType: eligibilityAssessmentType,
             isEditing: isEditing,
+            smcSuccess: smcSuccess,
           ),
           initialChildren: children,
         );
@@ -1300,6 +1310,7 @@ class CustomDeliverInterventionRouteArgs {
     this.appLocalizations,
     required this.eligibilityAssessmentType,
     this.isEditing = false,
+    this.smcSuccess = 'false',
   });
 
   final Key? key;
@@ -1310,9 +1321,11 @@ class CustomDeliverInterventionRouteArgs {
 
   final bool isEditing;
 
+  final String? smcSuccess;
+
   @override
   String toString() {
-    return 'CustomDeliverInterventionRouteArgs{key: $key, appLocalizations: $appLocalizations, eligibilityAssessmentType: $eligibilityAssessmentType, isEditing: $isEditing}';
+    return 'CustomDeliverInterventionRouteArgs{key: $key, appLocalizations: $appLocalizations, eligibilityAssessmentType: $eligibilityAssessmentType, isEditing: $isEditing, smcSuccess: $smcSuccess}';
   }
 }
 
@@ -2107,6 +2120,7 @@ class CustomReferBeneficiaryVASRoute
     String quantityWasted = "00",
     String? productVariantId,
     List<String>? referralReasons,
+    String? smcSuccess = 'false',
     List<PageRouteInfo>? children,
   }) : super(
           CustomReferBeneficiaryVASRoute.name,
@@ -2120,6 +2134,7 @@ class CustomReferBeneficiaryVASRoute
             quantityWasted: quantityWasted,
             productVariantId: productVariantId,
             referralReasons: referralReasons,
+            smcSuccess: smcSuccess,
           ),
           initialChildren: children,
         );
@@ -2141,6 +2156,7 @@ class CustomReferBeneficiaryVASRouteArgs {
     this.quantityWasted = "00",
     this.productVariantId,
     this.referralReasons,
+    this.smcSuccess = 'false',
   });
 
   final Key? key;
@@ -2161,9 +2177,11 @@ class CustomReferBeneficiaryVASRouteArgs {
 
   final List<String>? referralReasons;
 
+  final String? smcSuccess;
+
   @override
   String toString() {
-    return 'CustomReferBeneficiaryVASRouteArgs{key: $key, appLocalizations: $appLocalizations, isEditing: $isEditing, projectBeneficiaryClientRefId: $projectBeneficiaryClientRefId, individual: $individual, isReadministrationUnSuccessful: $isReadministrationUnSuccessful, quantityWasted: $quantityWasted, productVariantId: $productVariantId, referralReasons: $referralReasons}';
+    return 'CustomReferBeneficiaryVASRouteArgs{key: $key, appLocalizations: $appLocalizations, isEditing: $isEditing, projectBeneficiaryClientRefId: $projectBeneficiaryClientRefId, individual: $individual, isReadministrationUnSuccessful: $isReadministrationUnSuccessful, quantityWasted: $quantityWasted, productVariantId: $productVariantId, referralReasons: $referralReasons, smcSuccess: $smcSuccess}';
   }
 }
 

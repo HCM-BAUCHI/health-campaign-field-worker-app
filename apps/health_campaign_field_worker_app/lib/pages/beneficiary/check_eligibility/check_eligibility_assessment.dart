@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:digit_components/digit_components.dart';
 import 'package:digit_components/utils/date_utils.dart';
 import 'package:digit_components/widgets/digit_sync_dialog.dart';
@@ -11,6 +12,7 @@ import 'package:health_campaign_field_worker_app/widgets/custom_back_navigation.
 import 'package:registration_delivery/blocs/household_overview/household_overview.dart';
 import 'package:intl/intl.dart';
 import 'package:registration_delivery/models/entities/status.dart';
+import 'package:registration_delivery/utils/utils.dart';
 import 'package:survey_form/survey_form.dart';
 import 'package:registration_delivery/blocs/delivery_intervention/deliver_intervention.dart';
 import 'package:registration_delivery/blocs/search_households/search_households.dart';
@@ -24,6 +26,7 @@ import '../../../router/app_router.dart';
 import '../../../utils/app_enums.dart';
 import '../../../utils/environment_config.dart';
 import '../../../utils/i18_key_constants.dart' as i18_local;
+import '../../../utils/registration_delivery/utils_smc.dart';
 import '../../../utils/utils.dart';
 import '../../../widgets/header/back_navigation_help_header.dart';
 import '../../../widgets/localized.dart';
@@ -79,6 +82,20 @@ class _EligibilityChecklistViewPage
           submitTriggered: true,
         ));
     super.initState();
+  }
+
+  List<TaskModel>? _getSMCStatusData(List<TaskModel>? tasks) {
+    return tasks
+        ?.where((e) =>
+            e.additionalFields?.fields.firstWhereOrNull(
+              (element) =>
+                  element.key ==
+                      additional_fields_local.AdditionalFieldsType.deliveryType
+                          .toValue() &&
+                  element.value == EligibilityAssessmentStatus.smcDone.name,
+            ) !=
+            null)
+        .toList();
   }
 
   @override
@@ -429,6 +446,71 @@ class _EligibilityChecklistViewPage
                                         ifIneligible ||
                                         ifReferral)) {
                                   final router = context.router;
+
+                                  final projectBeneficiary =
+                                      householdOverviewState
+                                          .householdMemberWrapper
+                                          .projectBeneficiaries
+                                          ?.where(
+                                            (element) =>
+                                                element
+                                                    .beneficiaryClientReferenceId ==
+                                                (RegistrationDeliverySingleton()
+                                                            .beneficiaryType ==
+                                                        BeneficiaryType
+                                                            .individual
+                                                    ? widget.individual
+                                                        ?.clientReferenceId
+                                                    : householdOverviewState
+                                                        .householdMemberWrapper
+                                                        .household
+                                                        ?.clientReferenceId),
+                                          )
+                                          .toList();
+
+                                  final taskData = (projectBeneficiary ?? [])
+                                          .isNotEmpty
+                                      ? householdOverviewState
+                                          .householdMemberWrapper.tasks
+                                          ?.where((element) =>
+                                              element
+                                                  .projectBeneficiaryClientReferenceId ==
+                                              projectBeneficiary
+                                                  ?.first.clientReferenceId)
+                                          .toList()
+                                      : null;
+
+                                  final currentCycle =
+                                      RegistrationDeliverySingleton()
+                                          .projectType
+                                          ?.cycles
+                                          ?.firstWhereOrNull(
+                                            (e) =>
+                                                (e.startDate) <
+                                                    DateTime.now()
+                                                        .millisecondsSinceEpoch &&
+                                                (e.endDate) >
+                                                    DateTime.now()
+                                                        .millisecondsSinceEpoch,
+                                          );
+
+                                  List<TaskModel>? smcTasks = taskData != null
+                                      ? _getSMCStatusData(taskData)
+                                      : null;
+                                  bool isBeneficiaryReferredSMC =
+                                      checkBeneficiaryReferredSMC(smcTasks);
+                                  bool isBeneficiaryInEligibleSMC =
+                                      checkBeneficiaryInEligibleSMC(smcTasks);
+                                  bool isSMCDelivered = taskData == null
+                                      ? false
+                                      : taskData.isNotEmpty &&
+                                              !checkStatusSMC(
+                                                taskData,
+                                                currentCycle,
+                                              )
+                                          ? true
+                                          : false;
+
                                   if (ifIneligible) {
                                     // added the deliversubmitevent here
                                     final clientReferenceId =
@@ -458,6 +540,20 @@ class _EligibilityChecklistViewPage
                                                 .vasDone.name,
                                       ),
                                     );
+                                    if (widget.eligibilityAssessmentType ==
+                                        EligibilityAssessmentType.vas) {
+                                      additionalFields.add(
+                                        AdditionalField(
+                                          'smcSuccess',
+                                          (isBeneficiaryInEligibleSMC ||
+                                                  isBeneficiaryReferredSMC)
+                                              ? false.toString()
+                                              : isSMCDelivered
+                                                  ? true.toString()
+                                                  : false.toString(),
+                                        ),
+                                      );
+                                    }
                                     context.read<DeliverInterventionBloc>().add(
                                           DeliverInterventionSubmitEvent(
                                               task: TaskModel(
@@ -539,12 +635,39 @@ class _EligibilityChecklistViewPage
                                                       "",
                                               individual: widget.individual!,
                                               referralReasons: referralReasons,
+                                              smcSuccess:
+                                                  (isBeneficiaryInEligibleSMC ||
+                                                          isBeneficiaryReferredSMC)
+                                                      ? false.toString()
+                                                      : isSMCDelivered
+                                                          ? true.toString()
+                                                          : false.toString(),
                                             ),
                                           );
                                   } else {
-                                    router.push(CustomBeneficiaryDetailsRoute(
-                                        eligibilityAssessmentType:
-                                            widget.eligibilityAssessmentType));
+                                    if (widget.eligibilityAssessmentType ==
+                                        EligibilityAssessmentType.vas) {
+                                      router.push(
+                                        CustomBeneficiaryDetailsRoute(
+                                          eligibilityAssessmentType:
+                                              widget.eligibilityAssessmentType,
+                                          smcSuccess:
+                                              (isBeneficiaryInEligibleSMC ||
+                                                      isBeneficiaryReferredSMC)
+                                                  ? false.toString()
+                                                  : isSMCDelivered
+                                                      ? true.toString()
+                                                      : false.toString(),
+                                        ),
+                                      );
+                                    } else {
+                                      router.push(
+                                        CustomBeneficiaryDetailsRoute(
+                                          eligibilityAssessmentType:
+                                              widget.eligibilityAssessmentType,
+                                        ),
+                                      );
+                                    }
                                   }
                                 }
 
