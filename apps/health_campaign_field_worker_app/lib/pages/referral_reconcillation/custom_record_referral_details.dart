@@ -771,6 +771,7 @@ class _CustomRecordReferralDetailsPageState
                                                 i18.referralReconciliation
                                                     .referralDetails,
                                               ),
+                                              
                                               style: textTheme.headingXl,
                                             ),
                                           ),
@@ -782,6 +783,8 @@ class _CustomRecordReferralDetailsPageState
                                                 localizations.translate(
                                                   i18.common.corecommonRequired,
                                                 ),
+                                            'onlyAlphabets': (_) =>
+                                                'Please enter alphabets only',
                                           },
                                           formControlName: _nameOfChildKey,
                                           showErrors: (control) =>
@@ -809,6 +812,12 @@ class _CustomRecordReferralDetailsPageState
                                                 initialValue: form
                                                     .control(_nameOfChildKey)
                                                     .value,
+                                                inputFormatters: [
+                                                  // Allow only letters and spaces
+                                                  FilteringTextInputFormatter.allow(
+                                                    RegExp(r'[A-Za-z\s]'),
+                                                  ),
+                                                ],
                                               ),
                                             );
                                           }),
@@ -818,6 +827,10 @@ class _CustomRecordReferralDetailsPageState
                                                 localizations.translate(
                                                   i18.common.corecommonRequired,
                                                 ),
+                                            'noEmojis': (_) => 
+                                                'Beneficiary ID cannot contain emoji characters',
+                                            'repeatedChars': (_) => 
+                                                'Beneficiary ID cannot contain excessive repetition of characters',
                                           },
                                           formControlName: _beneficiaryIdKey,
                                           showErrors: (control) =>
@@ -847,6 +860,32 @@ class _CustomRecordReferralDetailsPageState
                                                     .value,
                                                 readOnly: viewOnly,
                                                 errorMessage: field.errorText,
+                                                inputFormatters: [
+                                                  // Allow only letters, numbers, and specific special characters
+                                                  FilteringTextInputFormatter.allow(
+                                                    RegExp(r'[a-zA-Z0-9\-_/#:.,() ]'),
+                                                  ),
+                                                  // Prevent excessive repetition of characters
+                                                  TextInputFormatter.withFunction(
+                                                    (oldValue, newValue) {
+                                                      final text = newValue.text;
+                                                      // Check for repetitions of special characters
+                                                      for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+                                                        if (text.contains('$specialChar$specialChar$specialChar')) {
+                                                          return oldValue;
+                                                        }
+                                                      }
+                                                      
+                                                      // Check for any character repeated excessively (4+ times)
+                                                      final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+                                                      if (repeatedCharsPattern.hasMatch(text)) {
+                                                        return oldValue;
+                                                      }
+                                                      
+                                                      return newValue;
+                                                    },
+                                                  ),
+                                                ],
                                               ),
                                             );
                                           }),
@@ -1111,10 +1150,49 @@ class _CustomRecordReferralDetailsPageState
             false,
         validators: [
           Validators.required,
+          // Add validation to only allow alphabets and spaces
+          Validators.delegate((control) {
+            final value = control.value?.toString().trim();
+            if (value == null || value.isEmpty) return null;
+            final regExp = RegExp(r'^[A-Za-z\s]+$');
+            return regExp.hasMatch(value)
+                ? null
+                : {'onlyAlphabets': true};
+          }),
         ],
       ),
       _beneficiaryIdKey: FormControl<String>(
-        validators: [Validators.required],
+        validators: [
+          Validators.required,
+          // Add validation to allow alphanumeric and specific special characters but block emojis
+          Validators.delegate((control) {
+            final value = control.value?.toString();
+            if (value == null || value.isEmpty) return null;
+
+            // Check for emoji characters
+            final emojiRegex = RegExp(
+                r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])', 
+                unicode: true);
+            if (emojiRegex.hasMatch(value)) {
+              return {'noEmojis': true};
+            }
+            
+            // Check for excessive repetition of specific special characters
+            for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+              if (value.contains('$specialChar$specialChar$specialChar')) {
+                return {'repeatedChars': true};
+              }
+            }
+            
+            // Additional check for any character repeated more than 3 times
+            final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+            if (repeatedCharsPattern.hasMatch(value)) {
+              return {'repeatedChars': true};
+            }
+            
+            return null;
+          }),
+        ],
         value: referralState.mapOrNull(
           create: (value) => value.hfReferralModel?.beneficiaryId,
         ),

@@ -4,6 +4,7 @@ import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/theme/digit_extended_theme.dart';
 import 'package:digit_ui_components/widgets/molecules/digit_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:health_campaign_field_worker_app/widgets/custom_back_navigation.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -400,9 +401,16 @@ class _CustomReferralFacilityPageState
                                               ReactiveWrapperField<String>(
                                                   formControlName:
                                                       _referredByKey,
+                                                  validationMessages: {
+                                                    'noEmojis': (_) => 
+                                                        'Team code cannot contain emoji characters',
+                                                    'repeatedChars': (_) => 
+                                                        'Team code cannot contain excessive repetition of characters',
+                                                  },
                                                   builder: (field) {
                                                     return LabeledField(
-                                                        label: localizations
+                                                        label:  
+                                                        localizations
                                                             .translate(
                                                           i18.referralReconciliation
                                                               .referredByTeamCodeLabel,
@@ -420,10 +428,37 @@ class _CustomReferralFacilityPageState
                                                                 .value = val,
                                                           },
                                                           readOnly: viewOnly,
+                                                          errorMessage: field.errorText,
                                                           initialValue: form
                                                               .control(
                                                                   _referredByKey)
                                                               .value,
+                                                          inputFormatters: viewOnly ? null : [
+                                                            // Allow only letters, numbers, and specific special characters
+                                                            FilteringTextInputFormatter.allow(
+                                                              RegExp(r'[a-zA-Z0-9\-_/#:.,() ]'),
+                                                            ),
+                                                            // Prevent excessive repetition of characters
+                                                            TextInputFormatter.withFunction(
+                                                              (oldValue, newValue) {
+                                                                final text = newValue.text;
+                                                                // Check for repetitions of special characters
+                                                                for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+                                                                  if (text.contains('$specialChar$specialChar$specialChar')) {
+                                                                    return oldValue;
+                                                                  }
+                                                                }
+                                                                
+                                                                // Check for any character repeated excessively (4+ times)
+                                                                final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+                                                                if (repeatedCharsPattern.hasMatch(text)) {
+                                                                  return oldValue;
+                                                                }
+                                                                
+                                                                return newValue;
+                                                              },
+                                                            ),
+                                                          ],
                                                         ));
                                                   }),
                                             ]),
@@ -553,6 +588,36 @@ class _CustomReferralFacilityPageState
                   .toString()
               : null,
         ),
+        validators: [
+          // Add validation to allow alphanumeric and specific special characters but block emojis
+          Validators.delegate((control) {
+            final value = control.value?.toString();
+            if (value == null || value.isEmpty) return null;
+
+            // Check for emoji characters
+            final emojiRegex = RegExp(
+                r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])', 
+                unicode: true);
+            if (emojiRegex.hasMatch(value)) {
+              return {'noEmojis': true};
+            }
+            
+            // Check for excessive repetition of specific special characters
+            for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+              if (value.contains('$specialChar$specialChar$specialChar')) {
+                return {'repeatedChars': true};
+              }
+            }
+            
+            // Additional check for any character repeated more than 3 times
+            final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+            if (repeatedCharsPattern.hasMatch(value)) {
+              return {'repeatedChars': true};
+            }
+            
+            return null;
+          }),
+        ],
       ),
     });
   }
