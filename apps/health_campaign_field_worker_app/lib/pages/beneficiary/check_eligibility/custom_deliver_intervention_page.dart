@@ -43,12 +43,14 @@ import '../../../widgets/custom_back_navigation.dart';
 class CustomDeliverInterventionPage extends LocalizedStatefulWidget {
   final EligibilityAssessmentType eligibilityAssessmentType;
   final bool isEditing;
+  final String? smcSuccess;
 
   const CustomDeliverInterventionPage({
     super.key,
     super.appLocalizations,
     required this.eligibilityAssessmentType,
     this.isEditing = false,
+    this.smcSuccess = 'false',
   });
 
   @override
@@ -897,6 +899,11 @@ class CustomDeliverInterventionPageState
                 ? EligibilityAssessmentStatus.smcDone.name
                 : EligibilityAssessmentStatus.vasDone.name,
           ),
+          if (widget.eligibilityAssessmentType == EligibilityAssessmentType.vas)
+            AdditionalField(
+              'smcSuccess',
+              widget.smcSuccess,
+            ),
         ],
       ),
     );

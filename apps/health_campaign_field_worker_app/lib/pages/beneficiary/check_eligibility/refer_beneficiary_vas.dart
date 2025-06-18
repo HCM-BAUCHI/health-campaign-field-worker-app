@@ -38,6 +38,7 @@ class CustomReferBeneficiaryVASPage extends LocalizedStatefulWidget {
   final List<String>? referralReasons;
   final String quantityWasted;
   final String? productVariantId;
+  final String? smcSuccess;
 
   const CustomReferBeneficiaryVASPage({
     super.key,
@@ -49,6 +50,7 @@ class CustomReferBeneficiaryVASPage extends LocalizedStatefulWidget {
     this.quantityWasted = "00",
     this.productVariantId,
     this.referralReasons,
+    this.smcSuccess = 'false',
   });
   @override
   State<CustomReferBeneficiaryVASPage> createState() =>
@@ -275,6 +277,10 @@ class CustomReferBeneficiaryVASPageState
                                                         .toValue(),
                                                     EligibilityAssessmentStatus
                                                         .vasDone.name,
+                                                  ),
+                                                  AdditionalField(
+                                                    'smcSuccess',
+                                                    widget.smcSuccess,
                                                   ),
                                                 ],
                                               ),

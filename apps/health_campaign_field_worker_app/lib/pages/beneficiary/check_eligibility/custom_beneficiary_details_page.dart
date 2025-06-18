@@ -40,10 +40,12 @@ import 'custom_record_delivery_cycle.dart';
 @RoutePage()
 class CustomBeneficiaryDetailsPage extends LocalizedStatefulWidget {
   final EligibilityAssessmentType eligibilityAssessmentType;
+  final String? smcSuccess;
   const CustomBeneficiaryDetailsPage({
     required this.eligibilityAssessmentType,
     super.key,
     super.appLocalizations,
+    this.smcSuccess = 'false',
   });
 
   @override
@@ -263,12 +265,25 @@ class CustomBeneficiaryDetailsPageState
                                                                   rootNavigator:
                                                                       true,
                                                                 ).pop();
-                                                                router.push(
-                                                                  CustomDeliverInterventionRoute(
-                                                                      eligibilityAssessmentType:
-                                                                          widget
-                                                                              .eligibilityAssessmentType),
-                                                                );
+                                                                if (widget
+                                                                        .eligibilityAssessmentType ==
+                                                                    EligibilityAssessmentType
+                                                                        .vas) {
+                                                                  router.push(
+                                                                    CustomDeliverInterventionRoute(
+                                                                        eligibilityAssessmentType:
+                                                                            widget
+                                                                                .eligibilityAssessmentType,
+                                                                        smcSuccess:
+                                                                            widget.smcSuccess),
+                                                                  );
+                                                                } else {
+                                                                  router.push(
+                                                                    CustomDeliverInterventionRoute(
+                                                                        eligibilityAssessmentType:
+                                                                            widget.eligibilityAssessmentType),
+                                                                  );
+                                                                }
                                                               },
                                                               type:
                                                                   DigitButtonType
@@ -294,11 +309,25 @@ class CustomBeneficiaryDetailsPageState
                                           size: DigitButtonSize.large,
                                           mainAxisSize: MainAxisSize.max,
                                           onPressed: () {
-                                            context.router.push(
+                                            if (widget
+                                                    .eligibilityAssessmentType ==
+                                                EligibilityAssessmentType.vas) {
+                                              context.router.push(
                                                 CustomDeliverInterventionRoute(
                                                     eligibilityAssessmentType:
                                                         widget
-                                                            .eligibilityAssessmentType));
+                                                            .eligibilityAssessmentType,
+                                                    smcSuccess:
+                                                        widget.smcSuccess),
+                                              );
+                                            } else {
+                                              context.router.push(
+                                                CustomDeliverInterventionRoute(
+                                                    eligibilityAssessmentType:
+                                                        widget
+                                                            .eligibilityAssessmentType),
+                                              );
+                                            }
                                           },
                                         ),
                                       ]);
