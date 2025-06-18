@@ -63,7 +63,7 @@ class CustomStockReconciliationPageState
         validators: [
           Validators.number(),
           Validators.required,
-          Validators.delegate(CustomValidator.validStockCount),
+          Validators.delegate(CustomValidator.validStockCountUpdated),
         ],
       ),
       _reconciliationCommentsKey: FormControl<String>(),
@@ -661,9 +661,9 @@ class CustomStockReconciliationPageState
                                                 .stockReconciliationDetails
                                                 .manualCountMinError),
                                         "max": (object) =>
-                                            localizations.translate(i18
+                                            localizations.translate(i18_local
                                                 .stockReconciliationDetails
-                                                .manualCountMaxError),
+                                                .manualCountMaxErrorUpdated),
                                       },
                                       showErrors: (control) =>
                                           control.invalid && control.touched,

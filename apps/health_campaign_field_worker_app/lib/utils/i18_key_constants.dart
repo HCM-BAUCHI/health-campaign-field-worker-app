@@ -512,6 +512,7 @@ class StockDetails {
 
 class StockReconciliationDetails {
   const StockReconciliationDetails();
+  String get manualCountMaxErrorUpdated => 'MANUAL_COUNT_MAX_ERROR_UPDATED';
 
   String get commentRequiredError => 'RECONCILIATION_COMMENT_IS_REQUIRED';
 }
