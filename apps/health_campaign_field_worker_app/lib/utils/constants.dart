@@ -108,6 +108,7 @@ class Constants {
   static const String pipeSeparator = '||';
 
   // for stock validation
+  static const int stockMaxLimit = 1000000000;
 
   static const String spaq1 = "SPAQ 1";
   static const String spaq2 = "SPAQ 2";

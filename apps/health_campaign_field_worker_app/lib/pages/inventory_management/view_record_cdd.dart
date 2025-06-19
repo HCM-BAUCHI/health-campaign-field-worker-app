@@ -190,6 +190,7 @@ class _ViewStockRecordsCDDPageState
           id: null,
           rowVersion: 1,
           clientReferenceId: IdGen.i.identifier,
+          referenceId: context.selectedProject.id,
           transactionType: TransactionType.received.toValue(),
           transactionReason: TransactionReason.received.toValue(),
           quantity: form.control('quantityReceived').value.toString(),
