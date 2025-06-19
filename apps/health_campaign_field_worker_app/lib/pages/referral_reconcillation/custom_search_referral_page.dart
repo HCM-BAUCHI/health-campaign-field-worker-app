@@ -9,6 +9,7 @@ import 'package:digit_ui_components/widgets/atoms/digit_info_card.dart';
 import 'package:digit_ui_components/widgets/atoms/digit_search_bar.dart';
 import 'package:digit_ui_components/widgets/scrollable_content.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:health_campaign_field_worker_app/widgets/custom_back_navigation.dart';
@@ -120,12 +121,19 @@ class _CustomSearchReferralReconciliationsPageState
                                         children: [
                                           DigitSearchBar(
                                             controller: searchController,
-                                            hintText: localizations.translate(
+                                            hintText:
+                                             localizations.translate(
                                               i18_local.searchBeneficiary
                                                   .searchBeneficiaryReferralHintText,
                                             ),
                                             textCapitalization:
                                                 TextCapitalization.words,
+                                            inputFormatters: [
+                                              // Allow only letters and spaces
+                                              FilteringTextInputFormatter.allow(
+                                                RegExp(r'[A-Za-z\s]'),
+                                              ),
+                                            ],
                                             onChanged: (value) {
                                               final bloc = context
                                                   .read<SearchReferralsBloc>();
@@ -136,10 +144,14 @@ class _CustomSearchReferralReconciliationsPageState
 
                                                 return;
                                               } else {
-                                                bloc.add(
-                                                    SearchReferralsByNameEvent(
-                                                  searchText: value.trim(),
-                                                ));
+                                                // Additional validation to ensure only alphabets and spaces
+                                                final regExp = RegExp(r'^[A-Za-z\s]+$');
+                                                if (regExp.hasMatch(value.trim())) {
+                                                  bloc.add(
+                                                      SearchReferralsByNameEvent(
+                                                    searchText: value.trim(),
+                                                  ));
+                                                }
                                               }
                                             },
                                           ),
