@@ -150,53 +150,57 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                       Validators.delegate((control) {
                         final value = control.value?.toString();
                         if (value == null || value.isEmpty) return null;
-                        
+
                         // More comprehensive regex to detect emoji characters
                         final emojiRegex = RegExp(
-                            r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])', 
+                            r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])',
                             unicode: true);
                         if (emojiRegex.hasMatch(value)) {
                           return {'noEmojis': true};
                         }
-                        
+
                         // Check for valid waybill characters - only allowing alphanumerics and specific special chars
-                        final validWaybillRegex = RegExp(r'^[a-zA-Z0-9\-_/#:.,() ]+$');
+                        final validWaybillRegex =
+                            RegExp(r'^[a-zA-Z0-9\-_/#:.,() ]+$');
                         if (!validWaybillRegex.hasMatch(value)) {
                           return {'invalidCharacters': true};
                         }
-                        
+
                         // Check for excessive repetition of specific special characters
-                        for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
-                          if (value.contains('$specialChar$specialChar$specialChar')) {
+                        for (final specialChar in [
+                          '-',
+                          '.',
+                          ',',
+                          ')',
+                          '(',
+                          '/',
+                          '#',
+                          ':',
+                          '_'
+                        ]) {
+                          if (value.contains(
+                              '$specialChar$specialChar$specialChar')) {
                             return {'repeatedChars': true};
                           }
                         }
-                        
+
                         // Additional check for any character repeated more than 3 times
                         final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
                         if (repeatedCharsPattern.hasMatch(value)) {
                           return {'repeatedChars': true};
                         }
-                        
+
                         return null;
                       }),
                     ]
                   : [],
             ),
-            _transactionQuantityKey: FormControl<int>(
-                validators: InventorySingleton().isWareHouseMgr
-                    ? [
-                        Validators.number(),
-                        Validators.required,
-                        Validators.min(1),
-                        Validators.max(1000000000),
-                      ]
-                    : [
-                        Validators.number(),
-                        Validators.required,
-                        Validators.min(1),
-                        Validators.max(1000000000),
-                      ]),
+            _transactionQuantityKey: FormControl<int>(validators: [
+              Validators.number(),
+              Validators.required,
+              Validators.min(1),
+              Validators.max(Constants.stockMaxLimit),
+            ]),
             // _waybillQuantityKey:
             //     FormControl<String>(validators: [Validators.required]),
             _batchNumberKey: FormControl<String>(),
@@ -501,7 +505,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         Validators.number(),
         Validators.required,
         Validators.min(0),
-        Validators.max(1000000000),
+        Validators.max(Constants.stockMaxLimit),
       ], autoValidate: true);
     }
     if (entryType == StockRecordEntryType.dispatch &&
@@ -510,7 +514,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
         Validators.number(),
         Validators.required,
         Validators.min(0),
-        Validators.max(1000000000),
+        Validators.max(Constants.stockMaxLimit),
       ], autoValidate: true);
     }
 
@@ -589,16 +593,17 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                       ReactiveWrapperField(
                           formControlName: _waybillNumberKey,
                           validationMessages: {
-                            'required': (object) => 'Waybill number is required',
-                            'minLength': (object) => 
+                            'required': (object) =>
+                                'Waybill number is required',
+                            'minLength': (object) =>
                                 'Waybill number must be at least 2 characters',
-                            'maxLength': (object) => 
+                            'maxLength': (object) =>
                                 'Waybill number cannot exceed 200 characters',
-                            'noEmojis': (object) => 
+                            'noEmojis': (object) =>
                                 'Waybill number cannot contain emoji characters',
-                            'invalidCharacters': (object) => 
+                            'invalidCharacters': (object) =>
                                 'Waybill number contains invalid characters. Only use letters, numbers, and basic punctuation',
-                            'repeatedChars': (object) => 
+                            'repeatedChars': (object) =>
                                 'Waybill number cannot contain excessive repetition of the same character',
                           },
                           builder: (field) {
@@ -620,18 +625,30 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                     (oldValue, newValue) {
                                       final text = newValue.text;
                                       // Check for repetitions of special characters
-                                      for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
-                                        if (text.contains('$specialChar$specialChar$specialChar')) {
+                                      for (final specialChar in [
+                                        '-',
+                                        '.',
+                                        ',',
+                                        ')',
+                                        '(',
+                                        '/',
+                                        '#',
+                                        ':',
+                                        '_'
+                                      ]) {
+                                        if (text.contains(
+                                            '$specialChar$specialChar$specialChar')) {
                                           return oldValue;
                                         }
                                       }
-                                      
+
                                       // Check for any character repeated excessively (4+ times)
-                                      final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
+                                      final repeatedCharsPattern =
+                                          RegExp(r'(.)\1{3,}');
                                       if (repeatedCharsPattern.hasMatch(text)) {
                                         return oldValue;
                                       }
-                                      
+
                                       return newValue;
                                     },
                                   ),
@@ -706,7 +723,8 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                   onChange: (val) {
                                     field.control.markAsTouched();
                                     if (int.parse(val) > 10000000000) {
-                                      field.control.value = 10000;
+                                      field.control.value =
+                                          Constants.stockMaxLimit;
                                     } else {
                                       if (val != '') {
                                         field.control.value = int.parse(val);
@@ -764,7 +782,8 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                   onChange: (val) {
                                     field.control.markAsTouched();
                                     if (int.parse(val) > 10000000000) {
-                                      field.control.value = 10000;
+                                      field.control.value =
+                                          Constants.stockMaxLimit;
                                     } else {
                                       if (val != '') {
                                         field.control.value = int.parse(val);
@@ -818,7 +837,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                               onChange: (val) {
                                 field.control.markAsTouched();
                                 if (int.parse(val) > 10000000000) {
-                                  field.control.value = 10000;
+                                  field.control.value = Constants.stockMaxLimit;
                                 } else {
                                   if (val != '') {
                                     field.control.value = int.parse(val);
@@ -922,18 +941,18 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
     final form = _forms[productName]!;
     final currentStock = _tabStocks[productName]!;
 
-    final theme = Theme.of(context);
+    // final theme = Theme.of(context);
 
-    bool isSubtracted = (entryType == StockRecordEntryType.dispatch ||
-        entryType == StockRecordEntryType.returned);
-    final ss = int.parse(
-        form.control(_transactionQuantityKey).value?.toString() ?? "0");
+    // bool isSubtracted = (entryType == StockRecordEntryType.dispatch ||
+    //     entryType == StockRecordEntryType.returned);
+    // final ss = int.parse(
+    //     form.control(_transactionQuantityKey).value?.toString() ?? "0");
 
-    final spaq1Count = context.spaq1;
-    final spaq2Count = context.spaq2;
+    // final spaq1Count = context.spaq1;
+    // final spaq2Count = context.spaq2;
 
-    final blueVasCount = context.blueVas;
-    final redVasCount = context.redVas;
+    // final blueVasCount = context.blueVas;
+    // final redVasCount = context.redVas;
 
     // Custom logic based on productName
     // if (entryType == StockRecordEntryType.dispatch) {
@@ -1017,6 +1036,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
       quantity: form.control(_transactionQuantityKey).value?.toString() != "0"
           ? form.control(_transactionQuantityKey).value?.toString()
           : (_forms[productName]?.value)?["quantity"] as String?,
+      referenceId: context.selectedProject.id,
       wayBillNumber: form.control(_waybillNumberKey).value?.toString() ??
           (_forms[productName]?.value)?["waybillNumber"] as String?,
       transactionReason:

@@ -76,6 +76,8 @@ class _RecordRedosePageState extends LocalizedState<RecordRedosePage> {
   // Variable to track dose administration status
   bool doseAdministered = true;
 
+  bool isSubmitClicked = false;
+
   // List of controllers for form elements
   final List _controllers = [];
 
@@ -261,251 +263,207 @@ class _RecordRedosePageState extends LocalizedState<RecordRedosePage> {
                                                     );
                                                   } else {
                                                     // get the latest successful task
-                                                    var successfulTask = widget
-                                                        .tasks
-                                                        .where((element) =>
-                                                            element.status ==
-                                                            Status
-                                                                .administeredSuccess
-                                                                .toValue())
-                                                        .lastOrNull;
-                                                    // Extract productvariantList from the form
-                                                    final productvariantList =
-                                                        ((form.control(_resourceDeliveredKey)
-                                                                    as FormArray)
-                                                                .value
-                                                            as List<
-                                                                ProductVariantModel?>);
+                                                    if (!isSubmitClicked) {
+                                                      isSubmitClicked = true;
+                                                      // get the latest successful task
+                                                      var successfulTask = widget
+                                                          .tasks
+                                                          .where((element) =>
+                                                              element.status ==
+                                                              Status
+                                                                  .administeredSuccess
+                                                                  .toValue())
+                                                          .lastOrNull;
+                                                      // Extract productvariantList from the form
+                                                      final productvariantList =
+                                                          ((form.control(_resourceDeliveredKey)
+                                                                      as FormArray)
+                                                                  .value
+                                                              as List<
+                                                                  ProductVariantModel?>);
 
-                                                    var quantityDistributedFormArray =
-                                                        form.control(
-                                                      _quantityDistributedKey,
-                                                    ) as FormArray?;
+                                                      var quantityDistributedFormArray =
+                                                          form.control(
+                                                        _quantityDistributedKey,
+                                                      ) as FormArray?;
 
-                                                    if (successfulTask !=
-                                                            null &&
-                                                        quantityDistributedFormArray !=
-                                                            null) {
-                                                      var updatedTask =
-                                                          updateTask(
-                                                        successfulTask,
-                                                        productvariantList,
-                                                        quantityDistributedFormArray,
-                                                        form,
-                                                      );
-                                                      var newTask = getNewTask(
-                                                        context,
-                                                        updatedTask,
-                                                      );
+                                                      if (successfulTask !=
+                                                              null &&
+                                                          quantityDistributedFormArray !=
+                                                              null) {
+                                                        var updatedTask =
+                                                            updateTask(
+                                                          successfulTask,
+                                                          productvariantList,
+                                                          quantityDistributedFormArray,
+                                                          form,
+                                                        );
+                                                        var newTask =
+                                                            getNewTask(
+                                                          context,
+                                                          updatedTask,
+                                                        );
 
-                                                      // final shouldSubmit =
-                                                      //     await digit_dialog
-                                                      //             .DigitDialog
-                                                      //         .show<bool>(
-                                                      //   context,
-                                                      //   options: digit_dialog
-                                                      //       .DigitDialogOptions(
-                                                      //     titleText:
-                                                      //         localizations
-                                                      //             .translate(
-                                                      //       i18.deliverIntervention
-                                                      //           .dialogTitle,
-                                                      //     ),
-                                                      //     contentText:
-                                                      //         localizations
-                                                      //             .translate(
-                                                      //       i18.deliverIntervention
-                                                      //           .dialogContent,
-                                                      //     ),
-                                                      //     primaryAction:
-                                                      //         digit_dialog
-                                                      //             .DigitDialogActions(
-                                                      //       label: localizations
-                                                      //           .translate(
-                                                      //         i18.common
-                                                      //             .coreCommonSubmit,
-                                                      //       ),
-                                                      //       action: (ctx) {
-                                                      //         Navigator.of(
-                                                      //           context,
-                                                      //           rootNavigator:
-                                                      //               true,
-                                                      //         ).pop(true);
-                                                      //       },
-                                                      //     ),
-                                                      //     secondaryAction:
-                                                      //         digit_dialog
-                                                      //             .DigitDialogActions(
-                                                      //       label: localizations
-                                                      //           .translate(
-                                                      //         i18.common
-                                                      //             .coreCommonCancel,
-                                                      //       ),
-                                                      //       action: (context) =>
-                                                      //           Navigator.of(
-                                                      //         context,
-                                                      //         rootNavigator:
-                                                      //             true,
-                                                      //       ).pop(false),
-                                                      //     ),
-                                                      //   ),
-                                                      // );
+                                                        if (true) {
+                                                          if (context.mounted) {
+                                                            int spaq1 = 0;
+                                                            int spaq2 = 0;
+                                                            int blueVas = 0;
+                                                            int redVas = 0;
 
-                                                      if (true) {
-                                                        if (context.mounted) {
-                                                          int spaq1 = 0;
-                                                          int spaq2 = 0;
-                                                          int blueVas = 0;
-                                                          int redVas = 0;
+                                                            var productVariantId =
+                                                                updatedTask
+                                                                    .resources!
+                                                                    .first
+                                                                    .productVariantId;
+                                                            final productVariant =
+                                                                productvariantList
+                                                                    .where((element) =>
+                                                                        element
+                                                                            ?.id ==
+                                                                        productVariantId)
+                                                                    .firstOrNull;
 
-                                                          var productVariantId =
-                                                              updatedTask
-                                                                  .resources!
-                                                                  .first
-                                                                  .productVariantId;
-                                                          final productVariant =
-                                                              productvariantList
-                                                                  .where((element) =>
-                                                                      element
-                                                                          ?.id ==
-                                                                      productVariantId)
-                                                                  .firstOrNull;
+                                                            var quantityIndex =
+                                                                productvariantList
+                                                                    .indexOf(
+                                                              productVariant,
+                                                            );
 
-                                                          var quantityIndex =
-                                                              productvariantList
-                                                                  .indexOf(
-                                                            productVariant,
-                                                          );
+                                                            final quantity = quantityIndex <
+                                                                    0
+                                                                ? 0
+                                                                : quantityDistributedFormArray
+                                                                    .value![
+                                                                        quantityIndex]
+                                                                    .toString()
+                                                                    .split(
+                                                                        " ")[0];
 
-                                                          final quantity = quantityIndex <
-                                                                  0
-                                                              ? 0
-                                                              : quantityDistributedFormArray
-                                                                  .value![
-                                                                      quantityIndex]
-                                                                  .toString()
-                                                                  .split(
-                                                                      " ")[0];
+                                                            if (productVariant!
+                                                                    ?.sku! ==
+                                                                'SPAQ 1') {
+                                                              spaq1 = quantity !=
+                                                                      'null'
+                                                                  ? int.parse(quantity
+                                                                          .toString()) *
+                                                                      -1
+                                                                  : 0;
+                                                            } else if (productVariant
+                                                                    ?.sku! ==
+                                                                'SPAQ 2') {
+                                                              spaq2 = quantity !=
+                                                                      'null'
+                                                                  ? int.parse(quantity
+                                                                          .toString()) *
+                                                                      -1
+                                                                  : 0;
+                                                            } else if (productVariant
+                                                                    ?.sku! ==
+                                                                'Blue VAS') {
+                                                              blueVas = quantity !=
+                                                                      'null'
+                                                                  ? int.parse(quantity
+                                                                          .toString()) *
+                                                                      -1
+                                                                  : 0;
+                                                            } else {
+                                                              redVas = quantity !=
+                                                                      'null'
+                                                                  ? int.parse(quantity
+                                                                          .toString()) *
+                                                                      -1
+                                                                  : 0;
+                                                            }
 
-                                                          if (productVariant!
-                                                                  ?.sku! ==
-                                                              'SPAQ 1') {
-                                                            spaq1 = quantity !=
-                                                                    'null'
-                                                                ? int.parse(quantity
-                                                                        .toString()) *
-                                                                    -1
-                                                                : 0;
-                                                          } else if (productVariant
-                                                                  ?.sku! ==
-                                                              'SPAQ 2') {
-                                                            spaq2 = quantity !=
-                                                                    'null'
-                                                                ? int.parse(quantity
-                                                                        .toString()) *
-                                                                    -1
-                                                                : 0;
-                                                          } else if (productVariant
-                                                                  ?.sku! ==
-                                                              'Blue VAS') {
-                                                            blueVas = quantity !=
-                                                                    'null'
-                                                                ? int.parse(quantity
-                                                                        .toString()) *
-                                                                    -1
-                                                                : 0;
-                                                          } else {
-                                                            redVas = quantity !=
-                                                                    'null'
-                                                                ? int.parse(quantity
-                                                                        .toString()) *
-                                                                    -1
-                                                                : 0;
-                                                          }
+                                                            // spaq1 = quantity !=
+                                                            //         'null'
+                                                            //     ? int.parse(quantity
+                                                            //             .toString()) *
+                                                            //         -1
+                                                            //     : 0;
 
-                                                          // spaq1 = quantity !=
-                                                          //         'null'
-                                                          //     ? int.parse(quantity
-                                                          //             .toString()) *
-                                                          //         -1
-                                                          //     : 0;
-
-                                                          context
-                                                              .read<AuthBloc>()
-                                                              .add(
-                                                                AuthAddSpaqCountsEvent(
-                                                                  spaq1Count:
-                                                                      spaq1,
-                                                                  spaq2Count:
-                                                                      spaq2,
-                                                                  // TODO: need to work here [pitabash]
-                                                                  blueVasCount:
-                                                                      blueVas,
-                                                                  redVasCount:
-                                                                      redVas,
-                                                                ),
-                                                              );
-                                                          final reloadState =
-                                                              context.read<
-                                                                  HouseholdOverviewBloc>();
-                                                          // submit the updated task
-
-                                                          context
-                                                              .read<
-                                                                  DeliverInterventionBloc>()
-                                                              .add(
-                                                                DeliverInterventionSubmitEvent(
-                                                                  task:
-                                                                      updatedTask,
-                                                                  isEditing:
-                                                                      true,
-                                                                  boundaryModel:
-                                                                      context
-                                                                          .boundary,
-                                                                ),
-                                                              );
-                                                          // submit the newly created task
-                                                          context
-                                                              .read<
-                                                                  DeliverInterventionBloc>()
-                                                              .add(
-                                                                DeliverInterventionSubmitEvent(
-                                                                  task: newTask,
-                                                                  isEditing:
-                                                                      false,
-                                                                  boundaryModel:
-                                                                      context
-                                                                          .boundary,
-                                                                ),
-                                                              );
-
-                                                          Future.delayed(
-                                                            const Duration(
-                                                              milliseconds: 300,
-                                                            ),
-                                                            () {
-                                                              reloadState.add(
-                                                                HouseholdOverviewReloadEvent(
-                                                                  projectId: context
-                                                                      .projectId,
-                                                                  projectBeneficiaryType:
-                                                                      context
-                                                                          .beneficiaryType,
-                                                                ),
-                                                              );
-                                                            },
-                                                          ).then((value) => {
-                                                                context.router
-                                                                    .push(
-                                                                  CustomHouseholdAcknowledgementRoute(
-                                                                    enableViewHousehold:
-                                                                        true,
-                                                                    eligibilityAssessmentType:
-                                                                        EligibilityAssessmentType
-                                                                            .smc,
+                                                            context
+                                                                .read<
+                                                                    AuthBloc>()
+                                                                .add(
+                                                                  AuthAddSpaqCountsEvent(
+                                                                    spaq1Count:
+                                                                        spaq1,
+                                                                    spaq2Count:
+                                                                        spaq2,
+                                                                    // TODO: need to work here [pitabash]
+                                                                    blueVasCount:
+                                                                        blueVas,
+                                                                    redVasCount:
+                                                                        redVas,
                                                                   ),
-                                                                ),
-                                                              });
+                                                                );
+                                                            final reloadState =
+                                                                context.read<
+                                                                    HouseholdOverviewBloc>();
+                                                            // submit the updated task
+
+                                                            context
+                                                                .read<
+                                                                    DeliverInterventionBloc>()
+                                                                .add(
+                                                                  DeliverInterventionSubmitEvent(
+                                                                    task:
+                                                                        updatedTask,
+                                                                    isEditing:
+                                                                        true,
+                                                                    boundaryModel:
+                                                                        context
+                                                                            .boundary,
+                                                                  ),
+                                                                );
+                                                            // submit the newly created task
+                                                            context
+                                                                .read<
+                                                                    DeliverInterventionBloc>()
+                                                                .add(
+                                                                  DeliverInterventionSubmitEvent(
+                                                                    task:
+                                                                        newTask,
+                                                                    isEditing:
+                                                                        false,
+                                                                    boundaryModel:
+                                                                        context
+                                                                            .boundary,
+                                                                  ),
+                                                                );
+
+                                                            Future.delayed(
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    300,
+                                                              ),
+                                                              () {
+                                                                reloadState.add(
+                                                                  HouseholdOverviewReloadEvent(
+                                                                    projectId:
+                                                                        context
+                                                                            .projectId,
+                                                                    projectBeneficiaryType:
+                                                                        context
+                                                                            .beneficiaryType,
+                                                                  ),
+                                                                );
+                                                              },
+                                                            ).then((value) => {
+                                                                  context.router
+                                                                      .push(
+                                                                    CustomHouseholdAcknowledgementRoute(
+                                                                      enableViewHousehold:
+                                                                          true,
+                                                                      eligibilityAssessmentType:
+                                                                          EligibilityAssessmentType
+                                                                              .smc,
+                                                                    ),
+                                                                  ),
+                                                                });
+                                                          }
                                                         }
                                                       }
                                                     }
