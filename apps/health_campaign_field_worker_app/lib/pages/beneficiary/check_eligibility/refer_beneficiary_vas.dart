@@ -163,7 +163,8 @@ class CustomReferBeneficiaryVASPageState
                                             widget
                                                 .projectBeneficiaryClientRefId,
                                         referrerId: context.loggedInUserUuid,
-                                        recipientType: "STAFF",
+                                        recipientId: healthFacilities.first.id,
+                                        recipientType: "FACILITY",
                                         reasons: [reason],
                                         tenantId: envConfig.variables.tenantId,
                                         rowVersion: 1,
