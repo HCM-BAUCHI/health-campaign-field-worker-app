@@ -115,6 +115,7 @@ class CustomDigitDobPicker extends StatelessWidget {
                       maxLength: 2,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
+                        MonthsValueValidator(),
                       ],
                       valueAccessor:
                           DobValueAccessorMonthString(DobValueAccessor()),
@@ -137,7 +138,13 @@ class CustomDigitDobPicker extends StatelessWidget {
             ReactiveFormConsumer(
               builder: (context, form, child) {
                 final datePickerControl = form.control(datePickerFormControl);
-                if (datePickerControl.hasErrors) {
+                if (datePickerControl.hasError('monthsRange')) {
+                  return Text(
+                    'Month value must be between 0 and 11',
+                    style:
+                        TextStyle(color: DigitTheme.instance.colorScheme.error),
+                  );
+                } else if (datePickerControl.hasErrors) {
                   return Text(
                     yearsAndMonthsErrMsg,
                     style:
@@ -170,11 +177,11 @@ class DobValueAccessor extends ControlValueAccessor<DateTime, DigitDOBAge> {
   DateTime? viewToModelValue(DigitDOBAge? viewValue) {
     if (viewValue == null || (viewValue.years == 0 && viewValue.months == 0)) {
       return null;
+    } else if (viewValue.months > 11) {
+      // Invalid months value - handle validation error at the form level
+      return null;
     } else {
-      return (viewValue.years == 0 && viewValue.months == 0) ||
-              viewValue.months > 11
-          ? null
-          : DigitDateUtils.calculateDob(viewValue);
+      return DigitDateUtils.calculateDob(viewValue);
     }
   }
 }
@@ -214,6 +221,25 @@ class DobValueAccessorYearsString
   }
 }
 
+// This class validates that months input is between 0-11
+class MonthsValueValidator extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+    
+    int? value = int.tryParse(newValue.text);
+    if (value != null && value >= 0 && value <= 11) {
+      return newValue;
+    }
+    
+    // Return the old value if the new value is invalid
+    return oldValue;
+  }
+}
+
 // A custom ControlValueAccessor to handle the view value as a string for months.
 class DobValueAccessorMonthString
     extends ControlValueAccessor<DateTime, String> {
@@ -242,6 +268,12 @@ class DobValueAccessorMonthString
   @override
   DateTime? viewToModelValue(String? viewValue) {
     final months = int.tryParse(viewValue ?? '');
+    
+    // Validate that months are between 0-11
+    if (months != null && (months < 0 || months > 11)) {
+      return null; // Return null to indicate invalid value
+    }
+    
     final dobAge = DigitDOBAge(
         years: int.tryParse(existingYear) ?? 0,
         months: months ?? 0,
