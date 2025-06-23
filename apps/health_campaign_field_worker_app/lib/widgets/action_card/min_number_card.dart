@@ -87,7 +87,10 @@ class MinNumberCard extends StatelessWidget {
               ),
             if (isHFUser(context) && entryType == StockRecordEntryType.dispatch)
               const SizedBox(height: 8.0), // Replace spacer2
-            (isHFUser(context) && entryType == StockRecordEntryType.dispatch)
+            ((isHFUser(context) &&
+                        entryType == StockRecordEntryType.dispatch) ||
+                    (context.isCDD &&
+                        entryType == StockRecordEntryType.receipt))
                 ? Text(cddCode != "" ? 'FAC_Delivery Team' : "")
                 : Text(cddCode),
 

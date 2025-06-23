@@ -563,7 +563,9 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                                             StockRecordEntryType.returned)
                                     ? (context.isHealthFacilitySupervisor)
                                         ? localizations
-                                            .translate(receiverIdForCDD!)
+                                            .translate('FAC_Delivery Team')
+                                        // localizations
+                                        //     .translate(receiverIdForCDD!)
                                         : localizations
                                             .translate('FAC_$receiverId')
                                     : localizations

@@ -4,6 +4,7 @@ import 'package:digit_components/widgets/atoms/digit_toaster.dart';
 // import 'package:digit_ui_components/widgets/atoms/digit_reactive_dropdown.dart';
 import 'package:digit_data_model/data_model.dart';
 import 'package:digit_scanner/blocs/scanner.dart';
+import 'package:flutter/services.dart';
 import './qr_scanner.dart';
 import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/services/location_bloc.dart';
@@ -1616,6 +1617,11 @@ class CustomStockDetailsPageState
                                     formControlName: _vehicleNumberKey,
                                     builder: (field) {
                                       return InputField(
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(
+                                            RegExp(r'[a-zA-Z0-9\-_/#:.,() ]'),
+                                          ),
+                                        ],
                                         type: InputType.text,
                                         label: localizations.translate(
                                           i18.stockDetails.vehicleNumberLabel,

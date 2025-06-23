@@ -368,7 +368,7 @@ class _ViewStockRecordsCDDPageState
                   InputField(
                     type: InputType.text,
                     label: localizations.translate(i18_local
-                        .inventoryReportDetails.quantityReceivedByWarehouse),
+                        .inventoryReportDetails.quantitySentByWarehouse),
                     initialValue: stock.quantity ?? '',
                     isDisabled: true,
                     readOnly: true,
@@ -433,7 +433,7 @@ class _ViewStockRecordsCDDPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Stock Records - ${widget.mrnNumber}'),
+        // title: Text('Stock Records - ${widget.mrnNumber}'),
         bottom: TabBar(
           controller: _tabController,
           tabs: widget.stockRecords.map((stock) {

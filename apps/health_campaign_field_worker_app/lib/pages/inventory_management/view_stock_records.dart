@@ -253,8 +253,10 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                       ),
                       Expanded(
                           child: Text(localizations.translate(
-                              getSecondaryPartyValue(
-                                  widget.stockRecords.firstOrNull)))),
+                              (context.isHealthFacilitySupervisor)
+                                  ? localizations.translate('FAC_Delivery Team')
+                                  : getSecondaryPartyValue(
+                                      widget.stockRecords.firstOrNull)))),
                     ],
                   ),
                 ],
@@ -289,15 +291,18 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                     InputField(
                       type: InputType.text,
                       label: 'Batch Number',
-                      initialValue: stock.additionalFields?.fields
-                              .firstWhere(
-                                (field) => field.key == 'batchNumber',
-                                orElse: () =>
-                                    const AdditionalField('batchNumber', ''),
-                              )
-                              .value
-                              ?.toString() ??
-                          '',
+                      initialValue: (() {
+                        final value = stock.additionalFields?.fields
+                            .firstWhere(
+                              (field) => field.key == 'batchNumber',
+                              orElse: () =>
+                                  const AdditionalField('batchNumber', ''),
+                            )
+                            .value
+                            ?.toString();
+
+                        return value == '0' ? '' : value ?? '';
+                      })(),
                       isDisabled: true,
                       readOnly: true,
                     ),
