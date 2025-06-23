@@ -1,5 +1,6 @@
 import 'package:attendance_management/models/entities/attendance_log.dart';
 import 'package:attendance_management/models/entities/attendance_register.dart';
+import 'package:collection/collection.dart';
 import 'package:digit_components/theme/theme.dart';
 import 'package:digit_data_model/data_model.dart';
 import 'package:digit_dss/digit_dss.dart';
@@ -9,10 +10,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:inventory_management/blocs/record_stock.dart';
+import 'package:inventory_management/data/repositories/remote/stock.dart';
 import 'package:inventory_management/models/entities/stock.dart';
 import 'package:inventory_management/utils/utils.dart';
 import 'package:isar/isar.dart';
 import 'package:location/location.dart';
+import 'package:recase/recase.dart';
 import 'package:registration_delivery/data/repositories/local/household_global_search.dart';
 import 'package:registration_delivery/data/repositories/local/individual_global_search.dart';
 import 'package:registration_delivery/registration_delivery.dart';
@@ -26,6 +29,7 @@ import 'blocs/project/project.dart';
 import 'blocs/search/individual_global_search_smc.dart';
 import 'blocs/search/search_households_smc.dart';
 import 'data/local_store/app_shared_preferences.dart';
+import 'data/local_store/no_sql/schema/service_registry.dart';
 import 'data/network_manager.dart';
 import 'data/remote_client.dart';
 import 'data/repositories/local/search/individual_global_search_smc.dart';
@@ -260,6 +264,8 @@ class MainApplicationState extends State<MainApplication>
                     final sideEffect = context
                         .repository<SideEffectModel, SideEffectSearchModel>();
 
+                    final actions = appConfigState.entityActionMapping;
+
                     return MultiBlocProvider(
                       providers: [
                         BlocProvider(
@@ -375,9 +381,10 @@ class MainApplicationState extends State<MainApplication>
                             stockLocalRepository: ctx.read<
                                 LocalRepository<StockModel,
                                     StockSearchModel>>(),
-                            stockRemoteRepository: ctx.read<
-                                RemoteRepository<StockModel,
-                                    StockSearchModel>>(),
+                            stockRemoteRepository: StockRemoteRepository(
+                              widget.client,
+                              actionMap: actions[DataModelType.stock]!,
+                            ),
                             context: context,
                             attendanceLogLocalRepository: ctx.read<
                                 LocalRepository<AttendanceLogModel,

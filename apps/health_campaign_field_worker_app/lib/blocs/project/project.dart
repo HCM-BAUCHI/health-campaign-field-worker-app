@@ -13,6 +13,7 @@ import 'package:digit_ui_components/utils/app_logger.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:inventory_management/data/repositories/remote/stock.dart';
 import 'package:inventory_management/models/entities/stock.dart';
 import 'package:inventory_management/models/entities/transaction_type.dart';
 import 'package:isar/isar.dart';
@@ -110,7 +111,7 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
       productVariantLocalRepository;
 
   /// Stock Repositories
-  final RemoteRepository<StockModel, StockSearchModel> stockRemoteRepository;
+  final StockRemoteRepository stockRemoteRepository;
   final LocalRepository<StockModel, StockSearchModel> stockLocalRepository;
 
   final DashboardRemoteRepository dashboardRemoteRepository;
@@ -771,7 +772,7 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     var initialLimit = Constants.apiCallLimit;
 
     final stockEntries = await stockRemoteRepository.search(stockSearchModel,
-        limit: initialLimit, offSet: offset);
+        limit: initialLimit, offSet: offset, lastChangedSince: 1750420248607);
 
     return stockEntries;
   }
