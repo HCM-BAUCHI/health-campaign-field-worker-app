@@ -575,18 +575,44 @@ class _DigitScannerPageState extends LocalizedState<DigitScannerPage> {
   }
 
   Future<void> storeCodeWrapper(String code) async {
-    await DigitScannerUtils().storeCode(
-      context: context,
-      code: code,
-      player: player,
-      singleValue: widget.singleValue,
-      updateCodes: (newCodes) {
-        setState(() {
-          codes = newCodes;
-        });
-      },
-      initialCodes: codes,
+    // 1. Define a regex pattern that matches the  format "prefix||uuid".
+    final combinedRegex = RegExp(
+      r'^([a-z0-9-]+)\|\|([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$',
+      caseSensitive: false,
     );
+
+    // 2. Check if the scanned code matches the format.
+    if (combinedRegex.hasMatch(code)) {
+      // 3a. If it matches, Store the code.
+      await DigitScannerUtils().storeCode(
+        context: context,
+        code: code, // <-- We pass the  `code` here.
+        player: player,
+        singleValue: widget.singleValue,
+        updateCodes: (newCodes) {
+          setState(() {
+            codes = newCodes;
+          });
+        },
+        initialCodes: codes,
+      );
+    } else {
+      // 3b. If the format is invalid, show a toast and reset the scanner.
+      // This part remains exactly the same as before.
+      Toast.showToast(
+        context,
+        type: ToastType.error,
+        message: localizations.translate('Invalid QR Code Format'),
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        setState(() {
+          _canProcess = true;
+          _isBusy = false;
+        });
+      }
+    }
   }
 
   Future<void> storeValueWrapper(GS1Barcode scanData) async {
