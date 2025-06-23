@@ -63,6 +63,7 @@ class ReadonlyDigitGrid extends StatelessWidget {
                 ),
               ),
               enableContextMenu: false,
+              textAlign: PlutoColumnTextAlign.center,
               enableColumnDrag: false,
               width: element.width,
               cellPadding: first ? EdgeInsets.zero : null,
