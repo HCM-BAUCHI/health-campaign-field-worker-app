@@ -648,17 +648,13 @@ class CustomInventoryReportDetailsPageState
                                                                           ? localizations.translate(i18
                                                                               .common
                                                                               .noMatchFound)
-                                                                          : model.receiverType ==
-                                                                                  'STAFF'
-                                                                              ? (model.additionalFields?.fields.firstWhereOrNull((e) => e.key == 'distributorName')?.value ??
-                                                                                  'Delivery Team')
-                                                                              : localizations.translate(
-                                                                                  'FAC_${model.receiverId}')
-                                                                      : model.senderId ==
-                                                                              null
-                                                                          ? localizations.translate(i18
-                                                                              .common
-                                                                              .noMatchFound)
+                                                                          : model.receiverType == 'STAFF'
+                                                                              ? (context.isHealthFacilitySupervisor && (model.additionalFields?.fields.firstWhereOrNull((e) => e.key == 'distributorName')?.value.isNotEmpty))
+                                                                                  ? localizations.translate('FAC_Delivery Team')
+                                                                                  : (model.additionalFields?.fields.firstWhereOrNull((e) => e.key == 'distributorName')?.value ?? 'Delivery Team')
+                                                                              : localizations.translate('FAC_${model.receiverId}')
+                                                                      : model.senderId == null
+                                                                          ? localizations.translate(i18.common.noMatchFound)
                                                                           : model.senderType == 'STAFF'
                                                                               ? (model.additionalFields?.fields.firstWhereOrNull((e) => e.key == 'distributorName')?.value ?? 'Delivery Team')
                                                                               : localizations.translate('FAC_${model.senderId}')),

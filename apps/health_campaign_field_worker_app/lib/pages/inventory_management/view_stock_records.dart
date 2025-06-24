@@ -132,6 +132,7 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
     String partiallyUsedQuantityCountLabel = 'partiallyUsedQuantityCountLabel';
     String wastedQuantityCountLabel = 'wastedQuantityCountLabel';
     String quantitySentByWarehouse = 'quantitySentByWarehouse';
+    bool isWareHouseMgr = InventorySingleton().isWareHouseMgr;
 
     switch (entryType) {
       case StockRecordEntryType.receipt:
@@ -286,26 +287,30 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                       isDisabled: true,
                       readOnly: true,
                     ),
-                    const SizedBox(height: 12),
+                    if (isWareHouseMgr &&
+                        entryType != StockRecordEntryType.returned)
+                      const SizedBox(height: 12),
                     // Batch Number
-                    InputField(
-                      type: InputType.text,
-                      label: 'Batch Number',
-                      initialValue: (() {
-                        final value = stock.additionalFields?.fields
-                            .firstWhere(
-                              (field) => field.key == 'batchNumber',
-                              orElse: () =>
-                                  const AdditionalField('batchNumber', ''),
-                            )
-                            .value
-                            ?.toString();
+                    if (isWareHouseMgr &&
+                        entryType != StockRecordEntryType.returned)
+                      InputField(
+                        type: InputType.text,
+                        label: 'Batch Number',
+                        initialValue: (() {
+                          final value = stock.additionalFields?.fields
+                              .firstWhere(
+                                (field) => field.key == 'batchNumber',
+                                orElse: () =>
+                                    const AdditionalField('batchNumber', ''),
+                              )
+                              .value
+                              ?.toString();
 
-                        return value == '0' ? '' : value ?? '';
-                      })(),
-                      isDisabled: true,
-                      readOnly: true,
-                    ),
+                          return value == '0' ? '' : value ?? '';
+                        })(),
+                        isDisabled: true,
+                        readOnly: true,
+                      ),
                     const SizedBox(height: 12),
                   ],
 
