@@ -518,6 +518,8 @@ class StockDetails {
 
   String get recordStockReturnedDescription =>
       'STOCK_DETAILS_RECORD_STOCK_RETURNED_DESCRIPTION';
+
+  String get issueStockLabelExceeded => 'STOCK_DETAILS_ISSUE_STOCK_LABEL_EXCEEDED';
 }
 
 class StockReconciliationDetails {
