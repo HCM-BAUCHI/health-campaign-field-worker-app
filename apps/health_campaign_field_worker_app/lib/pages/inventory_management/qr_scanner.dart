@@ -580,9 +580,13 @@ class _DigitScannerPageState extends LocalizedState<DigitScannerPage> {
       r'^([a-z0-9-]+)\|\|([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$',
       caseSensitive: false,
     );
+    final onlyUUIDRegex = RegExp(
+      r'^([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$',
+      caseSensitive: false,
+    );
 
     // 2. Check if the scanned code matches the format.
-    if (combinedRegex.hasMatch(code)) {
+    if (combinedRegex.hasMatch(code) || onlyUUIDRegex.hasMatch(code)) {
       // 3a. If it matches, Store the code.
       await DigitScannerUtils().storeCode(
         context: context,
