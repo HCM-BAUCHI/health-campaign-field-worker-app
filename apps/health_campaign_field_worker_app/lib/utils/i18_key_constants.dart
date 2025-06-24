@@ -164,8 +164,6 @@ class HouseholdOverView {
   String get householdOverViewVASReferredAndSMCReferredIconLabel =>
       'HOUSEHOLD_OVER_VIEW_VAS_REFERRED_AND_SMC_REFERRED_ICON_LABEL';
 
-      
-
   String get householdOverViewHouseholderHeadLabel =>
       'HOUSEHOLD_OVER_VIEW_HOUSEHOLDER_HEAD_LABEL';
 
@@ -189,6 +187,10 @@ class HouseholdOverView {
 
   String get householdOverViewBeneficiaryReferredSMCLabel =>
       'HOUSEHOLD_OVER_VIEW_BENEFICIARY_REFERRED_SMC_LABEL';
+  String get householdOverViewReferredSMCLabel =>
+      'HOUSEHOLD_OVER_VIEW_REFERRED_SMC_LABEL';
+  String get householdOverViewReferredVASLabel =>
+      'HOUSEHOLD_OVER_VIEW_REFERRED_VAS_LABEL';
 
   String get householdOverViewBeneficiaryInEligibleSMCLabel =>
       'HOUSEHOLD_OVER_VIEW_BENEFICIARY_INELIGIBLE_SMC_LABEL';
