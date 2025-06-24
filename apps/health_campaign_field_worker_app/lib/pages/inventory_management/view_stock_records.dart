@@ -253,11 +253,11 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                             widget.stockRecords.firstOrNull))),
                       ),
                       Expanded(
-                          child: Text(localizations.translate(
-                              (context.isHealthFacilitySupervisor)
-                                  ? localizations.translate('FAC_Delivery Team')
-                                  : getSecondaryPartyValue(
-                                      widget.stockRecords.firstOrNull)))),
+                          child: Text(localizations.translate((context
+                                  .isHealthFacilitySupervisor)
+                              ? getSecondaryPartyValue(
+                                  widget.stockRecords.firstOrNull)
+                              : localizations.translate('FAC_Delivery Team')))),
                     ],
                   ),
                 ],

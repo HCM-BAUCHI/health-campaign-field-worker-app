@@ -492,7 +492,7 @@ String getEntryTypeLabel(StockModel? stock) {
 
   return label;
 }
-
+/*Old Logic
 String getSecondaryPartyValue(StockModel? stock) {
   String value = stock?.receiverId ?? "";
 
@@ -512,6 +512,37 @@ String getSecondaryPartyValue(StockModel? stock) {
   }
 
   return value;
+}*/
+
+//New Logic
+String getSecondaryPartyValue(StockModel? stock) {
+  // Use a guard clause for null safety
+  if (stock == null) return "";
+
+  print(
+      'DEBUG FUNCTION: Input is type=${stock?.transactionType}, senderId=${stock?.senderId}');
+
+  // For a RECEIPT, the other party is always the SENDER.
+  if (stock.transactionType == "RECEIVED") {
+    // This now correctly handles your case without checking senderType.
+    return 'FAC_${stock.senderId}';
+  }
+
+  // For a DISPATCH, the other party is the RECEIVER.
+  // Here we can keep the special logic for STAFF receivers.
+  if (stock.transactionType == "DISPATCHED") {
+    if (stock.receiverType == "STAFF") {
+      return stock.additionalFields?.fields
+              .firstWhereOrNull((e) => e.key == "distributorName")
+              ?.value ??
+          "Delivery Team";
+    } else {
+      return 'FAC_${stock.receiverId}';
+    }
+  }
+
+  // Provide a sensible fallback for any other transaction types
+  return 'FAC_${stock.receiverId ?? ''}';
 }
 
 void showDownloadDialog(
