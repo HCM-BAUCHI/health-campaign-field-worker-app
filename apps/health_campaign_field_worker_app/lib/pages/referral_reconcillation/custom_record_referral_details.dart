@@ -137,6 +137,14 @@ class _CustomRecordReferralDetailsPageState
                                               ? () {}
                                               : () {
                                                   if (form
+                                                          .control(_cycleKey)
+                                                          .value ==
+                                                      null) {
+                                                    clickedStatus.value = false;
+                                                    form
+                                                        .control(_cycleKey)
+                                                        .setErrors({'': true});
+                                                  } else if (form
                                                           .control(_genderKey)
                                                           .value ==
                                                       null) {
@@ -232,6 +240,9 @@ class _CustomRecordReferralDetailsPageState
                                                         .value as int;
                                                     final gender = form
                                                         .control(_genderKey)
+                                                        .value as String;
+                                                    final cycle = form
+                                                        .control(_cycleKey)
                                                         .value as String;
                                                     final beneficiaryId = form
                                                         .control(
@@ -400,6 +411,18 @@ class _CustomRecordReferralDetailsPageState
                                                                       .toValue(),
                                                                   gender,
                                                                 ),
+                                                              if (cycle !=
+                                                                      null &&
+                                                                  cycle
+                                                                      .toString()
+                                                                      .trim()
+                                                                      .isNotEmpty)
+                                                                AdditionalField(
+                                                                  ReferralReconEnums
+                                                                      .cycle
+                                                                      .toValue(),
+                                                                  gender,
+                                                                ),
                                                             ],
                                                           ),
                                                         ),
@@ -458,6 +481,17 @@ class _CustomRecordReferralDetailsPageState
                                                           false;
                                                       form
                                                           .control(_genderKey)
+                                                          .setErrors(
+                                                              {'': true});
+                                                    }
+                                                    if (form
+                                                            .control(_cycleKey)
+                                                            .value ==
+                                                        null) {
+                                                      clickedStatus.value =
+                                                          false;
+                                                      form
+                                                          .control(_cycleKey)
                                                           .setErrors(
                                                               {'': true});
                                                     }
@@ -554,6 +588,9 @@ class _CustomRecordReferralDetailsPageState
                                                           .value as int;
                                                       final gender = form
                                                           .control(_genderKey)
+                                                          .value as String;
+                                                      final cycle = form
+                                                          .control(_cycleKey)
                                                           .value as String;
                                                       final beneficiaryId = form
                                                           .control(
@@ -719,6 +756,16 @@ class _CustomRecordReferralDetailsPageState
                                                                         .toValue(),
                                                                     gender,
                                                                   ),
+                                                                if (cycle
+                                                                    .toString()
+                                                                    .trim()
+                                                                    .isNotEmpty)
+                                                                  AdditionalField(
+                                                                    ReferralReconEnums
+                                                                        .cycle
+                                                                        .toValue(),
+                                                                    cycle,
+                                                                  ),
                                                               ],
                                                             ),
                                                           ),
@@ -771,11 +818,61 @@ class _CustomRecordReferralDetailsPageState
                                                 i18.referralReconciliation
                                                     .referralDetails,
                                               ),
-                                              
                                               style: textTheme.headingXl,
                                             ),
                                           ),
                                         ],
+                                      ),
+                                      ReactiveWrapperField<String>(
+                                        validationMessages: {
+                                          '': (_) => localizations.translate(
+                                                i18.common.corecommonRequired,
+                                              ),
+                                        },
+                                        formControlName: _cycleKey,
+                                        showErrors: (control) =>
+                                            control.invalid && control.touched,
+                                        builder: (field) {
+                                          final cycleItems = widget.cycles
+                                              .asMap()
+                                              .entries
+                                              .map((entry) => DropdownItem(
+                                                    name: localizations.translate(
+                                                        'Cycle ${entry.key + 1}'),
+                                                    code: entry.value,
+                                                  ))
+                                              .toList();
+
+                                          return LabeledField(
+                                            isRequired: true,
+                                            label: localizations.translate(i18
+                                                .referralReconciliation
+                                                .selectCycle),
+                                            child: Dropdown(
+                                              readOnly: viewOnly,
+                                              onSelect: (val) {
+                                                form
+                                                    .control(_cycleKey)
+                                                    .markAsTouched();
+                                                form.control(_cycleKey).value =
+                                                    val.code;
+                                              },
+                                              errorMessage: field.errorText,
+                                              selectedOption:
+                                                  cycleItems.firstWhere(
+                                                (item) =>
+                                                    item.code ==
+                                                    form
+                                                        .control(_cycleKey)
+                                                        .value,
+                                                orElse: () =>
+                                                    const DropdownItem(
+                                                        name: '', code: ''),
+                                              ),
+                                              items: cycleItems,
+                                            ),
+                                          );
+                                        },
                                       ),
                                       ReactiveWrapperField<String>(
                                           validationMessages: {
@@ -814,7 +911,8 @@ class _CustomRecordReferralDetailsPageState
                                                     .value,
                                                 inputFormatters: [
                                                   // Allow only letters and spaces
-                                                  FilteringTextInputFormatter.allow(
+                                                  FilteringTextInputFormatter
+                                                      .allow(
                                                     RegExp(r'[A-Za-z\s]'),
                                                   ),
                                                 ],
@@ -827,9 +925,9 @@ class _CustomRecordReferralDetailsPageState
                                                 localizations.translate(
                                                   i18.common.corecommonRequired,
                                                 ),
-                                            'noEmojis': (_) => 
+                                            'noEmojis': (_) =>
                                                 'Beneficiary ID cannot contain emoji characters',
-                                            'repeatedChars': (_) => 
+                                            'repeatedChars': (_) =>
                                                 'Beneficiary ID cannot contain excessive repetition of characters',
                                           },
                                           formControlName: _beneficiaryIdKey,
@@ -862,26 +960,44 @@ class _CustomRecordReferralDetailsPageState
                                                 errorMessage: field.errorText,
                                                 inputFormatters: [
                                                   // Allow only letters, numbers, and specific special characters
-                                                  FilteringTextInputFormatter.allow(
-                                                    RegExp(r'[a-zA-Z0-9\-_/#:.,() ]'),
+                                                  FilteringTextInputFormatter
+                                                      .allow(
+                                                    RegExp(
+                                                        r'[a-zA-Z0-9\-_/#:.,() ]'),
                                                   ),
                                                   // Prevent excessive repetition of characters
-                                                  TextInputFormatter.withFunction(
+                                                  TextInputFormatter
+                                                      .withFunction(
                                                     (oldValue, newValue) {
-                                                      final text = newValue.text;
+                                                      final text =
+                                                          newValue.text;
                                                       // Check for repetitions of special characters
-                                                      for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
-                                                        if (text.contains('$specialChar$specialChar$specialChar')) {
+                                                      for (final specialChar
+                                                          in [
+                                                        '-',
+                                                        '.',
+                                                        ',',
+                                                        ')',
+                                                        '(',
+                                                        '/',
+                                                        '#',
+                                                        ':',
+                                                        '_'
+                                                      ]) {
+                                                        if (text.contains(
+                                                            '$specialChar$specialChar$specialChar')) {
                                                           return oldValue;
                                                         }
                                                       }
-                                                      
+
                                                       // Check for any character repeated excessively (4+ times)
-                                                      final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
-                                                      if (repeatedCharsPattern.hasMatch(text)) {
+                                                      final repeatedCharsPattern =
+                                                          RegExp(r'(.)\1{3,}');
+                                                      if (repeatedCharsPattern
+                                                          .hasMatch(text)) {
                                                         return oldValue;
                                                       }
-                                                      
+
                                                       return newValue;
                                                     },
                                                   ),
@@ -1155,9 +1271,7 @@ class _CustomRecordReferralDetailsPageState
             final value = control.value?.toString().trim();
             if (value == null || value.isEmpty) return null;
             final regExp = RegExp(r'^[A-Za-z\s]+$');
-            return regExp.hasMatch(value)
-                ? null
-                : {'onlyAlphabets': true};
+            return regExp.hasMatch(value) ? null : {'onlyAlphabets': true};
           }),
         ],
       ),
@@ -1171,25 +1285,35 @@ class _CustomRecordReferralDetailsPageState
 
             // Check for emoji characters
             final emojiRegex = RegExp(
-                r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])', 
+                r'(\p{Emoji_Presentation}|\p{Extended_Pictographic}|\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])',
                 unicode: true);
             if (emojiRegex.hasMatch(value)) {
               return {'noEmojis': true};
             }
-            
+
             // Check for excessive repetition of specific special characters
-            for (final specialChar in ['-', '.', ',', ')', '(', '/', '#', ':', '_']) {
+            for (final specialChar in [
+              '-',
+              '.',
+              ',',
+              ')',
+              '(',
+              '/',
+              '#',
+              ':',
+              '_'
+            ]) {
               if (value.contains('$specialChar$specialChar$specialChar')) {
                 return {'repeatedChars': true};
               }
             }
-            
+
             // Additional check for any character repeated more than 3 times
             final repeatedCharsPattern = RegExp(r'(.)\1{3,}');
             if (repeatedCharsPattern.hasMatch(value)) {
               return {'repeatedChars': true};
             }
-            
+
             return null;
           }),
         ],
@@ -1231,6 +1355,28 @@ class _CustomRecordReferralDetailsPageState
               create: (value) => value.viewOnly,
             ) ??
             false,
+      ),
+      _cycleKey: FormControl<String>(
+        value: referralState.mapOrNull(
+          create: (value) => value.viewOnly &&
+                  value.hfReferralModel?.additionalFields?.fields
+                          .where((e) =>
+                              e.key == ReferralReconEnums.cycle.toValue())
+                          .firstOrNull
+                          ?.value !=
+                      null
+              ? value.hfReferralModel?.additionalFields?.fields
+                  .where((e) => e.key == ReferralReconEnums.cycle.toValue())
+                  .firstOrNull
+                  ?.value
+                  .toString()
+              : null,
+        ),
+        disabled: referralState.mapOrNull(
+              create: (value) => value.viewOnly,
+            ) ??
+            false,
+        validators: [Validators.required],
       ),
       _ageKey: FormControl<int>(
         value: referralState.mapOrNull(

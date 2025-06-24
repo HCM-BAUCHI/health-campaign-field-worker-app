@@ -157,6 +157,14 @@ class HouseholdOverView {
   const HouseholdOverView();
   String get householdOverViewSMCAndVASDeliveredIconLabel =>
       'HOUSEHOLD_OVER_VIEW_SMC_AND_VAS_DELIVERED_ICON_LABEL';
+  String get householdOverViewVASDeliveredAndSMCReferredIconLabel =>
+      'HOUSEHOLD_OVER_VIEW_VAS_DELIVERED_AND_SMC_REFERRED_ICON_LABEL';
+  String get householdOverViewVASReferredAndSMCDeliveredIconLabel =>
+      'HOUSEHOLD_OVER_VIEW_VAS_REFERRED_AND_SMC_DELIVERED_ICON_LABEL';
+  String get householdOverViewVASReferredAndSMCReferredIconLabel =>
+      'HOUSEHOLD_OVER_VIEW_VAS_REFERRED_AND_SMC_REFERRED_ICON_LABEL';
+
+      
 
   String get householdOverViewHouseholderHeadLabel =>
       'HOUSEHOLD_OVER_VIEW_HOUSEHOLDER_HEAD_LABEL';
