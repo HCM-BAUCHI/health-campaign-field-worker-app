@@ -202,29 +202,25 @@ class CustomViewBeneficiaryCardState
 
         final rowTableData = [
           DigitTableData(
-            [
-              e.name?.givenName ?? '--',
-              (e.name?.familyName?.trim().isNotEmpty ?? false)
-                  ? e.name?.familyName
-                  : null,
-            ].whereNotNull().join(' '),
+            '',
             cellKey: 'beneficiary',
+            widget: Container(
+              constraints: const BoxConstraints(maxWidth: 150),
+              child: Text(
+                [
+                  e.name?.givenName ?? '--',
+                  (e.name?.familyName?.trim().isNotEmpty ?? false)
+                      ? e.name?.familyName
+                      : null,
+                ].whereNotNull().join(' '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+              ),
+            ),
           ),
           DigitTableData(
-            getTableCellText(
-              CustomStatusKeys(
-                  isNotEligible,
-                  isIneligibleForSMC,
-                  isIneligibleForVAS,
-                  isBeneficiaryRefused,
-                  isBeneficiaryReferred,
-                  isStatusReset,
-                  isVASDelivered,
-                  isSMCDelivered,
-                  isBeneficiaryReferredSMC,
-                  isBeneficiaryReferredVAS),
-              taskData,
-            ),
+            '',
             cellKey: 'delivery',
             style: TextStyle(
               color: getTableCellTextColor(
@@ -236,6 +232,26 @@ class CustomViewBeneficiaryCardState
                 isStatusReset: isStatusReset,
                 theme: theme,
               ),
+            ),
+            widget: Text(
+              getTableCellText(
+                CustomStatusKeys(
+                  isNotEligible,
+                  isIneligibleForSMC,
+                  isIneligibleForVAS,
+                  isBeneficiaryRefused,
+                  isBeneficiaryReferred,
+                  isStatusReset,
+                  isVASDelivered,
+                  isSMCDelivered,
+                  isBeneficiaryReferredSMC,
+                  isBeneficiaryReferredVAS,
+                ),
+                taskData,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
             ),
           ),
           DigitTableData(
@@ -434,13 +450,13 @@ class CustomViewBeneficiaryCardState
       } else if (statusKeys.isIneligibleForSMC &&
           statusKeys.isBeneficiaryReferredVAS) {
         return 'SMC ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)} '
-            ' ${localizations.translate(i18_local.householdOverView.householdOverViewBeneficiaryReferredVASLabel)}';
+            ' ${localizations.translate(i18_local.householdOverView.householdOverViewReferredVASLabel)}';
       } else if (statusKeys.isIneligibleForSMC && statusKeys.isVASDelivered) {
         return 'SMC ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)} '
             ' ${localizations.translate(i18_local.householdOverView.householdOverViewVASDeliveredIconLabel)}';
       } else if (statusKeys.isBeneficiaryReferredSMC &&
           statusKeys.isIneligibleForVAS) {
-        return '${localizations.translate(i18_local.householdOverView.householdOverViewBeneficiaryReferredSMCLabel)} VAS ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)}';
+        return '${localizations.translate(i18_local.householdOverView.householdOverViewReferredSMCLabel)} VAS ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)}';
       } else if (statusKeys.isSMCDelivered && statusKeys.isIneligibleForVAS) {
         return '${localizations.translate(i18_local.householdOverView.householdOverViewSMCDeliveredIconLabel)} VAS ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)}';
       } else if (statusKeys.isIneligibleForSMC ||
