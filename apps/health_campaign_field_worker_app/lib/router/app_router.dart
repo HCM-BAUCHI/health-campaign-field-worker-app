@@ -55,6 +55,7 @@ import '../pages/inventory_management/custom_min_number.dart';
 import '../pages/inventory_management/view_all_transactions_page.dart';
 import '../pages/inventory_management/view_record_cdd.dart';
 import '../pages/inventory_management/qrscanner.dart';
+import '../pages/inventory_management/custom_summary_report.dart';
 import '../pages/language_selection.dart';
 import '../pages/login.dart';
 import '../pages/profile.dart';
@@ -460,6 +461,10 @@ class AppRouter extends _$AppRouter {
         AutoRoute(
           page: CustomInventoryReportSelectionRoute.page,
           path: 'custom-inventory-report-selection',
+        ),
+        AutoRoute(
+          page: CustomSummaryReportRoute.page,
+          path: 'custom-report-summary',
         ),
         // AutoRoute(
         //   page: InventoryReportDetailsRoute.page,
