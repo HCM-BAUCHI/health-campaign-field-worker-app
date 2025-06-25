@@ -200,6 +200,8 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
               Validators.required,
               Validators.min(1),
               Validators.max(Constants.stockMaxLimit),
+              // Add custom validator for stock quantity validation
+              Validators.delegate((control) => _createStockQuantityValidator(product, control)),
             ]),
             // _waybillQuantityKey:
             //     FormControl<String>(validators: [Validators.required]),
@@ -211,6 +213,50 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
           },
         ),
     });
+  }
+
+  /// Custom validator for stock quantity based on product type and available stock
+  Map<String, dynamic>? _createStockQuantityValidator(String productName, AbstractControl<dynamic> control) {
+    // Only validate for dispatch operations and exclude CDD roles
+    final state = context.read<RecordStockBloc>().state;
+    if (state.entryType != StockRecordEntryType.dispatch || context.isCDD) {
+      return null;
+    }
+
+    final enteredQuantity = control.value;
+    if (enteredQuantity == null || enteredQuantity == 0) {
+      return null; // Let required validator handle this
+    }
+
+    // Get current stock quantities from context
+    int availableQuantity = 0;
+    String productDisplayName = '';
+
+    if (productName == Constants.spaq1) {
+      availableQuantity = context.spaq1;
+      productDisplayName = 'SPAQ1';
+    } else if (productName == Constants.spaq2) {
+      availableQuantity = context.spaq2;
+      productDisplayName = 'SPAQ2';
+    } else if (productName == Constants.blueVAS) {
+      availableQuantity = context.blueVas;
+      productDisplayName = 'Blue VAS';
+    } else if (productName == Constants.redVAS) {
+      availableQuantity = context.redVas;
+      productDisplayName = 'Red VAS';
+    } else {
+      return null; // Unknown product type
+    }
+
+    // Check if entered quantity exceeds available stock
+    if (enteredQuantity > availableQuantity) {
+      return {
+        'insufficientStock': localizations.translate(i18_local.stockDetails.issueStockLabelExceeded)
+        // 'Can\'t issue more ${productDisplayName.toLowerCase()} than available ($availableQuantity)'
+      };
+    }
+
+    return null;
   }
 
   Future<void> _initializeStocks() async {
@@ -312,7 +358,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
       wayBillNumber:
           _forms[productSku]!.control(_waybillNumberKey).value?.toString(),
       transactionReason: transactionReason ??
-          _forms[productSku]?.control(_transactionReasonKey)?.value?.toString(),
+          _forms[productSku]?.control(_transactionReasonKey).value?.toString(),
       clientReferenceId: IdGen.i.identifier,
       additionalFields: StockAdditionalFields(
         version: 1,
@@ -815,6 +861,7 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                           "min": (object) => localizations.translate(
                                 '${quantityCountLabel}_MIN_ERROR',
                               ),
+                          "insufficientStock": (error) => error.toString(),
                         },
                         showErrors: (control) =>
                             control.invalid && control.touched,
@@ -838,14 +885,15 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                               ],
                               onChange: (val) {
                                 field.control.markAsTouched();
-                                if (int.parse(val) > 10000000000) {
-                                  field.control.value = Constants.stockMaxLimit;
-                                } else {
-                                  if (val != '') {
-                                    field.control.value = int.parse(val);
+                                if (val.isNotEmpty && int.tryParse(val) != null) {
+                                  final parsedVal = int.parse(val);
+                                  if (parsedVal > 10000000000) {
+                                    field.control.value = Constants.stockMaxLimit;
                                   } else {
-                                    field.control.value = null;
+                                    field.control.value = parsedVal;
                                   }
+                                } else {
+                                  field.control.value = null;
                                 }
                               },
                             ),

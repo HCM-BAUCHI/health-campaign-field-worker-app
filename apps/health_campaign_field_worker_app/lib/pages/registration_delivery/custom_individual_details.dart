@@ -261,6 +261,14 @@ class CustomIndividualDetailsPageState
 
                                 return;
                               }
+                              // Check if months value is valid (0-11)
+                              if (age.months > 11) {
+                                // Since MonthsValueValidator already restricts input to 0-11,
+                                // this is just an extra check for form submission
+                                form.control(_dobKey).setErrors({'monthsRange': true});
+                                return;
+                              }
+                              
                               final ageInMonthsForChild =
                                   age.years * 12 + age.months;
                               if ((ageInMonthsForChild < 3 ||
@@ -608,17 +616,25 @@ class CustomIndividualDetailsPageState
                             onChangeOfFormControl: (formControl) {
                               // Handle changes to the control's value here
                               final value = formControl.value;
-
-                              digits.DigitDOBAge age =
-                                  digits.DigitDateUtils.calculateAge(value);
-                              // Allow only between 3 to 59 months for cycle 1
-                              final ageInMonths = age.years * 12 + age.months;
-                              if (ageInMonths < 3 || ageInMonths > 59) {
-                                widget.isHeadOfHousehold
-                                    ? formControl.removeError('')
-                                    : formControl.setErrors({'': true});
-                              } else {
-                                formControl.removeError('');
+                              
+                              if (value != null) {
+                                digits.DigitDOBAge age =
+                                    digits.DigitDateUtils.calculateAge(value);
+                                // Check if months is valid (0-11)
+                                if (age.months > 11) {
+                                  formControl.setErrors({'monthsRange': true});
+                                  return;
+                                }
+                                
+                                // Allow only between 3 to 59 months for cycle 1
+                                final ageInMonths = age.years * 12 + age.months;
+                                if (ageInMonths < 3 || ageInMonths > 59) {
+                                  widget.isHeadOfHousehold
+                                      ? formControl.removeError('')
+                                      : formControl.setErrors({'': true});
+                                } else {
+                                  formControl.removeError('');
+                                }
                               }
                             },
                             cancelText: localizations

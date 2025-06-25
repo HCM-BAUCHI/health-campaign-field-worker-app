@@ -175,6 +175,11 @@ class CustomViewBeneficiaryCardState
           currentCycle,
         );
 
+        final isBeneficiaryReferredSMC =
+            util_local.checkBeneficiaryReferredSMC(taskData);
+        final isBeneficiaryReferredVAS =
+            util_local.checkBeneficiaryReferredVAS(taskData);
+
         final isIneligibleForSMC =
             util_local.checkBeneficiaryInEligibleSMC(taskData);
         final isIneligibleForVAS =
@@ -182,34 +187,40 @@ class CustomViewBeneficiaryCardState
 
         final isSMCDelivered =
             !util_local.checkStatusSMC(taskData, currentCycle);
-        final isVASDelivered =
-            !util_local.checkStatusVAS(taskData, currentCycle);
+        final isVASDelivered = taskData == null
+            ? false
+            : taskData.isNotEmpty &&
+                    !util_local.checkStatusVAS(
+                      taskData,
+                      currentCycle,
+                    )
+                ? true
+                : false;
+        // !util_local.checkStatusVAS(taskData, currentCycle);
 
         final isStatusReset = checkStatus(taskData, currentCycle);
 
         final rowTableData = [
           DigitTableData(
-            [
-              e.name?.givenName ?? '--',
-              (e.name?.familyName?.trim().isNotEmpty ?? false)
-                  ? e.name?.familyName
-                  : null,
-            ].whereNotNull().join(' '),
+            '',
             cellKey: 'beneficiary',
+            widget: Container(
+              constraints: const BoxConstraints(maxWidth: 150),
+              child: Text(
+                [
+                  e.name?.givenName ?? '--',
+                  (e.name?.familyName?.trim().isNotEmpty ?? false)
+                      ? e.name?.familyName
+                      : null,
+                ].whereNotNull().join(' '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+              ),
+            ),
           ),
           DigitTableData(
-            getTableCellText(
-              CustomStatusKeys(
-                  isNotEligible,
-                  isIneligibleForSMC,
-                  isIneligibleForVAS,
-                  isBeneficiaryRefused,
-                  isBeneficiaryReferred,
-                  isStatusReset,
-                  isVASDelivered,
-                  isSMCDelivered),
-              taskData,
-            ),
+            '',
             cellKey: 'delivery',
             style: TextStyle(
               color: getTableCellTextColor(
@@ -221,6 +232,26 @@ class CustomViewBeneficiaryCardState
                 isStatusReset: isStatusReset,
                 theme: theme,
               ),
+            ),
+            widget: Text(
+              getTableCellText(
+                CustomStatusKeys(
+                  isNotEligible,
+                  isIneligibleForSMC,
+                  isIneligibleForVAS,
+                  isBeneficiaryRefused,
+                  isBeneficiaryReferred,
+                  isStatusReset,
+                  isVASDelivered,
+                  isSMCDelivered,
+                  isBeneficiaryReferredSMC,
+                  isBeneficiaryReferredVAS,
+                ),
+                taskData,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
             ),
           ),
           DigitTableData(
@@ -407,17 +438,52 @@ class CustomViewBeneficiaryCardState
     if (statusKeys.isNotEligible) {
       return localizations.translate(
           i18_local.householdOverView.householdOverViewHouseholderHeadLabel);
-    } else if (statusKeys.isIneligibleForSMC || statusKeys.isIneligibleForVAS) {
-      return localizations.translate(
-          i18.householdOverView.householdOverViewNotEligibleIconLabel);
-    } else if (statusKeys.isBeneficiaryReferred) {
-      return localizations.translate(Status.beneficiaryReferred.toValue());
-    } else if (taskData != null) {
+    } else if (statusKeys.isIneligibleForSMC && statusKeys.isIneligibleForVAS) {
+      return 'SMC & VAS ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)}';
+    }
+    // else if (statusKeys.isBeneficiaryReferred) {
+    //   return localizations.translate(Status.beneficiaryReferred.toValue());
+    // }
+    else if (taskData != null) {
       if (taskData.isEmpty) {
         return localizations.translate(Status.notVisited.toValue());
+      } else if (statusKeys.isIneligibleForSMC &&
+          statusKeys.isBeneficiaryReferredVAS) {
+        return 'SMC ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)} '
+            ' ${localizations.translate(i18_local.householdOverView.householdOverViewReferredVASLabel)}';
+      } else if (statusKeys.isIneligibleForSMC && statusKeys.isVASDelivered) {
+        return 'SMC ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)} '
+            ' ${localizations.translate(i18_local.householdOverView.householdOverViewVASDeliveredIconLabel)}';
+      } else if (statusKeys.isBeneficiaryReferredSMC &&
+          statusKeys.isIneligibleForVAS) {
+        return '${localizations.translate(i18_local.householdOverView.householdOverViewReferredSMCLabel)} VAS ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)}';
+      } else if (statusKeys.isSMCDelivered && statusKeys.isIneligibleForVAS) {
+        return '${localizations.translate(i18_local.householdOverView.householdOverViewSMCDeliveredIconLabel)} VAS ${localizations.translate(i18.householdOverView.householdOverViewNotEligibleIconLabel)}';
+      } else if (statusKeys.isIneligibleForSMC ||
+          statusKeys.isIneligibleForVAS) {
+        return localizations.translate(
+            i18.householdOverView.householdOverViewNotEligibleIconLabel);
+      } else if (statusKeys.isVASDelivered &&
+          statusKeys.isBeneficiaryReferredSMC) {
+        return localizations.translate(i18_local.householdOverView
+            .householdOverViewVASDeliveredAndSMCReferredIconLabel);
+      } else if (statusKeys.isBeneficiaryReferredVAS &&
+          statusKeys.isSMCDelivered) {
+        return localizations.translate(i18_local.householdOverView
+            .householdOverViewVASReferredAndSMCDeliveredIconLabel);
+      } else if (statusKeys.isBeneficiaryReferredVAS &&
+          statusKeys.isBeneficiaryReferredSMC) {
+        return localizations.translate(i18_local.householdOverView
+            .householdOverViewVASReferredAndSMCReferredIconLabel);
       } else if (statusKeys.isVASDelivered && statusKeys.isSMCDelivered) {
         return localizations.translate(i18_local
             .householdOverView.householdOverViewSMCAndVASDeliveredIconLabel);
+      } else if (statusKeys.isBeneficiaryReferredSMC) {
+        return localizations.translate(i18_local
+            .householdOverView.householdOverViewBeneficiaryReferredSMCLabel);
+      } else if (statusKeys.isBeneficiaryReferredVAS) {
+        return localizations.translate(i18_local
+            .householdOverView.householdOverViewBeneficiaryReferredVASLabel);
       } else if (statusKeys.isSMCDelivered) {
         return localizations.translate(
             i18_local.householdOverView.householdOverViewSMCDeliveredIconLabel);
@@ -479,6 +545,8 @@ class CustomStatusKeys {
   bool isStatusReset;
   bool isVASDelivered;
   bool isSMCDelivered;
+  bool isBeneficiaryReferredSMC;
+  bool isBeneficiaryReferredVAS;
   CustomStatusKeys(
       this.isNotEligible,
       this.isIneligibleForSMC,
@@ -487,5 +555,7 @@ class CustomStatusKeys {
       this.isBeneficiaryReferred,
       this.isStatusReset,
       this.isVASDelivered,
-      this.isSMCDelivered);
+      this.isSMCDelivered,
+      this.isBeneficiaryReferredSMC,
+      this.isBeneficiaryReferredVAS);
 }
