@@ -256,7 +256,8 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                           child: Text(localizations.translate((!context.isCDD)
                               ? getSecondaryPartyValue(
                                   widget.stockRecords.firstOrNull)
-                              : localizations.translate('FAC_Delivery Team')))),
+                              : getSecondaryPartyValue(
+                                  widget.stockRecords.firstOrNull)))),
                     ],
                   ),
                 ],

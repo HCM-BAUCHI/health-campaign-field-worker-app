@@ -519,9 +519,6 @@ String getSecondaryPartyValue(StockModel? stock) {
   // Use a guard clause for null safety
   if (stock == null) return "";
 
-  print(
-      'DEBUG FUNCTION: Input is type=${stock?.transactionType}, senderId=${stock?.senderId}');
-
   // For a RECEIPT, the other party is always the SENDER.
   if (stock.transactionType == "RECEIVED") {
     // This now correctly handles your case without checking senderType.
