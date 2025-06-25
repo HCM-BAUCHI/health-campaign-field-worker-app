@@ -590,10 +590,11 @@ class _HomePageState extends LocalizedState<HomePage> {
         .map((label) => homeItemsShowcaseMap[label]!)
         .toList();
 
-    if ((envConfig.variables.envType == EnvType.demo && kReleaseMode) ||
-        envConfig.variables.envType == EnvType.uat) {
-      // filteredLabels.remove(i18.home.db);
-    }
+    filteredLabels.remove(i18.home.db);
+    // if ((envConfig.variables.envType == EnvType.demo && kReleaseMode) ||
+    //     envConfig.variables.envType == EnvType.uat) {
+    //   filteredLabels.remove(i18.home.db);
+    // }
     if (context.isCDD) filteredLabels.add(i18.home.summaryLabel);
 
     final List<Widget> widgetList =
