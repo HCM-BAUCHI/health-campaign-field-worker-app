@@ -254,8 +254,16 @@ class _CustomReferralReasonChecklistPageState
                                                       : visibleChecklistIndexes
                                                               .contains(i)
                                                           ? controller[i]
-                                                              .text
-                                                              .toString()
+                                                                  .text
+                                                                  .toString()
+                                                                  .trim()
+                                                                  .isNotEmpty
+                                                              ? controller[i]
+                                                                  .text
+                                                                  .toString()
+                                                              : i18_survey_form
+                                                                  .surveyForm
+                                                                  .notSelectedKey
                                                           : i18_survey_form
                                                               .surveyForm
                                                               .notSelectedKey,
