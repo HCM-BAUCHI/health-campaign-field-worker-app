@@ -716,9 +716,9 @@ class _CustomSearchBeneficiaryPageState
                               "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
                         }
 
-                        if ((spaq1 > 0 &&
-                            spaq2 > 0 &&
-                            blueVas > 0 &&
+                        if ((spaq1 > 0 ||
+                            spaq2 > 0 ||
+                            blueVas > 0 ||
                             redVas > 0)) {
                           FocusManager.instance.primaryFocus?.unfocus();
                           context.read<DigitScannerBloc>().add(

@@ -6,6 +6,7 @@ import 'package:digit_ui_components/theme/digit_extended_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:registration_delivery/blocs/app_localization.dart';
+import 'package:registration_delivery/blocs/delivery_intervention/deliver_intervention.dart';
 import 'package:registration_delivery/blocs/household_overview/household_overview.dart';
 import 'package:registration_delivery/models/entities/project_beneficiary.dart';
 import 'package:registration_delivery/models/entities/side_effect.dart';
@@ -276,224 +277,133 @@ class CustomMemberCard extends StatelessWidget {
         (!vasAssessmentPendingStatus && !redosePendingStatus)) {
       return const Offstage();
     }
-    return Column(
-      children: [
-        if (smcAssessmentPendingStatus &&
-            !isBeneficiaryReferredSMC &&
-            !isBeneficiaryInEligibleSMC)
-          DigitElevatedButton(
-            child: Center(
-              child: Text(
-                localizations.translate(
-                  i18_local.householdOverView
-                      .householdOverViewSMCAssessmentActionText,
-                ),
-                style: textTheme.headingM.copyWith(color: Colors.white),
-              ),
-            ),
-            onPressed: () async {
-              final spaq1 = context.spaq1;
-              final spaq2 = context.spaq2;
 
-              if (spaq1 > 0 && spaq2 > 0) {
-                final bloc = context.read<HouseholdOverviewBloc>();
-                bloc.add(
-                  HouseholdOverviewEvent.selectedIndividual(
-                    individualModel: individual,
+    return BlocBuilder<DeliverInterventionBloc, DeliverInterventionState>(
+        builder: (context, deliverState) {
+      final pastCycles = deliverState.pastCycles;
+
+      return Column(
+        children: [
+          if (smcAssessmentPendingStatus &&
+              !isBeneficiaryReferredSMC &&
+              !isBeneficiaryInEligibleSMC)
+            DigitElevatedButton(
+              child: Center(
+                child: Text(
+                  localizations.translate(
+                    i18_local.householdOverView
+                        .householdOverViewSMCAssessmentActionText,
                   ),
-                );
-
-                if ((smcTasks ?? []).isEmpty) {
-                  context.router.push(
-                    EligibilityChecklistViewRoute(
-                      projectBeneficiaryClientReferenceId:
-                          projectBeneficiaryClientReferenceId,
-                      individual: individual,
-                      eligibilityAssessmentType: EligibilityAssessmentType.smc,
-                    ),
-                  );
-                }
-              } else {
-                String descriptionText = localizations.translate(
-                  i18_local.beneficiaryDetails.insufficientStockMessage,
-                );
-
-                if (spaq1 == 0) {
-                  descriptionText +=
-                      "\n${localizations.translate(i18_local.beneficiaryDetails.spaq1DoseUnit)}";
-                }
-                if (spaq2 == 0) {
-                  descriptionText +=
-                      "\n${localizations.translate(i18_local.beneficiaryDetails.spaq2DoseUnit)}";
-                }
-
-                DigitDialog.show(
-                  context,
-                  options: DigitDialogOptions(
-                    titleText: localizations.translate(
-                      i18_local.beneficiaryDetails.insufficientStockHeading,
-                    ),
-                    titleIcon: Icon(
-                      Icons.warning,
-                      color: DigitTheme.instance.colorScheme.error,
-                    ),
-                    contentText: descriptionText,
-                    primaryAction: DigitDialogActions(
-                      label: localizations.translate(
-                        i18_local.beneficiaryDetails.backToHouseholdDetails,
-                      ),
-                      action: (ctx) {
-                        Navigator.of(ctx, rootNavigator: true).pop();
-                      },
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-        if ((!smcAssessmentPendingStatus) && redosePendingStatus)
-          DigitElevatedButton(
-            child: Center(
-              child: Text(
-                localizations.translate(
-                  i18_local.householdOverView.householdOverViewRedoseActionText,
+                  style: textTheme.headingM.copyWith(color: Colors.white),
                 ),
-                style: textTheme.headingM.copyWith(color: Colors.white),
               ),
-            ),
-            onPressed: () async {
-              final bloc = context.read<HouseholdOverviewBloc>();
-              bloc.add(
-                HouseholdOverviewEvent.selectedIndividual(
-                  individualModel: individual,
-                ),
-              );
+              onPressed: () async {
+                // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
+                final currentCycle =
+                    deliverState.cycle >= 0 ? deliverState.cycle : 0;
 
-              if ((smcTasks ?? []).isNotEmpty) {
-                TaskModel? successfulTask = smcTasks
-                    ?.where(
+                // Calculate the current dose. If deliverInterventionState.dose is negative, set it to 0.
+                final currentDose =
+                    deliverState.dose >= 0 ? deliverState.dose : 0;
+
+                final ProjectTypeModel projectType =
+                    RegistrationDeliverySingleton().projectType!;
+                final item = projectType
+                    .cycles?[currentCycle - 1].deliveries?[currentDose - 1];
+                final productVariants =
+                    fetchProductVariant(item, individual, null)
+                        ?.productVariants!
+                        .first;
+
+                // Retrieve the SKU value for the product variant.
+                final value = variant
+                    ?.firstWhereOrNull(
                       (element) =>
-                          element.status ==
-                          Status.administeredSuccess.toValue(),
+                          element.id == productVariants!.productVariantId,
                     )
-                    .lastOrNull;
-                if (redosePendingStatus) {
-                  final spaq1 = context.spaq1;
-                  final spaq2 = context.spaq2;
-                  // final blueVas = context.blueVas;
-                  // final redVas = context.redVas;
+                    ?.sku;
 
-                  int doseCount = double.parse(
-                    successfulTask?.resources?.first.quantity ?? "0",
-                  ).round();
+                int spaq1 = context.spaq1;
+                int spaq2 = context.spaq2;
 
-                  final value = variant
-                      .firstWhere(
-                        (element) =>
-                            element.id ==
-                            successfulTask!.resources!.first.productVariantId,
-                      )
-                      .sku;
+                if (value != null &&
+                    ((value.contains(
+                              Constants.spaq1,
+                            ) &&
+                            spaq1 > 0) ||
+                        (value.contains(
+                              Constants.spaq2,
+                            ) &&
+                            spaq2 > 0))) {
+                  final bloc = context.read<HouseholdOverviewBloc>();
+                  bloc.add(
+                    HouseholdOverviewEvent.selectedIndividual(
+                      individualModel: individual,
+                    ),
+                  );
 
-                  if (successfulTask != null &&
-                      value != null &&
-                      ((value.contains(
-                                Constants.spaq1,
-                              ) &&
-                              spaq1 > 0) ||
-                          (value.contains(
-                                Constants.spaq2,
-                              ) &&
-                              spaq2 > 0))) {
+                  if ((smcTasks ?? []).isEmpty) {
                     context.router.push(
-                      RecordRedoseRoute(
-                        tasks: [successfulTask!],
+                      EligibilityChecklistViewRoute(
+                        projectBeneficiaryClientReferenceId:
+                            projectBeneficiaryClientReferenceId,
+                        individual: individual,
+                        eligibilityAssessmentType:
+                            EligibilityAssessmentType.smc,
                       ),
                     );
+                  }
+                } else {
+                  String descriptionText = localizations.translate(
+                    i18_local.beneficiaryDetails.insufficientStockMessage,
+                  );
+
+                  if (spaq1 == 0) {
+                    descriptionText +=
+                        "\n${localizations.translate(i18_local.beneficiaryDetails.spaq1DoseUnit)}";
                   }
 
-                  // if (successfulTask != null && spaq1 >= doseCount) {
-                  //   context.router.push(
-                  //     RecordRedoseRoute(
-                  //       tasks: [successfulTask],
-                  //     ),
-                  //   );
-                  // }
-                  else {
-                    DigitDialog.show(
-                      context,
-                      options: DigitDialogOptions(
-                        titleText: localizations.translate(
-                          i18_local.beneficiaryDetails.insufficientStockHeading,
-                        ),
-                        titleIcon: Icon(
-                          Icons.warning,
-                          color: DigitTheme.instance.colorScheme.error,
-                        ),
-                        contentText: (value == Constants.spaq1)
-                            ? "${localizations.translate(
-                                i18_local.beneficiaryDetails
-                                    .insufficientAZTStockMessageDelivery,
-                              )} \n ${localizations.translate(
-                                i18_local.beneficiaryDetails.spaq1DoseUnit,
-                              )}"
-                            : "${localizations.translate(
-                                i18_local.beneficiaryDetails
-                                    .insufficientAZTStockMessageDelivery,
-                              )} \n ${localizations.translate(
-                                i18_local.beneficiaryDetails.spaq2DoseUnit,
-                              )}",
-                        // contentText: (spaq1 < doseCountSpaq1)
-                        //     ? "${localizations.translate(
-                        //         i18_local.beneficiaryDetails
-                        //             .insufficientAZTStockMessageDelivery,
-                        //       )} \n ${localizations.translate(
-                        //         i18_local.beneficiaryDetails.spaq1DoseUnit,
-                        //       )}"
-                        //     : "${localizations.translate(
-                        //         i18_local.beneficiaryDetails
-                        //             .insufficientAZTStockMessageDelivery,
-                        //       )} \n ${localizations.translate(
-                        //         i18_local.beneficiaryDetails.spaq2DoseUnit,
-                        //       )}",
-                        primaryAction: DigitDialogActions(
-                          label: localizations.translate(i18_local
-                              .beneficiaryDetails.backToHouseholdDetails),
-                          action: (ctx) {
-                            Navigator.of(
-                              ctx,
-                              rootNavigator: true,
-                            ).pop();
-                          },
-                        ),
-                      ),
-                    );
+                  if (spaq2 == 0) {
+                    descriptionText +=
+                        "\n${localizations.translate(i18_local.beneficiaryDetails.spaq2DoseUnit)}";
                   }
+
+                  DigitDialog.show(
+                    context,
+                    options: DigitDialogOptions(
+                      titleText: localizations.translate(
+                        i18_local.beneficiaryDetails.insufficientStockHeading,
+                      ),
+                      titleIcon: Icon(
+                        Icons.warning,
+                        color: DigitTheme.instance.colorScheme.error,
+                      ),
+                      contentText: descriptionText,
+                      primaryAction: DigitDialogActions(
+                        label: localizations.translate(
+                          i18_local.beneficiaryDetails.backToHouseholdDetails,
+                        ),
+                        action: (ctx) {
+                          Navigator.of(ctx, rootNavigator: true).pop();
+                        },
+                      ),
+                    ),
+                  );
                 }
-              }
-            },
-          ),
-        if ((!smcAssessmentPendingStatus ||
-                isBeneficiaryReferredSMC ||
-                isBeneficiaryInEligibleSMC) &&
-            vasAssessmentPendingStatus &&
-            !isBeneficiaryReferredVAS &&
-            !isBeneficiaryInEligibleVAS &&
-            !isNotEligibleVAS)
-          DigitElevatedButton(
-            child: Center(
-              child: Text(
-                localizations.translate(
-                  i18_local.householdOverView
-                      .householdOverViewVASAssessmentActionText,
-                ),
-                style: textTheme.headingM.copyWith(color: Colors.white),
-              ),
+              },
             ),
-            onPressed: () async {
-              int blueVas = context.blueVas;
-              int redVas = context.redVas;
-              if (blueVas > 0 && redVas > 0) {
+          if ((!smcAssessmentPendingStatus) && redosePendingStatus)
+            DigitElevatedButton(
+              child: Center(
+                child: Text(
+                  localizations.translate(
+                    i18_local
+                        .householdOverView.householdOverViewRedoseActionText,
+                  ),
+                  style: textTheme.headingM.copyWith(color: Colors.white),
+                ),
+              ),
+              onPressed: () async {
                 final bloc = context.read<HouseholdOverviewBloc>();
                 bloc.add(
                   HouseholdOverviewEvent.selectedIndividual(
@@ -501,62 +411,234 @@ class CustomMemberCard extends StatelessWidget {
                   ),
                 );
 
-                if ((vasTasks ?? []).isEmpty) {
-                  // context.router.push(
-                  //   CustomBeneficiaryDetailsRoute(
-                  //     eligibilityAssessmentType:
-                  //         EligibilityAssessmentType.smc,
-                  //   ),
-                  // );
-                  context.router.push(
-                    EligibilityChecklistViewRoute(
-                      projectBeneficiaryClientReferenceId:
-                          projectBeneficiaryClientReferenceId,
-                      individual: individual,
-                      eligibilityAssessmentType: EligibilityAssessmentType.vas,
+                if ((smcTasks ?? []).isNotEmpty) {
+                  TaskModel? successfulTask = smcTasks
+                      ?.where(
+                        (element) =>
+                            element.status ==
+                            Status.administeredSuccess.toValue(),
+                      )
+                      .lastOrNull;
+                  if (redosePendingStatus) {
+                    int spaq1 = context.spaq1;
+                    int spaq2 = context.spaq2;
+                    // final blueVas = context.blueVas;
+                    // final redVas = context.redVas;
+
+                    int doseCount = double.parse(
+                      successfulTask?.resources?.first.quantity ?? "0",
+                    ).round();
+
+                    final value = variant
+                        .firstWhere(
+                          (element) =>
+                              element.id ==
+                              successfulTask!.resources!.first.productVariantId,
+                        )
+                        .sku;
+
+                    if (successfulTask != null &&
+                        value != null &&
+                        ((value.contains(
+                                  Constants.spaq1,
+                                ) &&
+                                spaq1 > 0) ||
+                            (value.contains(
+                                  Constants.spaq2,
+                                ) &&
+                                spaq2 > 0))) {
+                      context.router.push(
+                        RecordRedoseRoute(
+                          tasks: [successfulTask!],
+                        ),
+                      );
+                    }
+
+                    // if (successfulTask != null && spaq1 >= doseCount) {
+                    //   context.router.push(
+                    //     RecordRedoseRoute(
+                    //       tasks: [successfulTask],
+                    //     ),
+                    //   );
+                    // }
+                    else {
+                      DigitDialog.show(
+                        context,
+                        options: DigitDialogOptions(
+                          titleText: localizations.translate(
+                            i18_local
+                                .beneficiaryDetails.insufficientStockHeading,
+                          ),
+                          titleIcon: Icon(
+                            Icons.warning,
+                            color: DigitTheme.instance.colorScheme.error,
+                          ),
+                          contentText: (value == Constants.spaq1)
+                              ? "${localizations.translate(
+                                  i18_local.beneficiaryDetails
+                                      .insufficientAZTStockMessageDelivery,
+                                )} \n ${localizations.translate(
+                                  i18_local.beneficiaryDetails.spaq1DoseUnit,
+                                )}"
+                              : "${localizations.translate(
+                                  i18_local.beneficiaryDetails
+                                      .insufficientAZTStockMessageDelivery,
+                                )} \n ${localizations.translate(
+                                  i18_local.beneficiaryDetails.spaq2DoseUnit,
+                                )}",
+                          // contentText: (spaq1 < doseCountSpaq1)
+                          //     ? "${localizations.translate(
+                          //         i18_local.beneficiaryDetails
+                          //             .insufficientAZTStockMessageDelivery,
+                          //       )} \n ${localizations.translate(
+                          //         i18_local.beneficiaryDetails.spaq1DoseUnit,
+                          //       )}"
+                          //     : "${localizations.translate(
+                          //         i18_local.beneficiaryDetails
+                          //             .insufficientAZTStockMessageDelivery,
+                          //       )} \n ${localizations.translate(
+                          //         i18_local.beneficiaryDetails.spaq2DoseUnit,
+                          //       )}",
+                          primaryAction: DigitDialogActions(
+                            label: localizations.translate(i18_local
+                                .beneficiaryDetails.backToHouseholdDetails),
+                            action: (ctx) {
+                              Navigator.of(
+                                ctx,
+                                rootNavigator: true,
+                              ).pop();
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+            ),
+          if ((!smcAssessmentPendingStatus ||
+                  isBeneficiaryReferredSMC ||
+                  isBeneficiaryInEligibleSMC) &&
+              vasAssessmentPendingStatus &&
+              !isBeneficiaryReferredVAS &&
+              !isBeneficiaryInEligibleVAS &&
+              !isNotEligibleVAS)
+            DigitElevatedButton(
+              child: Center(
+                child: Text(
+                  localizations.translate(
+                    i18_local.householdOverView
+                        .householdOverViewVASAssessmentActionText,
+                  ),
+                  style: textTheme.headingM.copyWith(color: Colors.white),
+                ),
+              ),
+              onPressed: () async {
+                // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
+                final currentCycle =
+                    deliverState.cycle >= 0 ? deliverState.cycle : 0;
+
+                // Calculate the current dose. If deliverInterventionState.dose is negative, set it to 0.
+                final currentDose =
+                    deliverState.dose >= 0 ? deliverState.dose : 0;
+                final ProjectTypeModel? projectType =
+                    RegistrationDeliverySingleton()
+                        .selectedProject
+                        ?.additionalDetails
+                        ?.additionalProjectType;
+                final item = projectType
+                    ?.cycles?[currentCycle - 1].deliveries?[currentDose - 1];
+                final productVariants =
+                    fetchProductVariant(item, individual, null)
+                        ?.productVariants!
+                        .first;
+
+                int blueVas = context.blueVas;
+                int redVas = context.redVas;
+                redVas = 1;
+
+                // Retrieve the SKU value for the product variant.
+                final value = variant
+                    ?.firstWhereOrNull(
+                      (element) =>
+                          element.id == productVariants!.productVariantId,
+                    )
+                    ?.sku;
+
+                if (value != null &&
+                    ((value.contains(
+                              Constants.blueVAS,
+                            ) &&
+                            blueVas > 0) ||
+                        (value.contains(
+                              Constants.redVAS,
+                            ) &&
+                            redVas > 0))) {
+                  final bloc = context.read<HouseholdOverviewBloc>();
+                  bloc.add(
+                    HouseholdOverviewEvent.selectedIndividual(
+                      individualModel: individual,
+                    ),
+                  );
+
+                  if ((vasTasks ?? []).isEmpty) {
+                    // context.router.push(
+                    //   CustomBeneficiaryDetailsRoute(
+                    //     eligibilityAssessmentType:
+                    //         EligibilityAssessmentType.smc,
+                    //   ),
+                    // );
+                    context.router.push(
+                      EligibilityChecklistViewRoute(
+                        projectBeneficiaryClientReferenceId:
+                            projectBeneficiaryClientReferenceId,
+                        individual: individual,
+                        eligibilityAssessmentType:
+                            EligibilityAssessmentType.vas,
+                      ),
+                    );
+                  }
+                } else {
+                  String descriptionText = localizations.translate(
+                    i18_local.beneficiaryDetails.insufficientStockMessage,
+                  );
+
+                  if (blueVas == 0) {
+                    descriptionText +=
+                        "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
+                  }
+                  if (redVas == 0) {
+                    descriptionText +=
+                        "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
+                  }
+
+                  DigitDialog.show(
+                    context,
+                    options: DigitDialogOptions(
+                      titleText: localizations.translate(
+                        i18_local.beneficiaryDetails.insufficientStockHeading,
+                      ),
+                      titleIcon: Icon(
+                        Icons.warning,
+                        color: DigitTheme.instance.colorScheme.error,
+                      ),
+                      contentText: descriptionText,
+                      primaryAction: DigitDialogActions(
+                        label: localizations.translate(
+                          i18_local.beneficiaryDetails.backToHouseholdDetails,
+                        ),
+                        action: (ctx) {
+                          Navigator.of(ctx, rootNavigator: true).pop();
+                        },
+                      ),
                     ),
                   );
                 }
-              } else {
-                String descriptionText = localizations.translate(
-                  i18_local.beneficiaryDetails.insufficientStockMessage,
-                );
-
-                if (blueVas == 0) {
-                  descriptionText +=
-                      "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
-                }
-                if (redVas == 0) {
-                  descriptionText +=
-                      "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
-                }
-
-                DigitDialog.show(
-                  context,
-                  options: DigitDialogOptions(
-                    titleText: localizations.translate(
-                      i18_local.beneficiaryDetails.insufficientStockHeading,
-                    ),
-                    titleIcon: Icon(
-                      Icons.warning,
-                      color: DigitTheme.instance.colorScheme.error,
-                    ),
-                    contentText: descriptionText,
-                    primaryAction: DigitDialogActions(
-                      label: localizations.translate(
-                        i18_local.beneficiaryDetails.backToHouseholdDetails,
-                      ),
-                      action: (ctx) {
-                        Navigator.of(ctx, rootNavigator: true).pop();
-                      },
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-      ],
-    );
+              },
+            ),
+        ],
+      );
+    });
   }
 
   @override

@@ -1092,8 +1092,7 @@ class _CustomHouseholdOverviewPageState
                                       //       "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
                                       // }
 
-                                      if (context.spaq1 > 0 &&
-                                          context.spaq2 > 0) {
+                                      if (spaq1 > 0 || spaq2 > 0) {
                                         addIndividual(
                                           context,
                                           state
