@@ -555,7 +555,6 @@ class CustomMemberCard extends StatelessWidget {
 
                 int blueVas = context.blueVas;
                 int redVas = context.redVas;
-                redVas = 1;
 
                 // Retrieve the SKU value for the product variant.
                 final value = variant
