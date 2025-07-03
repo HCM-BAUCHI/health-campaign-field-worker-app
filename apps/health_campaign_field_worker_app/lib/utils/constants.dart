@@ -119,6 +119,7 @@ class Constants {
 
   static const String registered = "registered";
   static const String administered = "administered";
+  static const String returnStock = "returnStock";
 
   // todo enable before cycle2
   static const bool isDownSyncEnabled = false;
