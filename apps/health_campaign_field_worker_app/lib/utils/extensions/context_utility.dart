@@ -110,9 +110,15 @@ extension ContextUtilityExtensions on BuildContext {
       throw AppException('No boundary is selected');
     }
     // INFO: Set Boundary for packages
+    ReferralReconSingleton().setBoundary(boundary: selectedBoundary);
+    RegistrationDeliverySingleton().setBoundary(boundary: selectedBoundary);
+    InventorySingleton().setBoundaryName(boundaryName: selectedBoundary.name!);
     AttendanceSingleton().setBoundary(boundary: selectedBoundary);
     LocationTrackerSingleton()
         .setBoundaryName(boundaryName: selectedBoundary.code!);
+    InventorySingleton().setBoundaryName(boundaryName: selectedBoundary.code!);
+    ComplaintsSingleton().setBoundary(boundary: selectedBoundary);
+    SurveyFormSingleton().setBoundary(boundary: selectedBoundary);
     return selectedBoundary;
   }
 
@@ -124,11 +130,67 @@ extension ContextUtilityExtensions on BuildContext {
     }
   }
 
+  bool get isRegistrar {
+    UserRequestModel loggedInUser;
+
+    try {
+      loggedInUser = this.loggedInUser;
+    } catch (_) {
+      return false;
+    }
+
+    for (final role in loggedInUser.roles) {
+      switch (role.code) {
+        case "REGISTRAR":
+          return true;
+        default:
+          break;
+      }
+    }
+
+    return false;
+  }
+
+  bool get isDistributor {
+    try {
+      bool isDistributorUser = loggedInUserRoles
+          .where(
+            (role) => role.code == RolesType.communityDistributor.toValue(),
+          )
+          .toList()
+          .isNotEmpty;
+
+      return isDistributorUser;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool get isCDD {
+    return loggedInUserRoles
+        .where(
+          (role) =>
+              role.code == RolesType.distributor.toValue() ||
+              role.code == RolesType.communityDistributor.toValue(),
+        )
+        .toList()
+        .isNotEmpty;
+  }
+
   List<UserRoleModel> get loggedInUserRoles {
     final authBloc = _get<AuthBloc>();
     final userRequestObject = authBloc.state.whenOrNull(
-      authenticated:
-          (accessToken, refreshToken, userModel, actionsWrapper, individualId) {
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
         return userModel.roles;
       },
     );
@@ -143,8 +205,17 @@ extension ContextUtilityExtensions on BuildContext {
   String? get loggedInIndividualId {
     final authBloc = _get<AuthBloc>();
     final individualUUID = authBloc.state.whenOrNull(
-      authenticated:
-          (accessToken, refreshToken, userModel, actionsWrapper, individualId) {
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
         return individualId;
       },
     );
@@ -176,8 +247,17 @@ extension ContextUtilityExtensions on BuildContext {
   UserRequestModel get loggedInUser {
     final authBloc = _get<AuthBloc>();
     final userRequestObject = authBloc.state.whenOrNull(
-      authenticated:
-          (accessToken, refreshToken, userModel, actions, individualId) {
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actions,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
         return userModel;
       },
     );
@@ -209,6 +289,141 @@ extension ContextUtilityExtensions on BuildContext {
     }
 
     return false;
+  }
+
+  int get spaq1 {
+    final authBloc = _get<AuthBloc>();
+    final spaq1 = authBloc.state.whenOrNull(
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
+        return spaq1;
+      },
+    );
+
+    if (spaq1 == null) {
+      return 0;
+    }
+
+    return spaq1;
+  }
+
+  int get spaq2 {
+    final authBloc = _get<AuthBloc>();
+    final spaq2 = authBloc.state.whenOrNull(
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
+        return spaq2;
+      },
+    );
+
+    if (spaq2 == null) {
+      return 0;
+    }
+
+    return spaq2;
+  }
+
+//vas
+
+  int get blueVas {
+    final authBloc = _get<AuthBloc>();
+    final blueVas = authBloc.state.whenOrNull(
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
+        return blueVas;
+      },
+    );
+
+    if (blueVas == null) {
+      return 0;
+    }
+
+    return blueVas;
+  }
+
+  int get redVas {
+    final authBloc = _get<AuthBloc>();
+    final redVas = authBloc.state.whenOrNull(
+      authenticated: (
+        accessToken,
+        refreshToken,
+        userModel,
+        actionsWrapper,
+        individualId,
+        spaq1,
+        spaq2,
+        blueVas,
+        redVas,
+      ) {
+        return redVas;
+      },
+    );
+
+    if (redVas == null) {
+      return 0;
+    }
+
+    return redVas;
+  }
+
+  bool get isCommunityDistributor {
+    try {
+      bool communityDistributor = loggedInUserRoles
+          .where(
+            (role) => role.code == RolesType.communityDistributor.toValue(),
+          )
+          .toList()
+          .isNotEmpty;
+
+      return communityDistributor;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool get isHealthFacilitySupervisor {
+    try {
+      // todo : verify this make this healthFacilitySupervsior as per kebbi
+      bool isDownSyncEnabled = loggedInUserRoles
+          .where(
+            (role) =>
+                role.code == RolesType.healthFacilityWorker.toValue() ||
+                role.code == RolesType.healthFacilitySupervisor.toValue(),
+          )
+          .toList()
+          .isNotEmpty;
+
+      return isDownSyncEnabled;
+    } catch (_) {
+      return false;
+    }
   }
 
   NetworkManager get networkManager => read<NetworkManager>();

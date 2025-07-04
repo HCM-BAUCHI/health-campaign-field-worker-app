@@ -1,3 +1,10 @@
+import 'package:attendance_management/attendance_management.dart';
+import 'package:complaints/data/repositories/remote/pgr_service.dart';
+import 'package:complaints/models/pgr_address.dart';
+import 'package:complaints/models/pgr_complaints.dart';
+import 'package:complaints/models/pgr_complaints_response.dart';
+import 'package:digit_data_model/models/entities/pgr_application_status.dart';
+import 'package:inventory_management/inventory_management.dart';
 import 'dart:async';
 
 import 'package:collection/collection.dart';
@@ -5,6 +12,7 @@ import 'package:digit_data_model/data_model.dart';
 import 'package:sync_service/data/repositories/sync/remote_type.dart';
 
 import '../../../models/bandwidth/bandwidth_model.dart';
+import '../../../utils/environment_config.dart';
 import '../../network_manager.dart';
 
 class PerformSyncDown {
@@ -151,6 +159,218 @@ class PerformSyncDown {
 
             break;
 
+          case DataModelType.stock:
+            responseEntities = await remote.search(
+              StockSearchModel(
+                clientReferenceId: entities
+                    .whereType<StockModel>()
+                    .map((e) => e.clientReferenceId)
+                    .whereNotNull()
+                    .toList(),
+              ),
+            );
+
+            for (var element in operationGroupedEntity.value) {
+              if (element.id == null) return;
+              final entity = element.entity as StockModel;
+              final responseEntity =
+                  responseEntities.whereType<StockModel>().firstWhereOrNull(
+                        (e) => e.clientReferenceId == entity.clientReferenceId,
+                      );
+
+              final serverGeneratedId = responseEntity?.id;
+              final rowVersion = responseEntity?.rowVersion;
+
+              if (serverGeneratedId != null) {
+                await local.opLogManager.updateServerGeneratedIds(
+                  model: UpdateServerGeneratedIdModel(
+                    clientReferenceId: entity.clientReferenceId!,
+                    serverGeneratedId: serverGeneratedId,
+                    dataOperation: element.operation,
+                    rowVersion: rowVersion,
+                  ),
+                );
+              } else {
+                final bool markAsNonRecoverable = await local.opLogManager
+                    .updateSyncDownRetry(entity.clientReferenceId);
+
+                if (markAsNonRecoverable) {
+                  await local.update(
+                    entity.copyWith(
+                      nonRecoverableError: true,
+                    ),
+                    createOpLog: false,
+                  );
+                }
+              }
+            }
+
+            break;
+
+          case DataModelType.stockReconciliation:
+            responseEntities =
+                await remote.search(StockReconciliationSearchModel(
+              clientReferenceId: entities
+                  .whereType<StockReconciliationModel>()
+                  .map((e) => e.clientReferenceId)
+                  .whereNotNull()
+                  .toList(),
+            ));
+
+            for (var element in operationGroupedEntity.value) {
+              if (element.id == null) return;
+              final entity = element.entity as StockReconciliationModel;
+              final responseEntity = responseEntities
+                  .whereType<StockReconciliationModel>()
+                  .firstWhereOrNull(
+                    (e) => e.clientReferenceId == entity.clientReferenceId,
+                  );
+
+              final serverGeneratedId = responseEntity?.id;
+              final rowVersion = responseEntity?.rowVersion;
+
+              if (serverGeneratedId != null) {
+                await local.opLogManager.updateServerGeneratedIds(
+                  model: UpdateServerGeneratedIdModel(
+                    clientReferenceId: entity.clientReferenceId,
+                    serverGeneratedId: serverGeneratedId,
+                    dataOperation: element.operation,
+                    rowVersion: rowVersion,
+                  ),
+                );
+              } else {
+                final bool markAsNonRecoverable = await local.opLogManager
+                    .updateSyncDownRetry(entity.clientReferenceId);
+
+                if (markAsNonRecoverable) {
+                  await local.update(
+                    entity.copyWith(
+                      nonRecoverableError: true,
+                    ),
+                    createOpLog: false,
+                  );
+                }
+              }
+            }
+
+            break;
+
+          case DataModelType.attendance:
+            responseEntities = await remote.search(AttendanceLogSearchModel(
+              clientReferenceId: entities
+                  .whereType<AttendanceLogModel>()
+                  .map((e) => e.clientReferenceId!)
+                  .whereNotNull()
+                  .toList(),
+              tenantId: envConfig.variables.tenantId,
+            ));
+
+            for (var element in operationGroupedEntity.value) {
+              if (element.id == null) return;
+              final entity = element.entity as AttendanceLogModel;
+              final responseEntity = responseEntities
+                  .whereType<AttendanceLogModel>()
+                  .firstWhereOrNull(
+                    (e) => e.clientReferenceId == entity.clientReferenceId,
+                  );
+
+              final serverGeneratedId = responseEntity?.id;
+              final rowVersion = responseEntity?.rowVersion;
+              if (serverGeneratedId != null) {
+                await local.opLogManager.updateServerGeneratedIds(
+                  model: UpdateServerGeneratedIdModel(
+                    clientReferenceId: entity.clientReferenceId.toString(),
+                    serverGeneratedId: serverGeneratedId,
+                    nonRecoverableError: entity.nonRecoverableError,
+                    dataOperation: element.operation,
+                    rowVersion: rowVersion,
+                  ),
+                );
+              } else {
+                final bool markAsNonRecoverable =
+                    await local.opLogManager.updateSyncDownRetry(
+                  entity.clientReferenceId.toString(),
+                );
+
+                if (markAsNonRecoverable) {
+                  await local.update(
+                    entity.copyWith(
+                      nonRecoverableError: true,
+                    ),
+                    createOpLog: false,
+                  );
+                }
+              }
+            }
+            break;
+
+          case DataModelType.complaints:
+            if (remote is! PgrServiceRemoteRepository) continue;
+
+            final futures = entities
+                .whereType<PgrServiceModel>()
+                .map((e) => e.serviceRequestId)
+                .whereNotNull()
+                .map(
+              (e) {
+                final future = remote.searchWithoutClientReferenceId(
+                  PgrServiceSearchModel(
+                    serviceRequestId: e,
+                  ),
+                );
+
+                return Future.sync(() => future);
+              },
+            );
+
+            final resolvedFutures = await Future.wait(futures);
+
+            responseEntities = resolvedFutures
+                .expand((element) => element)
+                .whereType<PgrServiceResponseModel>()
+                // We only need serviceRequestId and application status
+                .map((e) => PgrServiceModel(
+                      clientReferenceId: '',
+                      tenantId: e.tenantId ?? '',
+                      serviceCode: e.serviceCode ?? '',
+                      description: e.description ?? '',
+                      serviceRequestId: e.serviceRequestId,
+                      applicationStatus: e.applicationStatus ??
+                          PgrServiceApplicationStatus.pendingAssignment,
+                      user: PgrComplainantModel(
+                        clientReferenceId: '',
+                        tenantId: '',
+                        complaintClientReferenceId: e.serviceRequestId ?? '',
+                      ),
+                      address: PgrAddressModel(),
+                    ))
+                .toList();
+
+            for (var element in operationGroupedEntity.value) {
+              if (element.id == null) return;
+              final entity = element.entity as PgrServiceModel;
+              final responseEntity = responseEntities
+                  .whereType<PgrServiceModel>()
+                  .firstWhereOrNull(
+                    (e) => e.clientReferenceId == entity.clientReferenceId,
+                  );
+
+              final serverGeneratedId = responseEntity?.serviceRequestId;
+              final rowVersion = responseEntity?.rowVersion;
+
+              if (serverGeneratedId != null) {
+                await local.opLogManager.updateServerGeneratedIds(
+                  model: UpdateServerGeneratedIdModel(
+                    clientReferenceId: entity.clientReferenceId,
+                    serverGeneratedId: serverGeneratedId,
+                    dataOperation: element.operation,
+                    rowVersion: rowVersion,
+                  ),
+                );
+              }
+            }
+
+            break;
           default:
             continue;
         }

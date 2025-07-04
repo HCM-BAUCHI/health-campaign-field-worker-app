@@ -1,3 +1,8 @@
+import 'package:attendance_management/attendance_management.dart';
+import 'package:complaints/data/repositories/remote/pgr_service.dart';
+import 'package:referral_reconciliation/referral_reconciliation.dart';
+import 'package:registration_delivery/registration_delivery.dart';
+import 'package:inventory_management/inventory_management.dart';
 import 'package:collection/collection.dart';
 import 'package:digit_data_model/data_model.dart';
 import 'package:digit_dss/digit_dss.dart';
@@ -7,8 +12,12 @@ import 'package:digit_location_tracker/location_tracker.dart';
 import 'package:digit_ui_components/utils/app_logger.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:inventory_management/utils/utils.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:survey_form/data/repositories/local/service.dart';
+import 'package:survey_form/data/repositories/oplog/oplog.dart';
+import 'package:survey_form/data/repositories/remote/service.dart';
 import 'package:sync_service/sync_service_lib.dart';
 
 import '../data/local_store/no_sql/schema/app_configuration.dart';
@@ -17,6 +26,7 @@ import '../data/local_store/no_sql/schema/localization.dart';
 import '../data/local_store/no_sql/schema/project_types.dart';
 import '../data/local_store/no_sql/schema/row_versions.dart';
 import '../data/local_store/no_sql/schema/service_registry.dart';
+import '../data/repositories/local/inventory_management/custom_stock.dart';
 import '../data/repositories/remote/downsync.dart';
 import '../data/sync_registry.dart';
 import '../data/sync_service_mapper.dart';
@@ -81,9 +91,37 @@ class Constants {
   static const String defaultDateTimeFormat = 'dd/MM/yyyy hh:mm a';
   static const String surveyFormViewDateFormat = 'dd/MM/yyyy hh:mm a';
   static const String healthFacilitySurveyFormPrefix = 'HF_RF';
-
+  static const String checklistViewDateFormat = 'dd/MM/yyyy hh:mm a';
   static const String boundaryLocalizationPath = 'rainmaker-boundary-admin';
 
+  static const String reAdministeredKey = "reAdministered";
+  static const String reDoseQuantityKey = 'reDoseQuantity';
+  static const String healthFacility = 'Health Facility';
+  static const String lgaBoundaryLevel = 'LGA';
+  static const String provincialBoundaryLevel = 'Provincia';
+  static const String centralFacility = 'Central Facility';
+  static const String stateBoundaryLevel = 'State';
+  static const String stateFacility = 'State Facility';
+  static const String lgaFacility = 'LGA Facility';
+  static const int mlPerBottle = 30;
+  static const int apiCallLimit = 1000;
+  static const String pipeSeparator = '||';
+
+  // for stock validation
+  static const int stockMaxLimit = 1000000000;
+
+  static const String spaq1 = "SPAQ 1";
+  static const String spaq2 = "SPAQ 2";
+  static const String blueVAS = "Blue VAS";
+  static const String redVAS = "Red VAS";
+
+  // for reportSummary
+
+  static const String registered = "registered";
+  static const String administered = "administered";
+
+  // todo enable before cycle2
+  static const bool isDownSyncEnabled = false;
   static const String dashboardAnalyticsPath =
       '/dashboard-analytics/dashboard/getChartV2';
 
@@ -114,6 +152,36 @@ class Constants {
       ),
       LocationTrackerLocalBaseRepository(
           sql, LocationTrackerOpLogManager(isar)),
+      // StockLocalRepository(sql, StockOpLogManager(isar)),
+      CustomStockLocalRepository(sql, StockOpLogManager(isar)),
+      StockReconciliationLocalRepository(
+        sql,
+        StockReconciliationOpLogManager(isar),
+      ),
+      HouseholdMemberLocalRepository(sql, HouseholdMemberOpLogManager(isar)),
+      HouseholdLocalRepository(sql, HouseholdOpLogManager(isar)),
+      ProjectBeneficiaryLocalRepository(
+        sql,
+        ProjectBeneficiaryOpLogManager(
+          isar,
+        ),
+      ),
+      TaskLocalRepository(sql, TaskOpLogManager(isar)),
+      SideEffectLocalRepository(sql, SideEffectOpLogManager(isar)),
+      ReferralLocalRepository(sql, ReferralOpLogManager(isar)),
+
+      HFReferralLocalRepository(sql, HFReferralOpLogManager(isar)),
+
+      AttendanceLocalRepository(
+        sql,
+        AttendanceOpLogManager(isar),
+      ),
+      AttendanceLogsLocalRepository(
+        sql,
+        AttendanceLogOpLogManager(isar),
+      ),
+
+      ServiceLocalRepository(sql, ServiceOpLogManager(isar)),
     ];
   }
 
@@ -124,8 +192,7 @@ class Constants {
     final appConfigs = await isar.appConfigurations.where().findAll();
     final config = appConfigs.firstOrNull;
 
-    final enableCrashlytics =
-        config?.firebaseConfig?.enableCrashlytics ?? false;
+    final enableCrashlytics = config?.firebaseConfig?.enableCrashlytics ?? true;
     if (enableCrashlytics) {
       firebase_services.initialize(
         options: DefaultFirebaseOptions.currentPlatform,
@@ -174,6 +241,32 @@ class Constants {
           DownsyncRemoteRepository(dio, actionMap: actions),
         if (value == DataModelType.userLocation)
           LocationTrackerRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.stock)
+          StockRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.stockReconciliation)
+          StockReconciliationRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.household)
+          HouseholdRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.projectBeneficiary)
+          ProjectBeneficiaryRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.task)
+          TaskRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.householdMember)
+          HouseholdMemberRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.sideEffect)
+          SideEffectRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.referral)
+          ReferralRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.hFReferral)
+          HFReferralRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.attendanceRegister)
+          AttendanceRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.attendance)
+          AttendanceLogRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.complaints)
+          PgrServiceRemoteRepository(dio, actionMap: actions),
+        if (value == DataModelType.service)
+          ServiceRemoteRepository(dio, actionMap: actions),
       ]);
     }
 
@@ -219,6 +312,10 @@ class Constants {
     SyncServiceSingleton().registries?.registerSyncRegistries({
       DataModelType.complaints: (remote) => CustomSyncRegistry(remote),
     });
+    AttendanceSingleton().setTenantId(envConfig.variables.tenantId);
+    InventorySingleton().setTenantId(tenantId: envConfig.variables.tenantId);
+    RegistrationDeliverySingleton().setTenantId(envConfig.variables.tenantId);
+    ReferralReconSingleton().setTenantId(envConfig.variables.tenantId);
   }
 }
 

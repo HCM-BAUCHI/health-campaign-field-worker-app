@@ -30,7 +30,7 @@ class LocalizationLocalRepository {
         if (LocalizationParams().exclude == true) {
           // Exclude modules but include records where the code matches
           final moduleCondition =
-              sql.localization.module.contains(moduleToExclude).not();
+              sql.localization.module.isIn(moduleToExclude.toList()).not();
           final codeCondition = LocalizationParams().code != null &&
                   LocalizationParams().code!.isNotEmpty
               ? sql.localization.code.isIn(LocalizationParams().code!.toList())
@@ -41,7 +41,7 @@ class LocalizationLocalRepository {
         } else {
           // Include specified modules and optionally filter by code
           final moduleCondition =
-              sql.localization.module.contains(moduleToExclude);
+              sql.localization.module.isIn(moduleToExclude.toList());
           final codeCondition = LocalizationParams().code != null &&
                   LocalizationParams().code!.isNotEmpty
               ? sql.localization.code.isIn(LocalizationParams().code!.toList())

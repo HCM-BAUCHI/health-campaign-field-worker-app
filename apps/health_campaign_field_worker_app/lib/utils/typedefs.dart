@@ -1,3 +1,4 @@
+import 'package:complaints/models/pgr_complaints.dart';
 import 'package:digit_data_model/data_model.dart';
 
 typedef FacilityDataRepository
@@ -21,3 +22,5 @@ typedef ProjectResourceDataRepository
 typedef ProjectStaffDataRepository
     = DataRepository<ProjectStaffModel, ProjectStaffSearchModel>;
 typedef UserDataRepository = DataRepository<UserModel, UserSearchModel>;
+typedef PgrServiceDataRepository
+    = DataRepository<PgrServiceModel, PgrServiceSearchModel>;

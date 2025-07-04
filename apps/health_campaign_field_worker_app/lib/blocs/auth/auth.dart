@@ -37,6 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on(_onLogin);
     on(_onLogout);
     on(_onAutoLogin);
+    on(_onAddSpaqCounts);
   }
 
   //_onAutoLogin event handles auto-login of the user when the user is already logged in and token is not expired, AuthenticatedWrapper is returned in UI
@@ -52,6 +53,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final userObject = await localSecureStore.userRequestModel;
       final actionsList = await localSecureStore.savedActions;
       final userIndividualId = await localSecureStore.userIndividualId;
+      final spaq1 = await localSecureStore.spaq1;
+      final spaq2 = await localSecureStore.spaq2;
+
+      final blueVas = await localSecureStore.blueVas;
+      final redVas = await localSecureStore.redVas;
+
       if (accessToken == null ||
           refreshToken == null ||
           userObject == null ||
@@ -64,6 +71,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           userModel: userObject,
           individualId: userIndividualId,
           actionsWrapper: actionsList,
+          spaq1Count: spaq1,
+          spaq2Count: spaq2,
+          blueVasCount: blueVas,
+          redVasCount: redVas,
         ));
       }
     } catch (_) {
@@ -96,10 +107,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         "enabled": true,
       });
       await localSecureStore.setBoundaryRefetch(true);
+      final spaq1 = await localSecureStore.spaq1;
+      final spaq2 = await localSecureStore.spaq2;
+      final blueVas = await localSecureStore.blueVas;
+      final redVas = await localSecureStore.redVas;
 
       await localSecureStore.setRoleActions(actionsWrapper);
       if (result.userRequestModel.roles
-          .where((role) => role.code == RolesType.districtSupervisor.toValue())
+          .where((role) =>
+              role.code == RolesType.districtSupervisor.toValue() ||
+              role.code == RolesType.attendanceStaff.toValue())
           .toList()
           .isNotEmpty) {
         final loggedInIndividual = await individualRemoteRepository.search(
@@ -113,12 +130,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(
         AuthAuthenticatedState(
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          userModel: result.userRequestModel,
-          actionsWrapper: actionsWrapper,
-          individualId: await localSecureStore.userIndividualId,
-        ),
+            accessToken: result.accessToken,
+            refreshToken: result.refreshToken,
+            userModel: result.userRequestModel,
+            actionsWrapper: actionsWrapper,
+            individualId: await localSecureStore.userIndividualId,
+            spaq1Count: spaq1,
+            spaq2Count: spaq2,
+            blueVasCount: blueVas,
+            redVasCount: redVas),
       );
     } on DioException catch (error) {
       emit(const AuthErrorState());
@@ -146,6 +166,61 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     emit(const AuthUnauthenticatedState());
   }
+
+  FutureOr<void> _onAddSpaqCounts(
+    AuthAddSpaqCountsEvent event,
+    AuthEmitter emit,
+  ) async {
+    // emit(const AuthLoadingState());
+
+    try {
+      int spaq1 = await localSecureStore.spaq1;
+      int spaq2 = await localSecureStore.spaq2;
+      int blueVas = await localSecureStore.blueVas;
+      int redVas = await localSecureStore.redVas;
+
+      int additionSpaq1Count = event.spaq1Count;
+      int additionSpaq2Count = event.spaq2Count;
+      int additionBlueVasCount = event.blueVasCount;
+      int additionRedVasCount = event.redVasCount;
+
+      spaq1 = spaq1 + additionSpaq1Count;
+      spaq2 = spaq2 + additionSpaq2Count;
+      blueVas = blueVas + additionBlueVasCount;
+      redVas = redVas + additionRedVasCount;
+
+      localSecureStore.setSpaqCounts(spaq1, spaq2, blueVas, redVas);
+
+      final accessToken = await localSecureStore.accessToken;
+      final refreshToken = await localSecureStore.refreshToken;
+      final userObject = await localSecureStore.userRequestModel;
+      final actionsList = await localSecureStore.savedActions;
+      final userIndividualId = await localSecureStore.userIndividualId;
+
+      if (accessToken == null ||
+          refreshToken == null ||
+          userObject == null ||
+          actionsList == null) {
+        emit(const AuthUnauthenticatedState());
+      } else {
+        emit(AuthAuthenticatedState(
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+          userModel: userObject,
+          individualId: userIndividualId,
+          actionsWrapper: actionsList,
+          spaq1Count: spaq1,
+          spaq2Count: spaq2,
+          blueVasCount: blueVas,
+          redVasCount: redVas,
+        ));
+      }
+    } catch (_) {
+      await localSecureStore.deleteAll();
+      emit(const AuthUnauthenticatedState());
+      rethrow;
+    }
+  }
 }
 
 @freezed
@@ -155,6 +230,13 @@ class AuthEvent with _$AuthEvent {
     required String password,
     required String tenantId,
   }) = AuthLoginEvent;
+
+  const factory AuthEvent.addSpaqCounts({
+    required int spaq1Count,
+    required int spaq2Count,
+    required int blueVasCount,
+    required int redVasCount,
+  }) = AuthAddSpaqCountsEvent;
 
   const factory AuthEvent.autoLogin({
     required String tenantId,
@@ -175,6 +257,10 @@ class AuthState with _$AuthState {
     required UserRequestModel userModel,
     required RoleActionsWrapperModel actionsWrapper,
     String? individualId,
+    final int? spaq1Count,
+    final int? spaq2Count,
+    final int? blueVasCount,
+    final int? redVasCount,
   }) = AuthAuthenticatedState;
 
   const factory AuthState.error([String? error]) = AuthErrorState;

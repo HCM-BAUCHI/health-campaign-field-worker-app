@@ -55,6 +55,7 @@ class _ProjectSelectionPageState extends LocalizedState<ProjectSelectionPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const BackNavigationHelpHeaderWidget(
+              showHelp: false,
               showBackNavigation: false,
               showLogoutCTA: true,
             ),
@@ -64,9 +65,8 @@ class _ProjectSelectionPageState extends LocalizedState<ProjectSelectionPage> {
                 localizations.translate(
                   i18.projectSelection.projectDetailsLabelText,
                 ),
-                style: textTheme.headingXl.copyWith(
-                  color: theme.colorTheme.primary.primary2
-                ),
+                style: textTheme.headingXl
+                    .copyWith(color: theme.colorTheme.primary.primary2),
               ),
             ),
           ],

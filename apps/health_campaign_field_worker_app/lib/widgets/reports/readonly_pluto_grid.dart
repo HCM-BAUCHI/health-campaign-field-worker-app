@@ -48,7 +48,22 @@ class ReadonlyDigitGrid extends StatelessWidget {
               title: element.label,
               field: element.key,
               type: PlutoColumnType.text(),
+              titleSpan: WidgetSpan(
+                child: SizedBox(
+                  width: element.width,
+                  child: Text(
+                    element.label,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.bold),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
               enableContextMenu: false,
+              textAlign: PlutoColumnTextAlign.center,
               enableColumnDrag: false,
               width: element.width,
               cellPadding: first ? EdgeInsets.zero : null,

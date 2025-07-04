@@ -91,6 +91,10 @@ class _HomePageShowcaseData {
     messageLocalizationKey: i18.homeShowcase.deleteAll,
   );
 
+  final summaryReport = ShowcaseItemBuilder(
+    messageLocalizationKey: i18.homeShowcase.summaryReport,
+  );
+
   final manageAttendance = ShowcaseItemBuilder(
     messageLocalizationKey: i18.home.manageAttendanceLabel,
   );

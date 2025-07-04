@@ -42,8 +42,8 @@ class _UserQRDetailsPageState extends LocalizedState<UserQRDetailsPage> {
               header: Column(children: [
                 BackNavigationHelpHeaderWidget(
                   showHelp: false,
-                  handleback: (){
-                     context.router.replaceAll([HomeRoute()]);
+                  handleback: () {
+                    context.router.replaceAll([HomeRoute()]);
                   },
                   defaultPopRoute: false,
                 ),
@@ -73,7 +73,9 @@ class _UserQRDetailsPageState extends LocalizedState<UserQRDetailsPage> {
                           padding: const EdgeInsets.all(spacer2),
                           child: Card(
                             child: QrImageView(
-                              data: context.loggedInUserUuid,
+                              data: value.userModel.userName.toString() +
+                                  Constants.pipeSeparator +
+                                  context.loggedInUserUuid,
                               version: QrVersions.auto,
                               size: MediaQuery.of(context).size.width / 1.25,
                             ),

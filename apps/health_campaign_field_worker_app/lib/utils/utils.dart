@@ -1,10 +1,38 @@
 library app_utils;
 
+import 'package:inventory_management/inventory_management.dart';
+import 'package:referral_reconciliation/referral_reconciliation.dart'
+    as referral_reconciliation_mappers;
+import 'package:collection/collection.dart';
+import 'package:digit_components/utils/date_utils.dart';
+import 'package:digit_data_model/models/entities/individual.dart';
+import 'package:digit_data_model/models/entities/product_variant.dart';
+import 'package:digit_data_model/models/entities/project_type.dart';
+import 'package:registration_delivery/models/entities/additional_fields_type.dart';
+import 'package:registration_delivery/models/entities/household.dart';
+import 'package:registration_delivery/registration_delivery.dart';
+import 'package:survey_form/survey_form.init.dart' as surveyForm_mappers;
+import 'package:complaints/complaints.init.dart' as complaints_mappers;
+import '../../utils/i18_key_constants.dart' as i18_local;
+import 'package:inventory_management/utils/i18_key_constants.dart' as i18_stock;
+
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:inventory_management/inventory_management.init.dart'
+    as inventory_mappers;
+
+import 'package:registration_delivery/registration_delivery.init.dart'
+    as registration_delivery_mappers;
+
 import 'dart:async';
 import 'dart:io';
 
 import 'package:attendance_management/attendance_management.dart'
     as attendance_mappers;
+import 'package:survey_form/survey_form.dart' as surveyForm_mappers;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:digit_data_model/data_model.dart' as data_model;
 import 'package:digit_data_model/data_model.init.dart' as data_model_mappers;
@@ -27,6 +55,7 @@ import '../data/local_store/app_shared_preferences.dart';
 import '../data/local_store/no_sql/schema/localization.dart';
 import '../data/local_store/secure_store/secure_store.dart';
 import '../models/app_config/app_config_model.dart';
+import '../models/entities/roles_type.dart';
 import '../router/app_router.dart';
 import '../widgets/progress_indicator/progress_indicator.dart';
 import 'constants.dart';
@@ -55,13 +84,74 @@ class CustomValidator {
       return null;
     }
 
-    const pattern = r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$';
+    const pattern = r'[0-9]';
+
+    if (control.value.toString().length != 11) {
+      return {'mobileNumber': true};
+    }
 
     if (RegExp(pattern).hasMatch(control.value.toString())) return null;
 
-    if (control.value.toString().length < 10) return {'mobileNumber': true};
+    if (control.value.toString().length < 11) return {'mobileNumber': true};
 
     return {'mobileNumber': true};
+  }
+
+  static Map<String, dynamic>? onlyAlphabets(AbstractControl<dynamic> control) {
+    final value = control.value?.toString().trim();
+
+    if (value == null || value.isEmpty) return null;
+
+    final pattern = r"^[A-Za-z\s]+$"; // Only A-Z, a-z, and spaces
+    final regExp = RegExp(pattern);
+
+    return regExp.hasMatch(value) ? null : {'onlyAlphabets': true};
+  }
+
+  static Map<String, dynamic>? onlyAlphabetsAndDigits(
+      AbstractControl<dynamic> control) {
+    final value = control.value?.toString().trim();
+
+    if (value == null || value.isEmpty) return null;
+
+    final pattern = r'^[A-Za-z0-9\s]+$'; // Allows A-Z, a-z, 0-9, and spaces
+    final regExp = RegExp(pattern);
+
+    return regExp.hasMatch(value) ? null : {'onlyAlphabetsAndDigits': true};
+  }
+
+  static Map<String, dynamic>? validStockCount(
+    AbstractControl<dynamic> control,
+  ) {
+    if (control.value == null || control.value.toString().isEmpty) {
+      return {'required': true};
+    }
+
+    var parsed = int.tryParse(control.value) ?? 0;
+    if (parsed < 0) {
+      return {'min': true};
+    } else if (parsed > Constants.stockMaxLimit) {
+      return {'max': true};
+    }
+
+    return null;
+  }
+
+  static Map<String, dynamic>? validStockCountUpdated(
+    AbstractControl<dynamic> control,
+  ) {
+    if (control.value == null || control.value.toString().isEmpty) {
+      return {'required': true};
+    }
+
+    var parsed = int.tryParse(control.value) ?? 0;
+    if (parsed < 0) {
+      return {'min': true};
+    } else if (parsed > 1000000000) {
+      return {'max': true};
+    }
+
+    return null;
   }
 }
 
@@ -77,6 +167,10 @@ Future<void> requestDisableBatteryOptimization() async {
 setBgRunning(bool isBgRunning) async {
   final localSecureStore = LocalSecureStore.instance;
   await localSecureStore.setBackgroundService(isBgRunning);
+}
+
+int getAgeMonths(DigitDOBAge age) {
+  return (age.years * 12) + age.months;
 }
 
 performBackgroundService({
@@ -116,6 +210,168 @@ performBackgroundService({
       }
     }
   }
+}
+
+String formatDateFromMillis(int millis) {
+  final date = DateTime.fromMillisecondsSinceEpoch(millis);
+  final day = date.day.toString().padLeft(2, '0');
+  final month = _monthShort(date.month);
+  final year = date.year;
+  return '$day $month $year';
+}
+
+String _monthShort(int month) {
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+  return months[month - 1];
+}
+
+String formatAgeRange(String condition) {
+  final regex =
+      RegExp(r'(\d+)\s*<=\s*ageandage\s*<\s*(\d+)', caseSensitive: false);
+  final match = regex.firstMatch(condition);
+  if (match != null && match.groupCount == 2) {
+    final min = match.group(1);
+    final max = match.group(2);
+    return '$min - $max months';
+  }
+  return condition;
+}
+
+bool validateStockSubmission({
+  required num availableBalance,
+  required num stockReturned,
+  required num stockWasted,
+}) {
+  final total = stockReturned + stockWasted;
+  return total <= availableBalance;
+}
+
+String customFormatAgeRange(String condition) {
+  final regex =
+      RegExp(r'(\d+)\s*<\s*ageandage\s*<\s*(\d+)', caseSensitive: false);
+  final match = regex.firstMatch(condition);
+  if (match != null && match.groupCount == 2) {
+    // final min = match.group(1);
+    // final max = match.group(2);
+    int min = int.parse(match.group(1)!);
+    int max = int.parse(match.group(2)!);
+
+    max -= 1;
+    min += 1;
+
+    print('min: $min, max: $max');
+    return '$min - $max months';
+  }
+  return condition;
+}
+
+String? getAgeConditionStringFromVariant(
+    DeliveryProductVariant productVariant, List<ProductVariantModel>? variant) {
+  String? finalCondition;
+  String? value = variant
+      ?.firstWhereOrNull(
+        (element) => element.id == productVariant.productVariantId,
+      )
+      ?.sku;
+
+  if (value != null) {
+    finalCondition = value.split('(').last.split(')').first;
+  }
+
+  return finalCondition;
+}
+
+int getUnderFiveChildCount(HouseholdModel? householdCaptured) {
+  final additionalFields = householdCaptured?.additionalFields?.fields;
+  if (additionalFields == null || additionalFields.isEmpty) {
+    return 0;
+  }
+
+  final underFiveChildEntry = additionalFields
+      .where(
+        (e) => e.key == AdditionalFieldsType.children.toValue(),
+      )
+      .firstOrNull;
+
+  if (underFiveChildEntry == null) {
+    return 0;
+  }
+
+  final value = underFiveChildEntry.value;
+
+  if (value == null) {
+    return 0;
+  } else if (value is int) {
+    return value;
+  } else if (value is String) {
+    return int.tryParse(value) ?? 0;
+  } else if (value is double) {
+    return value.toInt();
+  } else {
+    // Any other unexpected type
+    return 0;
+  }
+}
+
+int getPregnantWomenCount(HouseholdModel? householdCaptured) {
+  final additionalFields = householdCaptured?.additionalFields?.fields;
+
+  if (additionalFields == null || additionalFields.isEmpty) {
+    return 0;
+  }
+
+  final pregnantWomenEntry = additionalFields
+      .where(
+        (e) => e.key == AdditionalFieldsType.pregnantWomen.toValue(),
+      )
+      .firstOrNull;
+
+  if (pregnantWomenEntry == null) {
+    return 0;
+  }
+
+  final value = pregnantWomenEntry.value;
+
+  if (value == null) {
+    return 0;
+  } else if (value is int) {
+    return value;
+  } else if (value is String) {
+    return int.tryParse(value) ?? 0;
+  } else if (value is double) {
+    return value.toInt();
+  } else {
+    return 0;
+  }
+}
+
+Map<String, dynamic>? customValidMobileNumber(
+  AbstractControl<dynamic> control,
+) {
+  if (control.value == null || control.value.toString().isEmpty) {
+    return null; // Optional field
+  }
+
+  const pattern = r'^\d{11}$'; // Exactly 11 digits
+
+  if (RegExp(pattern).hasMatch(control.value.toString())) {
+    return null; // Valid
+  }
+
+  return {'mobileNumber': true}; // Invalid
 }
 
 String maskString(String input) {
@@ -215,6 +471,75 @@ Future<bool> getIsConnected() async {
   } on SocketException catch (_) {
     return false;
   }
+}
+
+String getEntryTypeLabel(StockModel? stock) {
+  String label =
+      '${i18_stock.stockDetails.receivedPageTitle}_${i18_stock.stockReconciliationDetails.stockLabel}';
+
+  if (stock != null) {
+    if (stock.transactionType == "RECEIVED" &&
+        stock.transactionReason == "RETURNED") {
+      label = i18_local.stockDetails.selectTransactingPartyReturnedFrom;
+    } else if (stock.transactionType == "DISPATCHED" &&
+        stock.senderType == "STAFF") {
+      label = i18_local.stockDetails.returnedTo;
+    } else if (stock.transactionType == "DISPATCHED") {
+      label =
+          '${i18_stock.stockDetails.issuedPageTitle}_${i18_stock.stockReconciliationDetails.stockLabel}';
+    }
+  }
+
+  return label;
+}
+/*Old Logic
+String getSecondaryPartyValue(StockModel? stock) {
+  String value = stock?.receiverId ?? "";
+
+  if (stock != null) {
+    if ((stock.transactionType == "RECEIVED" && stock.senderType == "STAFF") ||
+        (stock.transactionType == "DISPATCHED" &&
+            stock.receiverType == "STAFF")) {
+      value = stock.additionalFields?.fields
+              .firstWhereOrNull((e) => e.key == "distributorName")
+              ?.value ??
+          "Delivery Team";
+    } else {
+      value = stock.transactionType == "RECEIVED"
+          ? 'FAC_${stock.senderId}'
+          : 'FAC_${stock.receiverId}';
+    }
+  }
+
+  return value;
+}*/
+
+//New Logic
+String getSecondaryPartyValue(StockModel? stock) {
+  // Use a guard clause for null safety
+  if (stock == null) return "";
+
+  // For a RECEIPT, the other party is always the SENDER.
+  if (stock.transactionType == "RECEIVED") {
+    // This now correctly handles your case without checking senderType.
+    return 'FAC_${stock.senderId}';
+  }
+
+  // For a DISPATCH, the other party is the RECEIVER.
+  // Here we can keep the special logic for STAFF receivers.
+  if (stock.transactionType == "DISPATCHED") {
+    if (stock.receiverType == "STAFF") {
+      return stock.additionalFields?.fields
+              .firstWhereOrNull((e) => e.key == "distributorName")
+              ?.value ??
+          "Delivery Team";
+    } else {
+      return 'FAC_${stock.receiverId}';
+    }
+  }
+
+  // Provide a sensible fallback for any other transaction types
+  return 'FAC_${stock.receiverId ?? ''}';
 }
 
 void showDownloadDialog(
@@ -455,12 +780,46 @@ getSelectedLanguage(AppInitialized state, int index) {
   return isSelected;
 }
 
+bool isLGAUser() {
+  String? boundaryLevel =
+      RegistrationDeliverySingleton().selectedProject?.address?.boundaryType;
+  if (InventorySingleton().isWareHouseMgr) {
+    if (boundaryLevel == Constants.lgaBoundaryLevel) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isHFUser(BuildContext context) {
+  try {
+    // todo : verify this make this healthFacilitySupervsior as per kebbi
+    bool isDownSyncEnabled = context.loggedInUserRoles
+        .where(
+          (role) =>
+              role.code == RolesType.healthFacilityWorker.toValue() ||
+              role.code == RolesType.healthFacilitySupervisor.toValue(),
+        )
+        .toList()
+        .isNotEmpty;
+
+    return isDownSyncEnabled;
+  } catch (_) {
+    return false;
+  }
+}
+
 initializeAllMappers() async {
   List<Future> initializations = [
     Future(() => data_model_mappers.initializeMappers()),
     Future(() => attendance_mappers.initializeMappers()),
     Future(() => data_model_mappers.initializeMappers()),
     Future(() => dss_mappers.initializeMappers()),
+    Future(() => registration_delivery_mappers.initializeMappers()),
+    Future(() => inventory_mappers.initializeMappers()),
+    Future(() => surveyForm_mappers.initializeMappers()),
+    Future(() => complaints_mappers.initializeMappers()),
+    Future(() => referral_reconciliation_mappers.initializeMappers()),
   ];
   await Future.wait(initializations);
 }
@@ -475,7 +834,7 @@ class LocalizationParams {
   LocalizationParams._internal();
 
   List<String>? _code;
-  String? _module;
+  List<String>? _module;
   Locale? _locale;
   bool? _exclude = true;
 
@@ -483,7 +842,7 @@ class LocalizationParams {
     _code = code;
   }
 
-  void setModule(String? module, bool? exclude) {
+  void setModule(List<String>? module, bool? exclude) {
     _module = module;
     _exclude = exclude;
   }
@@ -499,7 +858,7 @@ class LocalizationParams {
 
   List<String>? get code => _code;
 
-  String? get module => _module;
+  List<String>? get module => _module;
 
   Locale? get locale => _locale;
 

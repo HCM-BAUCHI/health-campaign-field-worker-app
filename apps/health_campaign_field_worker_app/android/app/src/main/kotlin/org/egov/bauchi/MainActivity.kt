@@ -1,4 +1,4 @@
-package com.digit.hcm
+package org.egov.bauchi
 
 import android.content.BroadcastReceiver
 import android.content.Context

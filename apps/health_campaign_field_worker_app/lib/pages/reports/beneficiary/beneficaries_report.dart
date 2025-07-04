@@ -95,7 +95,9 @@ class BeneficiariesReportState extends LocalizedState<BeneficiariesReportPage> {
                       },
                     ),
                   ]),
-              header: const BackNavigationHelpHeaderWidget(),
+              header: const BackNavigationHelpHeaderWidget(
+                showHelp: false,
+              ),
               children: [
                 BlocListener<BeneficiaryDownSyncBloc, BeneficiaryDownSyncState>(
                   listener: (ctx, state) {

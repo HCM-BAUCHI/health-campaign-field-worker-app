@@ -1,6 +1,10 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:digit_components/widgets/atoms/digit_toaster.dart';
+import 'package:digit_components/widgets/digit_dialog.dart';
+import 'package:digit_components/widgets/digit_icon_tile.dart';
+
 import 'package:digit_data_model/data_model.dart';
 import 'package:digit_showcase/showcase_widget.dart';
 import 'package:digit_ui_components/digit_components.dart';
@@ -13,10 +17,18 @@ import 'package:digit_ui_components/widgets/molecules/show_pop_up.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_portal/flutter_portal.dart';
+import 'package:health_campaign_field_worker_app/widgets/showcase/showcase_wrappers.dart';
 import 'package:isar/isar.dart';
 import 'package:location/location.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:registration_delivery/models/entities/household.dart';
+import 'package:registration_delivery/models/entities/household_member.dart';
+import 'package:registration_delivery/models/entities/project_beneficiary.dart';
+import 'package:registration_delivery/models/entities/referral.dart';
+import 'package:registration_delivery/models/entities/side_effect.dart';
+import 'package:registration_delivery/models/entities/task.dart';
 import 'package:sync_service/sync_service_lib.dart';
+import 'package:survey_form/survey_form.dart';
 
 import '../blocs/app_initialization/app_initialization.dart';
 import '../blocs/auth/auth.dart';
@@ -125,6 +137,22 @@ class AuthenticatedPageWrapper extends StatelessWidget {
                   drawer: showDrawer ? drawerWidget(context) : null,
                   body: MultiBlocProvider(
                     providers: [
+                      BlocProvider(
+                        create: (_) => ServiceBloc(
+                          const ServiceEmptyState(),
+                          serviceDataRepository: context
+                              .repository<ServiceModel, ServiceSearchModel>(),
+                        ),
+                      ),
+
+                      BlocProvider(
+                        create: (_) => ServiceBloc(
+                          const ServiceEmptyState(),
+                          serviceDataRepository: context
+                              .repository<ServiceModel, ServiceSearchModel>(),
+                        ),
+                      ),
+
                       // INFO : Need to add bloc of package Here
                       BlocProvider(
                         create: (context) {
@@ -191,6 +219,23 @@ class AuthenticatedPageWrapper extends StatelessWidget {
                           downSyncLocalRepository: ctx.read<
                               LocalRepository<DownsyncModel,
                                   DownsyncSearchModel>>(),
+                          householdLocalRepository: ctx.read<
+                              LocalRepository<HouseholdModel,
+                                  HouseholdSearchModel>>(),
+                          householdMemberLocalRepository: ctx.read<
+                              LocalRepository<HouseholdMemberModel,
+                                  HouseholdMemberSearchModel>>(),
+                          projectBeneficiaryLocalRepository: ctx.read<
+                              LocalRepository<ProjectBeneficiaryModel,
+                                  ProjectBeneficiarySearchModel>>(),
+                          taskLocalRepository: ctx.read<
+                              LocalRepository<TaskModel, TaskSearchModel>>(),
+                          sideEffectLocalRepository: ctx.read<
+                              LocalRepository<SideEffectModel,
+                                  SideEffectSearchModel>>(),
+                          referralLocalRepository: ctx.read<
+                              LocalRepository<ReferralModel,
+                                  ReferralSearchModel>>(),
                         ),
                       ),
                     ],
@@ -234,141 +279,176 @@ class AuthenticatedPageWrapper extends StatelessWidget {
   }
 
   Widget drawerWidget(BuildContext context) {
-    final appInitializationBloc = context.read<AppInitializationBloc>();
-    final appConfig =
-        (appInitializationBloc.state as AppInitialized).appConfiguration;
-    final languages = appConfig.languages;
-    final localizationModulesList = appConfig.backendInterface;
+    final theme = Theme.of(context);
+
+    var t = AppLocalizations.of(context);
+    var tapCount = 0;
+
     final authBloc = context.read<AuthBloc>();
     bool isDistributor = authBloc.state != const AuthState.unauthenticated()
         ? context.loggedInUserRoles
             .where(
-              (role) => role.code == RolesType.distributor.toValue(),
+              (role) =>
+                  role.code == RolesType.distributor.toValue() ||
+                  role.code == RolesType.communityDistributor.toValue(),
             )
             .toList()
             .isNotEmpty
         : false;
-
-    return BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: kToolbarHeight),
-          child: SideBar(
-            profile: state.maybeMap(
-              authenticated: (value) => ProfileWidget(
-                leading: GestureDetector(
-                  onTap: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    context.router.push(UserQRDetailsRoute());
-                  },
-                  child: QrImageView(
-                    data: context.loggedInUserUuid,
-                    version: QrVersions.auto,
-                    size: 150.0,
+    return Drawer(
+      child: BlocBuilder<AuthBloc, AuthState>(builder: (context, state) {
+        return SafeArea(
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                color: theme.colorScheme.secondary.withOpacity(0.12),
+                padding: const EdgeInsets.all(kPadding),
+                child: SizedBox(
+                  height: 280,
+                  child: state.maybeMap(
+                    authenticated: (value) => Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        Text(
+                          value.userModel.userName.toString(),
+                          style: theme.textTheme.displayMedium,
+                        ),
+                        Text(
+                          value.userModel.mobileNumber.toString(),
+                          style: theme.textTheme.labelSmall,
+                        ),
+                        if (value.userModel.permanentCity != null)
+                          Text(
+                            value.userModel.permanentCity.toString(),
+                            style: theme.textTheme.displayMedium,
+                          ),
+                        const SizedBox(
+                          height: 16.0,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context, rootNavigator: true).pop();
+                            context.router.push(UserQRDetailsRoute());
+                          },
+                          child: Container(
+                            height: 155,
+                            width: 155,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                width: 2,
+                                color:
+                                    DigitTheme.instance.colorScheme.secondary,
+                              ),
+                            ),
+                            child: QrImageView(
+                              data: value.userModel.userName.toString() +
+                                  Constants.pipeSeparator +
+                                  context.loggedInUserUuid,
+                              version: QrVersions.auto,
+                              size: 150.0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    orElse: () => const Offstage(),
                   ),
                 ),
-                title: value.userModel.name.toString(),
-                description: value.userModel.mobileNumber.toString(),
               ),
-              orElse: () => null,
-            ),
-            sidebarItems: [
-              SidebarItem(
+              DigitIconTile(
                 title: AppLocalizations.of(context).translate(
                   i18.common.coreCommonHome,
                 ),
+                icon: Icons.home,
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pop();
                   context.router.replaceAll([HomeRoute()]);
                 },
-                icon: Icons.home,
               ),
-              if (appInitializationBloc.state is AppInitialized) ...[
-                SidebarItem(
-                  title: AppLocalizations.of(context).translate(
-                    i18.common.coreCommonlanguage,
-                  ),
-                  isSearchEnabled: false,
-                  icon: Icons.language,
-                  onPressed: () {},
-                  children: (localizationModulesList != null)
-                      ? buildLanguage(localizationModulesList, languages,
-                          context, appConfig)
-                      : null,
-                )
-              ],
-              SidebarItem(
-                title: AppLocalizations.of(context).translate(
-                  i18.common.coreCommonProfile,
-                ),
-                icon: Icons.person,
+              // context.isDownSyncEnabled
+              //     ? DigitIconTile(
+              //         title: AppLocalizations.of(context).translate(
+              //           i18.common.coreCommonViewDownloadedData,
+              //         ),
+              //         icon: Icons.download,
+              //         onPressed: () {
+              //           Navigator.of(context, rootNavigator: true).pop();
+              //           context.router.push(const BeneficiariesReportRoute());
+              //         },
+              //       )
+              //     : const Offstage(),
+              DigitIconTile(
+                title: AppLocalizations.of(context)
+                    .translate(i18.common.coreCommonLogout),
+                icon: Icons.logout,
                 onPressed: () async {
-                  final connectivityResult =
-                      await (Connectivity().checkConnectivity());
-                  final isOnline = connectivityResult.firstOrNull ==
-                          ConnectivityResult.wifi ||
-                      connectivityResult.firstOrNull ==
-                          ConnectivityResult.mobile;
-
-                  if (isOnline) {
-                    if (context.mounted) {
-                      Navigator.of(context, rootNavigator: true).pop();
-                      context.router.push(ProfileRoute());
-                    }
-                  } else {
-                    if (context.mounted) {
-                      showCustomPopup(
-                        context: context,
-                        builder: (ctx) => Popup(
-                          title: AppLocalizations.of(context).translate(
-                            i18.common.connectionLabel,
+                  final isConnected = await getIsConnected();
+                  if (context.mounted) {
+                    if (isConnected) {
+                      DigitDialog.show(
+                        context,
+                        options: DigitDialogOptions(
+                          titleText: t.translate(
+                            i18.common.coreCommonWarning,
                           ),
-                          description: AppLocalizations.of(context).translate(
-                            i18.common.connectionContent,
+                          titleIcon: Icon(
+                            Icons.warning,
+                            color: DigitTheme.instance.colorScheme.error,
                           ),
-                          actions: [
-                            DigitButton(
-                                label: AppLocalizations.of(context).translate(
-                                  i18.common.coreCommonOk,
-                                ),
-                                onPressed: () =>
-                                    Navigator.of(context, rootNavigator: true)
-                                        .pop(),
-                                type: DigitButtonType.primary,
-                                size: DigitButtonSize.large)
-                          ],
+                          contentText: t.translate(
+                            i18.login.logOutWarningMsg,
+                          ),
+                          primaryAction: DigitDialogActions(
+                            label: t.translate(i18.common.coreCommonNo),
+                            action: (ctx) => Navigator.of(
+                              context,
+                              rootNavigator: true,
+                            ).pop(true),
+                          ),
+                          secondaryAction: DigitDialogActions(
+                            label: t.translate(i18.common.coreCommonYes),
+                            action: (ctx) {
+                              context
+                                  .read<BoundaryBloc>()
+                                  .add(const BoundaryResetEvent());
+                              context
+                                  .read<AuthBloc>()
+                                  .add(const AuthLogoutEvent());
+                              context.router.replaceAll([
+                                LoginRoute(),
+                              ]);
+                            },
+                          ),
+                        ),
+                      );
+                    } else {
+                      DigitToast.show(
+                        context,
+                        options: DigitToastOptions(
+                          AppLocalizations.of(context).translate(
+                            i18.login.noInternetError,
+                          ),
+                          true,
+                          theme,
                         ),
                       );
                     }
                   }
                 },
               ),
-              if (isDistributor) ...[
-                SidebarItem(
-                  title: AppLocalizations.of(context).translate(
-                    i18.common.coreCommonViewDownloadedData,
-                  ),
-                  icon: Icons.download,
-                  onPressed: () {
-                    Navigator.of(context, rootNavigator: true).pop();
-                    context.router.push(const BeneficiariesReportRoute());
-                  },
-                )
-              ],
+              PoweredByDigit(
+                version: Constants().version,
+              ),
             ],
-            logOutDigitButtonLabel: AppLocalizations.of(context)
-                .translate(i18.common.coreCommonLogout),
-            onLogOut: () {
-              context.read<BoundaryBloc>().add(const BoundaryResetEvent());
-              context.read<AuthBloc>().add(const AuthLogoutEvent());
-            },
-            footer: PoweredByDigit(
-              version: Constants().version,
-            ),
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   List<SidebarItem>? buildLanguage(
