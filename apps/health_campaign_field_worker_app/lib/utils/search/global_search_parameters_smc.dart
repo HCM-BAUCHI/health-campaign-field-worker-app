@@ -10,6 +10,7 @@ class GlobalSearchParametersSMC {
   final int? limit;
   final List<String>? filter;
   final int? totalCount;
+  final String? mobileNumber;
 
   GlobalSearchParametersSMC(
       {required this.isProximityEnabled,
@@ -21,6 +22,7 @@ class GlobalSearchParametersSMC {
       required this.offset,
       required this.limit,
       required this.filter,
+      this.mobileNumber,
       this.totalCount,
       this.projectId});
 }

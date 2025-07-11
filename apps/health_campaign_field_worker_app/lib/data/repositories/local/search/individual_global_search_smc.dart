@@ -29,10 +29,18 @@ class IndividualGlobalSearchSMCRepository extends LocalRepository {
     // Check if the filter contains status for registered or not registered
     if (params.filter!.contains(Status.registered.name) ||
         params.filter!.contains(Status.notRegistered.name)) {
-      var beneficiarySelectQuery =
-          await beneficiaryIdSearch(selectQuery, params, super.sql);
+      dynamic selectQuery;
 
-      var filterSelectQuery = beneficiarySelectQuery;
+      if (params.beneficiaryId != null && params.beneficiaryId!.isNotEmpty) {
+        selectQuery = await beneficiaryIdSearch(selectQuery, params, super.sql);
+      } else if (params.mobileNumber != null &&
+          params.mobileNumber!.isNotEmpty) {
+        selectQuery = await mobileNumberSearch(selectQuery, params, super.sql);
+      }
+      // var beneficiarySelectQuery =
+      //     await beneficiaryIdSearch(selectQuery, params, super.sql);
+
+      var filterSelectQuery = selectQuery;
 
       if (params.filter != null && params.filter!.isNotEmpty) {
         for (var filter in params.filter!) {
@@ -40,7 +48,7 @@ class IndividualGlobalSearchSMCRepository extends LocalRepository {
               await filterSearch(filterSelectQuery, params, filter, super.sql);
         }
       } else {
-        filterSelectQuery = beneficiarySelectQuery;
+        filterSelectQuery = selectQuery;
       }
 
       if (filterSelectQuery == null) {
@@ -62,10 +70,18 @@ class IndividualGlobalSearchSMCRepository extends LocalRepository {
         return _returnIndividualModel(results, count);
       }
     } else if (params.filter!.isNotEmpty && params.filter != null) {
-      var beneficiarySelectQuery =
-          await beneficiaryIdSearch(selectQuery, params, super.sql);
+      dynamic selectQuery;
 
-      var filterSelectQuery = beneficiarySelectQuery;
+      if (params.beneficiaryId != null && params.beneficiaryId!.isNotEmpty) {
+        selectQuery = await beneficiaryIdSearch(selectQuery, params, super.sql);
+      } else if (params.mobileNumber != null &&
+          params.mobileNumber!.isNotEmpty) {
+        selectQuery = await mobileNumberSearch(selectQuery, params, super.sql);
+      }
+      // var beneficiarySelectQuery =
+      //     await beneficiaryIdSearch(selectQuery, params, super.sql);
+
+      var filterSelectQuery = selectQuery;
 
       // Apply filters if present
       if (params.filter != null && params.filter!.isNotEmpty) {
@@ -74,7 +90,7 @@ class IndividualGlobalSearchSMCRepository extends LocalRepository {
               await filterSearch(filterSelectQuery, params, filter, super.sql);
         }
       } else {
-        filterSelectQuery = beneficiarySelectQuery;
+        filterSelectQuery = selectQuery;
       }
 
       // Return empty list if no results found
@@ -166,24 +182,32 @@ class IndividualGlobalSearchSMCRepository extends LocalRepository {
         return {"data": data, "total_count": count};
       }
     } else {
-      var beneficiarySelectQuery =
-          await beneficiaryIdSearch(selectQuery, params, super.sql);
+      dynamic selectQuery;
+
+      if (params.beneficiaryId != null && params.beneficiaryId!.isNotEmpty) {
+        selectQuery = await beneficiaryIdSearch(selectQuery, params, super.sql);
+      } else if (params.mobileNumber != null &&
+          params.mobileNumber!.isNotEmpty) {
+        selectQuery = await mobileNumberSearch(selectQuery, params, super.sql);
+      }
+      // var beneficiarySelectQuery =
+      //     await beneficiaryIdSearch(selectQuery, params, super.sql);
 
       // Return empty list if no results found
-      if (beneficiarySelectQuery == null) {
+      if (selectQuery == null) {
         return [];
       } else {
         // Get total count if offset is zero and filters are applied
         if (params.offset == 0 &&
             params.filter != null &&
             params.filter!.isNotEmpty) {
-          count =
-              await _getTotalCount(beneficiarySelectQuery, params, super.sql);
+          count = await _getTotalCount(selectQuery, params, super.sql);
         }
-        await beneficiarySelectQuery.limit(params.limit ?? 50,
-            offset: params.offset ?? 0);
+        // ignore: avoid_dynamic_calls
+        await selectQuery.limit(params.limit ?? 50, offset: params.offset ?? 0);
 
-        final results = await beneficiarySelectQuery.get();
+        // ignore: avoid_dynamic_calls
+        final results = await selectQuery.get();
 
         return _returnIndividualModel(results, count);
       }
@@ -236,6 +260,58 @@ class IndividualGlobalSearchSMCRepository extends LocalRepository {
           buildOr([
             sql.identifier.identifierId.contains(
               params.beneficiaryId!,
+            ),
+          ]),
+        ]),
+    ]));
+  }
+
+  // Function to perform Mobile Number search based on provided parameters
+  mobileNumberSearch(selectQuery, GlobalSearchParametersSMC params,
+      LocalSqlDataStore sql) async {
+    if (params.mobileNumber == null || params.mobileNumber!.isEmpty) {
+      return selectQuery;
+    } else if (params.mobileNumber != null ||
+        params.mobileNumber!.isNotEmpty && selectQuery == null) {
+      selectQuery = super.sql.individual.select().join(
+          [joinName(sql), joinIdentifier(sql), joinIndividualAddress(sql)]);
+      await searchByMobileNUmber(selectQuery, params, sql);
+      selectQuery = selectQuery.join([
+        leftOuterJoin(
+            sql.householdMember,
+            sql.householdMember.individualClientReferenceId
+                .equalsExp(sql.individual.clientReferenceId))
+      ]);
+      selectQuery.join([
+        leftOuterJoin(
+            sql.household,
+            sql.household.clientReferenceId
+                .equalsExp(sql.householdMember.householdClientReferenceId)),
+        leftOuterJoin(
+            sql.projectBeneficiary,
+            sql.projectBeneficiary.beneficiaryClientReferenceId
+                .equalsExp(sql.individual.clientReferenceId))
+      ]);
+    } else if (params.mobileNumber != null &&
+        params.mobileNumber!.isNotEmpty &&
+        selectQuery != null) {
+      selectQuery = selectQuery.join([joinName(sql), joinIdentifier(sql)]);
+      selectQuery = searchByMobileNUmber(selectQuery, params, sql);
+    }
+    return selectQuery;
+  }
+
+  searchByMobileNUmber(
+      selectQuery, GlobalSearchParametersSMC params, LocalSqlDataStore sql) {
+    return selectQuery.where(buildAnd([
+      if (params.mobileNumber != null)
+        buildOr([
+          sql.individual.mobileNumber.contains(
+            params.mobileNumber!,
+          ),
+          buildOr([
+            sql.individual.mobileNumber.contains(
+              params.mobileNumber!,
             ),
           ]),
         ]),
