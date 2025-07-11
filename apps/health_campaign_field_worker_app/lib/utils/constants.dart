@@ -108,6 +108,7 @@ class Constants {
   static const int mlPerBottle = 30;
   static const int apiCallLimit = 1000;
   static const String pipeSeparator = '||';
+  static const int mobileNumberLength = 8;
 
   // for stock validation
 
@@ -131,7 +132,7 @@ class Constants {
   static const String zeroDose = 'zeroDose';
 
   // todo enable before cycle2
-  static const bool isDownSyncEnabled = false;
+  static const bool isDownSyncEnabled = true;
   static const String dashboardAnalyticsPath =
       '/dashboard-analytics/dashboard/getChartV2';
 
