@@ -1,13 +1,19 @@
 import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:digit_data_model/data_model.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:intl/intl.dart';
+import 'package:inventory_management/models/entities/stock.dart';
+import 'package:inventory_management/models/entities/transaction_type.dart';
+import 'package:inventory_management/utils/typedefs.dart' as stock_repository;
 import 'package:registration_delivery/models/entities/household_member.dart';
 import 'package:registration_delivery/models/entities/task.dart';
 import 'package:registration_delivery/models/entities/task_resource.dart';
 import 'package:registration_delivery/utils/typedefs.dart';
 
+import '../../models/entities/additional_fields_type.dart';
 import '../../models/entities/assessment_checklist/status.dart';
 import '../../utils/app_enums.dart';
 import '../../utils/constants.dart';
@@ -24,11 +30,13 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
   final HouseholdMemberDataRepository householdMemberRepository;
   final TaskDataRepository taskDataRepository;
   final ProductVariantDataRepository productVariantDataRepository;
+  final stock_repository.StockDataRepository stockDataRepository;
 
   SummaryReportBloc({
     required this.householdMemberRepository,
     required this.productVariantDataRepository,
     required this.taskDataRepository,
+    required this.stockDataRepository,
   }) : super(const SummaryReportEmptyState()) {
     on<SummaryReportLoadDataEvent>(_handleLoadDataEvent);
     on<SummaryReportLoadingEvent>(_handleLoadingEvent);
@@ -43,50 +51,82 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     List<HouseholdMemberModel> householdMemberList = [];
     List<TaskModel> taskList = [];
     List<TaskModel> administeredChildrenList = [];
+    List<TaskModel> SPAQRedoseTaskList = [];
+    List<StockModel> stockList = [];
+    List<StockModel> returnStockList = [];
     List<ProductVariantModel> productVariantList = [];
-    List<TaskResourceModel> spaq1List = [];
-    List<TaskResourceModel> spaq2List = [];
-    List<TaskResourceModel> redVasList = [];
-    List<TaskResourceModel> blueVasList = [];
+    List<StockModel> spaq1List = [];
+    List<StockModel> spaq2List = [];
+    List<StockModel> redVasList = [];
+    List<StockModel> blueVasList = [];
+    List<TaskResourceModel> SPAQRedoseList = [];
     householdMemberList = await (householdMemberRepository)
-        .search(HouseholdMemberSearchModel(isHeadOfHousehold: false));
+        .search(HouseholdMemberSearchModel(isHeadOfHousehold: true));
     taskList = await (taskDataRepository).search(TaskSearchModel());
     productVariantList = await (productVariantDataRepository)
         .search(ProductVariantSearchModel());
+    stockList = await (stockDataRepository).search(StockSearchModel(
+        transactionType: [TransactionType.received.toValue()]));
+    returnStockList = await (stockDataRepository).search(StockSearchModel(
+        transactionType: [TransactionType.dispatched.toValue()]));
     for (var element in taskList) {
       final status = StatusMapper.fromValue(element.status);
 
       if (status == Status.administeredSuccess) {
-        administeredChildrenList.add(element);
+        final val = element.additionalFields?.fields
+            .firstWhereOrNull(
+                (f) => f.key == AdditionalFieldsType.deliveryType.toValue())
+            ?.value;
+        if (val == EligibilityAssessmentStatus.smcDone.name) {
+          administeredChildrenList.add(element);
+        }
+      }
+      if (status == Status.visited) {
+        final val = element.additionalFields?.fields
+            .firstWhereOrNull((f) => f.key == Constants.reAdministeredKey)
+            ?.value;
+        if (val == "true" || val == true) {
+          SPAQRedoseTaskList.add(element);
+        }
       }
     }
 
-    for (var task in administeredChildrenList) {
+    for (var task in SPAQRedoseTaskList) {
       for (var resource in task.resources!) {
         for (var productVariant in productVariantList) {
           if (productVariant.id == resource.productVariantId &&
               productVariant.sku == Constants.spaq1) {
-            spaq1List.add(resource);
+            SPAQRedoseList.add(resource);
           } else if (productVariant.id == resource.productVariantId &&
               productVariant.sku == Constants.spaq2) {
-            spaq2List.add(resource);
-          } else if (productVariant.id == resource.productVariantId &&
-              productVariant.sku == Constants.redVAS) {
-            redVasList.add(resource);
-          } else if (productVariant.id == resource.productVariantId &&
-              productVariant.sku == Constants.blueVAS) {
-            blueVasList.add(resource);
+            SPAQRedoseList.add(resource);
           }
         }
+      }
+    }
+    for (var stock in stockList) {
+      final productName = stock.additionalFields?.fields
+          .firstWhereOrNull((f) => f.key == "productName")
+          ?.value;
+      if (productName == Constants.spaq1) {
+        spaq1List.add(stock);
+      } else if (productName == Constants.spaq2) {
+        spaq2List.add(stock);
+      } else if (productName == Constants.redVAS) {
+        redVasList.add(stock);
+      } else if (productName == Constants.blueVAS) {
+        blueVasList.add(stock);
       }
     }
 
     Map<String, List<HouseholdMemberModel>> dateVsHouseholdMembersList = {};
     Map<String, List<TaskModel>> dateVsAdministeredChilderenList = {};
-    Map<String, List<TaskResourceModel>> dateVsSpaq1List = {};
-    Map<String, List<TaskResourceModel>> dateVsSpaq2List = {};
-    Map<String, List<TaskResourceModel>> dateVsRedVasList = {};
-    Map<String, List<TaskResourceModel>> dateVsBlueVasList = {};
+    Map<String, List<StockModel>> dateVsSpaq1List = {};
+    Map<String, List<StockModel>> dateVsSpaq2List = {};
+    Map<String, List<StockModel>> dateVsRedVasList = {};
+    Map<String, List<StockModel>> dateVsBlueVasList = {};
+    Map<String, List<StockModel>> dateVsReturnStockList = {};
+    Map<String, List<TaskResourceModel>> dateVsSPAQRedoseList = {};
     Set<String> uniqueDates = {};
     Map<String, int> dateVsHouseholdMembersCount = {};
     Map<String, int> dateVsAdministeredChilderenCount = {};
@@ -94,6 +134,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     Map<String, int> dateVsSpaq2Count = {};
     Map<String, int> dateVsRedVasCount = {};
     Map<String, int> dateVsBlueVasCount = {};
+    Map<String, int> dateVsReturnStockCount = {};
+    Map<String, int> dateVsSPAQRedoseCount = {};
     Map<String, Map<String, int>> dateVsEntityVsCountMap = {};
     for (var element in householdMemberList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
@@ -128,7 +170,17 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
           element.auditDetails!.createdTime);
       dateVsBlueVasList.putIfAbsent(dateKey, () => []).add(element);
     }
+    for (var element in SPAQRedoseList) {
+      var dateKey = DigitDateUtils.getDateFromTimestamp(
+          element.auditDetails!.createdTime);
+      dateVsSPAQRedoseList.putIfAbsent(dateKey, () => []).add(element);
+    }
 
+    for (var element in returnStockList) {
+      var dateKey = DigitDateUtils.getDateFromTimestamp(
+          element.auditDetails!.createdTime);
+      dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
+    }
     // get a set of unique dates
     getUniqueSetOfDates(
       dateVsHouseholdMembersList,
@@ -137,6 +189,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       dateVsSpaq2List,
       dateVsRedVasList,
       dateVsBlueVasList,
+      dateVsSPAQRedoseList,
+      dateVsReturnStockList,
       uniqueDates,
     );
 
@@ -146,11 +200,13 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     populateDateVsCountMap(
         dateVsAdministeredChilderenList, dateVsAdministeredChilderenCount);
 
-    populateDateVsCountMap(dateVsSpaq1List, dateVsSpaq1Count);
-    populateDateVsCountMap(dateVsSpaq2List, dateVsSpaq2Count);
-    populateDateVsCountMap(dateVsRedVasList, dateVsRedVasCount);
-    populateDateVsCountMap(dateVsBlueVasList, dateVsBlueVasCount);
-
+    populateDateVsCountMapForDrugs(dateVsSpaq1List, dateVsSpaq1Count);
+    populateDateVsCountMapForDrugs(dateVsSpaq2List, dateVsSpaq2Count);
+    populateDateVsCountMapForDrugs(dateVsRedVasList, dateVsRedVasCount);
+    populateDateVsCountMapForDrugs(dateVsBlueVasList, dateVsBlueVasCount);
+    populateDateVsCountMap(dateVsSPAQRedoseList, dateVsSPAQRedoseCount);
+    populateDateVsCountMapForDrugs(
+        dateVsReturnStockList, dateVsReturnStockCount);
     popoulateDateVsEntityCountMap(
       dateVsEntityVsCountMap,
       dateVsHouseholdMembersCount,
@@ -159,6 +215,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       dateVsSpaq2Count,
       dateVsRedVasCount,
       dateVsBlueVasCount,
+      dateVsSPAQRedoseCount,
+      dateVsReturnStockCount,
       uniqueDates,
     );
     dateVsEntityVsCountMap =
@@ -171,10 +229,12 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
   void getUniqueSetOfDates(
     Map<String, List<HouseholdMemberModel>> dateVsHouseholdMembersList,
     Map<String, List<TaskModel>> dateVsAdministeredChilderenList,
-    Map<String, List<TaskResourceModel>> dateVsSpaq1List,
-    Map<String, List<TaskResourceModel>> dateVsSpaq2List,
-    Map<String, List<TaskResourceModel>> dateVsRedVasList,
-    Map<String, List<TaskResourceModel>> dateVsBlueVasList,
+    Map<String, List<StockModel>> dateVsSpaq1List,
+    Map<String, List<StockModel>> dateVsSpaq2List,
+    Map<String, List<StockModel>> dateVsRedVasList,
+    Map<String, List<StockModel>> dateVsBlueVasList,
+    Map<String, List<TaskResourceModel>> dateVsSPAQRedoseList,
+    Map<String, List<StockModel>> dateVsReturnStockList,
     Set<String> uniqueDates,
   ) {
     uniqueDates.addAll(dateVsHouseholdMembersList.keys.toSet());
@@ -183,12 +243,31 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     uniqueDates.addAll(dateVsSpaq2List.keys.toSet());
     uniqueDates.addAll(dateVsRedVasList.keys.toSet());
     uniqueDates.addAll(dateVsBlueVasList.keys.toSet());
+    uniqueDates.addAll(dateVsSPAQRedoseList.keys.toSet());
+    uniqueDates.addAll(dateVsReturnStockList.keys.toSet());
   }
 
   void populateDateVsCountMap(
       Map<String, List> map, Map<String, int> dateVsCount) {
     map.forEach((key, value) {
       dateVsCount[key] = value.length;
+    });
+  }
+
+  void populateDateVsCountMapForDrugs(
+      Map<String, List> map, Map<String, int> dateVsCount) {
+    map.forEach((key, value) {
+      int totalStock = 0;
+      for (var stock in value) {
+        int quantity = 0;
+        if (stock.quantity != null) {
+          quantity = stock.quantity is int
+              ? stock.quantity
+              : int.tryParse(stock.quantity.toString()) ?? 0;
+        }
+        totalStock += quantity;
+      }
+      dateVsCount[key] = totalStock;
     });
   }
 
@@ -200,6 +279,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     Map<String, int> dateVsSpaq2Count,
     Map<String, int> dateVsRedVasCount,
     Map<String, int> dateVsBlueVasCount,
+    Map<String, int> dateVsSPAQRedoseCount,
+    Map<String, int> dateVsReturnStockCount,
     Set<String> uniqueDates,
   ) {
     for (var date in uniqueDates) {
@@ -234,6 +315,16 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
         var count = dateVsBlueVasCount[date];
         elementVsCount[Constants.blueVAS] = count ?? 0;
       }
+      if (dateVsSPAQRedoseCount.containsKey(date) &&
+          dateVsSPAQRedoseCount[date] != null) {
+        var count = dateVsSPAQRedoseCount[date];
+        elementVsCount[Constants.reDoseQuantityKey] = count ?? 0;
+      }
+      if (dateVsReturnStockCount.containsKey(date) &&
+          dateVsReturnStockCount[date] != null) {
+        var count = dateVsReturnStockCount[date];
+        elementVsCount[Constants.returnStock] = count ?? 0;
+      }
 
       dateVsEntityVsCountMap[date] = elementVsCount;
     }
@@ -253,7 +344,9 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
 
     for (int i = 0; i < sortedEntries.length; i++) {
       final originalDate = sortedEntries[i].key;
-      final newKey = '$originalDate Day${i + 1}';
+      // final newKey = '$originalDate Day${i + 1}';
+      final parsedDate = DateFormat('dd/MM/yyyy').parse(originalDate);
+      final newKey = DateFormat('d MMMM yyyy').format(parsedDate);
       renamedMap[newKey] = sortedEntries[i].value;
     }
 
@@ -274,7 +367,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
 
     // Create new map with 'Total' at the beginning
     final Map<String, Map<String, int>> newMap = {
-      'Total': totalMap,
+      // 'Total': totalMap,
       ...originalMap,
     };
 
