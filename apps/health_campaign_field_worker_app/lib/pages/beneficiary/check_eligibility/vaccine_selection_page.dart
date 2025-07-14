@@ -18,6 +18,7 @@ import 'package:health_campaign_field_worker_app/blocs/app_initialization/app_in
 import 'package:health_campaign_field_worker_app/data/local_store/no_sql/schema/app_configuration.dart';
 import 'package:registration_delivery/registration_delivery.dart';
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
+import '../../../blocs/localization/app_localization.dart';
 import '../../../models/entities/additional_fields_type.dart';
 import '../../../models/entities/roles_type.dart';
 import 'package:registration_delivery/blocs/household_overview/household_overview.dart';
@@ -42,6 +43,9 @@ import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
 import '../../../utils/i18_key_constants.dart' as i18_local;
 import 'package:digit_components/widgets/atoms/checkbox_icon.dart';
 import 'package:survey_form/utils/i18_key_constants.dart' as i18_survey_form;
+
+//  Add this import for the radio button component.
+import 'package:group_radio_button/group_radio_button.dart';
 
 @RoutePage()
 class VaccineSelectionPage extends LocalizedStatefulWidget {
@@ -89,6 +93,18 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
   Set<String> selectedVaccines = {};
   List<String> selectedCodes = [];
 
+  // List<AttributesModel>? initialAttributes;
+  // ServiceDefinitionModel? selectedServiceDefinition;
+  // bool isControllersInitialized = false;
+  // GlobalKey<FormState> checklistFormKey = GlobalKey<FormState>();
+
+  // [ADDED] Use a map to store controllers for each vaccine code for better management.
+  // This will store "YES" or "NO" for each vaccine.
+  final Map<String, TextEditingController> _vaccineControllers = {};
+  final String _yes = "YES";
+  final String _no = "NO";
+  // --- [MODIFICATION END] ---
+
   @override
   void initState() {
     context.read<LocationBloc>().add(const LocationEvent.load());
@@ -106,6 +122,35 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
           ));
     }
     super.initState();
+  }
+
+  // [ADDED] This function checks if all *enabled* vaccines have "YES" selected.
+  bool _isVaccinationSuccessful({
+    required List<String> allVaccineCodes,
+    required Map<String, int> vaccineAgeMap,
+    required int ageInDays,
+  }) {
+    // Loop through every vaccine defined in the checklist.
+    for (final code in allVaccineCodes) {
+      // First, determine if the current vaccine is enabled (age-appropriate).
+      final isEnabled = !(vaccineAgeMap.containsKey(code)
+          ? vaccineAgeMap[code]! >= ageInDays
+          : true);
+
+      // We only care about the response for vaccines that are enabled.
+      if (isEnabled) {
+        final response = _vaccineControllers[code]?.text;
+        // If an enabled vaccine was NOT answered "YES" (it's "NO" or empty),
+        // then the overall result is false.
+        if (response != _yes) {
+          return false;
+        }
+      }
+    }
+
+    // If we finished the loop without returning false, it means all
+    // enabled vaccines were answered "YES".
+    return true;
   }
 
   @override
@@ -208,7 +253,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                               children: [
                                 DigitElevatedButton(
                                   onPressed: () async {
-                                    submitTriggered = true;
+                                    /*submitTriggered = true;
                                     final isValid = checklistFormKey
                                         .currentState
                                         ?.validate();
@@ -269,7 +314,64 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                         }
                                       }
                                     }
-                                    triggerLocalization = true;
+                                    triggerLocalization = true;*/
+                                    // NEW BLOCK
+                                    final multiValueAttribute =
+                                        initialAttributes?.firstWhere((e) =>
+                                            e.dataType == 'MultiValueList');
+
+                                    final allVaccineCodes = multiValueAttribute
+                                            ?.values
+                                            ?.where((v) => v != 'NOT_SELECTED')
+                                            .toList() ??
+                                        [];
+
+                                    // [MODIFIED] Get a list of codes where the user selected "YES".
+                                    final selectedCodes = allVaccineCodes
+                                        .where((code) =>
+                                            _vaccineControllers[code]?.text ==
+                                            _yes)
+                                        .toList();
+
+                                    // The original sequential check logic remains the same, using our new `selectedCodes` list.
+                                    for (final code in selectedCodes) {
+                                      final match =
+                                          RegExp(r'^(.*?)([_-])(\d+)$')
+                                              .firstMatch(code);
+                                      if (match != null) {
+                                        final base = match.group(1);
+                                        final sep =
+                                            match.group(2); // '_' or '-'
+                                        final num =
+                                            int.tryParse(match.group(3) ?? '');
+                                        if (num != null && num > 1) {
+                                          final prevCode =
+                                              '$base$sep${num - 1}';
+                                          if (!selectedCodes
+                                              .contains(prevCode)) {
+                                            DigitToast.show(
+                                              context,
+                                              options: DigitToastOptions(
+                                                'You have not selected ${vaccineCodeToName[prevCode] ?? prevCode}.',
+                                                true,
+                                                theme,
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                        }
+                                      }
+                                    }
+
+                                    // [ADDED] Call our new function to determine if the vaccination was successful.
+                                    final isVaccinationSuccessful =
+                                        _isVaccinationSuccessful(
+                                      allVaccineCodes: allVaccineCodes,
+                                      vaccineAgeMap: vaccineAgeMap,
+                                      ageInDays: ageInDays,
+                                    );
+                                    // +++ END of NEW Block 1 +++
+
                                     final shouldSubmit = await DigitDialog.show(
                                       context,
                                       options: DigitDialogOptions(
@@ -283,7 +385,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                           label: localizations.translate(
                                             i18.common.coreCommonSubmit,
                                           ),
-                                          action: (ctx) {
+                                          /* action: (ctx) {
                                             final referenceId =
                                                 IdGen.i.identifier;
                                             List<ServiceAttributesModel>
@@ -365,7 +467,65 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                   ],
                                                 ),
                                               ));
-                                            }
+                                            }*/
+                                          action: (ctx) {
+                                            final referenceId =
+                                                IdGen.i.identifier;
+
+                                            // [MODIFIED] A simpler way to build the attributes payload.
+                                            final attributes = initialAttributes
+                                                    ?.map((attribute) {
+                                                  String value;
+                                                  if (attribute.dataType ==
+                                                      'MultiValueList') {
+                                                    // Join the codes of vaccines marked "YES"
+                                                    value =
+                                                        selectedCodes.isEmpty
+                                                            ? i18_survey_form
+                                                                .surveyForm
+                                                                .notSelectedKey
+                                                            : selectedCodes
+                                                                .join('.');
+                                                  } else {
+                                                    // For any other attribute type, we are not collecting data on this page.
+                                                    value = i18_survey_form
+                                                        .surveyForm
+                                                        .notSelectedKey;
+                                                  }
+
+                                                  return ServiceAttributesModel(
+                                                    auditDetails: AuditDetails(
+                                                      createdBy: context
+                                                          .loggedInUserUuid,
+                                                      createdTime: context
+                                                          .millisecondsSinceEpoch(),
+                                                    ),
+                                                    attributeCode:
+                                                        '${attribute.code}',
+                                                    dataType:
+                                                        attribute.dataType,
+                                                    clientReferenceId:
+                                                        IdGen.i.identifier,
+                                                    referenceId: referenceId,
+                                                    value: value,
+                                                    rowVersion: 1,
+                                                    tenantId:
+                                                        attribute.tenantId,
+                                                    additionalFields:
+                                                        ServiceAttributesAdditionalFields(
+                                                      version: 1,
+                                                      fields: [
+                                                        AdditionalField(
+                                                            'latitude',
+                                                            latitude),
+                                                        AdditionalField(
+                                                            'longitude',
+                                                            longitude),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList() ??
+                                                [];
 
                                             context.read<ServiceBloc>().add(
                                                   ServiceCreateEvent(
@@ -419,6 +579,10 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                                 'boundaryCode',
                                                                 context.boundary
                                                                     .code),
+                                                            AdditionalField(
+                                                              'vaccinationsuccessful',
+                                                              isVaccinationSuccessful,
+                                                            ),
                                                           ],
                                                         )),
                                                   ),
@@ -749,7 +913,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                 theme.textTheme.headlineLarge,
                                           ),
                                           const SizedBox(height: spacer5),
-                                          ...initialAttributes!.map((e) {
+                                          /* ...initialAttributes!.map((e) {
                                             int index =
                                                 (initialAttributes ?? [])
                                                     .indexOf(e);
@@ -808,7 +972,48 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                 ),
                                               ]
                                             ]);
+                                          }).toList(),*/
+                                          //New implementation for radio buttons
+                                          ...initialAttributes!
+                                              .where((e) =>
+                                                  e.dataType ==
+                                                  'MultiValueList')
+                                              .map((e) {
+                                            final vaccineCodes = e.values!
+                                                .where(
+                                                    (v) => v != 'NOT_SELECTED')
+                                                .toList();
+                                            return Column(
+                                              children:
+                                                  vaccineCodes.map((code) {
+                                                final isDisabled = vaccineAgeMap
+                                                        .containsKey(code)
+                                                    ? vaccineAgeMap[code]! >=
+                                                        ageInDays
+                                                    : true;
+
+                                                // This logic should now be inside your initState or serviceDefinitionFetch callback,
+                                                // but we ensure the controller exists here as a fallback.
+                                                if (!_vaccineControllers
+                                                    .containsKey(code)) {
+                                                  _vaccineControllers[code] =
+                                                      TextEditingController();
+                                                }
+
+                                                return _buildVaccineRadioRow(
+                                                  context: context,
+                                                  vaccineName:
+                                                      vaccineCodeToName[code] ??
+                                                          code,
+                                                  isDisabled: isDisabled,
+                                                  controller:
+                                                      _vaccineControllers[
+                                                          code]!,
+                                                );
+                                              }).toList(),
+                                            );
                                           }).toList(),
+
                                           const SizedBox(
                                             height: 15,
                                           ),
@@ -830,7 +1035,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
   }
 }
 
-class CustomDigitCheckboxTile extends StatelessWidget {
+/*class CustomDigitCheckboxTile extends StatelessWidget {
   final bool value;
   final String label;
   final ValueChanged<bool>? onChanged;
@@ -921,6 +1126,58 @@ Widget buildTwoColumnCheckboxes({
       Expanded(child: buildCol(firstCol)),
       const SizedBox(width: 16),
       Expanded(child: buildCol(secondCol)),
+    ],
+  );
+}*/
+
+// [ADDED] This new helper builds a row with a vaccine name and Yes/No radio buttons.
+Widget _buildVaccineRadioRow({
+  required BuildContext context,
+  required String vaccineName,
+  required bool isDisabled,
+  required TextEditingController controller,
+}) {
+  final theme = Theme.of(context);
+  final localizations = AppLocalizations.of(context);
+
+// [ADDED] Wrap the entire content in a DigitCard for consistent UI.
+
+  return DigitCard(
+    margin: const EdgeInsets.only(top: kPadding, bottom: kPadding),
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(kPadding), // Add some internal padding
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              vaccineName,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: isDisabled ? theme.disabledColor : null,
+              ),
+            ),
+            const SizedBox(height: 8),
+            RadioGroup<String>.builder(
+              direction: Axis.vertical,
+              groupValue: controller.text,
+              onChanged: isDisabled
+                  ? null // Disable selection if the vaccine is not age-appropriate
+                  : (value) {
+                      // We need to use setState here to update the UI when a radio button is clicked.
+                      // This is a small but important detail. We find the State object to call setState.
+                      (context as Element).markNeedsBuild();
+                      controller.text = value ?? '';
+                    },
+              items: const ["YES", "NO"],
+              itemBuilder: (item) => RadioButtonBuilder(
+                localizations.translate(
+                  'CORE_COMMON_${item.trim().toUpperCase()}',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     ],
   );
 }
