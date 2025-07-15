@@ -516,125 +516,125 @@ class CustomMemberCard extends StatelessWidget {
                 }
               },
             ),
-          if ((!smcAssessmentPendingStatus ||
-                  isBeneficiaryReferredSMC ||
-                  isBeneficiaryInEligibleSMC) &&
-              vasAssessmentPendingStatus &&
-              !isBeneficiaryReferredVAS &&
-              !isBeneficiaryInEligibleVAS &&
-              !isNotEligibleVAS)
-            DigitElevatedButton(
-              child: Center(
-                child: Text(
-                  localizations.translate(
-                    i18_local.householdOverView
-                        .householdOverViewVASAssessmentActionText,
-                  ),
-                  style: textTheme.headingM.copyWith(color: Colors.white),
-                ),
-              ),
-              onPressed: () async {
-                // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
-                final currentCycle =
-                    deliverState.cycle >= 0 ? deliverState.cycle : 0;
+          // if ((!smcAssessmentPendingStatus ||
+          //         isBeneficiaryReferredSMC ||
+          //         isBeneficiaryInEligibleSMC) &&
+          //     vasAssessmentPendingStatus &&
+          //     !isBeneficiaryReferredVAS &&
+          //     !isBeneficiaryInEligibleVAS &&
+          //     !isNotEligibleVAS)
+          //   DigitElevatedButton(
+          //     child: Center(
+          //       child: Text(
+          //         localizations.translate(
+          //           i18_local.householdOverView
+          //               .householdOverViewVASAssessmentActionText,
+          //         ),
+          //         style: textTheme.headingM.copyWith(color: Colors.white),
+          //       ),
+          //     ),
+          //     onPressed: () async {
+          //       // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
+          //       final currentCycle =
+          //           deliverState.cycle >= 0 ? deliverState.cycle : 0;
 
-                // Calculate the current dose. If deliverInterventionState.dose is negative, set it to 0.
-                final currentDose =
-                    deliverState.dose >= 0 ? deliverState.dose : 0;
-                final ProjectTypeModel? projectType =
-                    RegistrationDeliverySingleton()
-                        .selectedProject
-                        ?.additionalDetails
-                        ?.additionalProjectType;
-                final item = projectType
-                    ?.cycles?[currentCycle - 1].deliveries?[currentDose - 1];
-                final productVariants =
-                    fetchProductVariant(item, individual, null)
-                        ?.productVariants!
-                        .first;
+          //       // Calculate the current dose. If deliverInterventionState.dose is negative, set it to 0.
+          //       final currentDose =
+          //           deliverState.dose >= 0 ? deliverState.dose : 0;
+          //       final ProjectTypeModel? projectType =
+          //           RegistrationDeliverySingleton()
+          //               .selectedProject
+          //               ?.additionalDetails
+          //               ?.additionalProjectType;
+          //       final item = projectType
+          //           ?.cycles?[currentCycle - 1].deliveries?[currentDose - 1];
+          //       final productVariants =
+          //           fetchProductVariant(item, individual, null)
+          //               ?.productVariants!
+          //               .first;
 
-                int blueVas = context.blueVas;
-                int redVas = context.redVas;
+          //       int blueVas = context.blueVas;
+          //       int redVas = context.redVas;
 
-                // Retrieve the SKU value for the product variant.
-                final value = variant
-                    ?.firstWhereOrNull(
-                      (element) =>
-                          element.id == productVariants!.productVariantId,
-                    )
-                    ?.sku;
+          //       // Retrieve the SKU value for the product variant.
+          //       final value = variant
+          //           ?.firstWhereOrNull(
+          //             (element) =>
+          //                 element.id == productVariants!.productVariantId,
+          //           )
+          //           ?.sku;
 
-                if (value != null &&
-                    ((value.contains(
-                              Constants.blueVAS,
-                            ) &&
-                            blueVas > 0) ||
-                        (value.contains(
-                              Constants.redVAS,
-                            ) &&
-                            redVas > 0))) {
-                  final bloc = context.read<HouseholdOverviewBloc>();
-                  bloc.add(
-                    HouseholdOverviewEvent.selectedIndividual(
-                      individualModel: individual,
-                    ),
-                  );
+          //       if (value != null &&
+          //           ((value.contains(
+          //                     Constants.blueVAS,
+          //                   ) &&
+          //                   blueVas > 0) ||
+          //               (value.contains(
+          //                     Constants.redVAS,
+          //                   ) &&
+          //                   redVas > 0))) {
+          //         final bloc = context.read<HouseholdOverviewBloc>();
+          //         bloc.add(
+          //           HouseholdOverviewEvent.selectedIndividual(
+          //             individualModel: individual,
+          //           ),
+          //         );
 
-                  if ((vasTasks ?? []).isEmpty) {
-                    // context.router.push(
-                    //   CustomBeneficiaryDetailsRoute(
-                    //     eligibilityAssessmentType:
-                    //         EligibilityAssessmentType.smc,
-                    //   ),
-                    // );
-                    context.router.push(
-                      EligibilityChecklistViewRoute(
-                        projectBeneficiaryClientReferenceId:
-                            projectBeneficiaryClientReferenceId,
-                        individual: individual,
-                        eligibilityAssessmentType:
-                            EligibilityAssessmentType.vas,
-                      ),
-                    );
-                  }
-                } else {
-                  String descriptionText = localizations.translate(
-                    i18_local.beneficiaryDetails.insufficientStockMessage,
-                  );
+          //         if ((vasTasks ?? []).isEmpty) {
+          //           // context.router.push(
+          //           //   CustomBeneficiaryDetailsRoute(
+          //           //     eligibilityAssessmentType:
+          //           //         EligibilityAssessmentType.smc,
+          //           //   ),
+          //           // );
+          //           context.router.push(
+          //             EligibilityChecklistViewRoute(
+          //               projectBeneficiaryClientReferenceId:
+          //                   projectBeneficiaryClientReferenceId,
+          //               individual: individual,
+          //               eligibilityAssessmentType:
+          //                   EligibilityAssessmentType.vas,
+          //             ),
+          //           );
+          //         }
+          //       } else {
+          //         String descriptionText = localizations.translate(
+          //           i18_local.beneficiaryDetails.insufficientStockMessage,
+          //         );
 
-                  if (blueVas == 0) {
-                    descriptionText +=
-                        "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
-                  }
-                  if (redVas == 0) {
-                    descriptionText +=
-                        "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
-                  }
+          //         if (blueVas == 0) {
+          //           descriptionText +=
+          //               "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
+          //         }
+          //         if (redVas == 0) {
+          //           descriptionText +=
+          //               "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
+          //         }
 
-                  DigitDialog.show(
-                    context,
-                    options: DigitDialogOptions(
-                      titleText: localizations.translate(
-                        i18_local.beneficiaryDetails.insufficientStockHeading,
-                      ),
-                      titleIcon: Icon(
-                        Icons.warning,
-                        color: DigitTheme.instance.colorScheme.error,
-                      ),
-                      contentText: descriptionText,
-                      primaryAction: DigitDialogActions(
-                        label: localizations.translate(
-                          i18_local.beneficiaryDetails.backToHouseholdDetails,
-                        ),
-                        action: (ctx) {
-                          Navigator.of(ctx, rootNavigator: true).pop();
-                        },
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
+          //         DigitDialog.show(
+          //           context,
+          //           options: DigitDialogOptions(
+          //             titleText: localizations.translate(
+          //               i18_local.beneficiaryDetails.insufficientStockHeading,
+          //             ),
+          //             titleIcon: Icon(
+          //               Icons.warning,
+          //               color: DigitTheme.instance.colorScheme.error,
+          //             ),
+          //             contentText: descriptionText,
+          //             primaryAction: DigitDialogActions(
+          //               label: localizations.translate(
+          //                 i18_local.beneficiaryDetails.backToHouseholdDetails,
+          //               ),
+          //               action: (ctx) {
+          //                 Navigator.of(ctx, rootNavigator: true).pop();
+          //               },
+          //             ),
+          //           ),
+          //         );
+          //       }
+          //     },
+          //   ),
         ],
       );
     });
