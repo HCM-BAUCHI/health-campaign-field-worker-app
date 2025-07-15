@@ -70,9 +70,10 @@ class _CustomSummaryReportState
   String _calculateDrugBalance(
       MapEntry<String, Map<String, int>> entry, int previousDayBalance) {
     int drugReceivedBalance = (entry.value[Constants.spaq1] ?? 0) +
-        (entry.value[Constants.spaq2] ?? 0) +
-        (entry.value[Constants.redVAS] ?? 0) +
-        (entry.value[Constants.blueVAS] ?? 0);
+        (entry.value[Constants.spaq2] ?? 0);
+    // +
+    // (entry.value[Constants.redVAS] ?? 0) +
+    // (entry.value[Constants.blueVAS] ?? 0);
     int drugReturnBalance = (entry.value[Constants.returnStock] ?? 0);
     int drugUsedBalance = (entry.value[Constants.administered] ?? 0) +
         (entry.value[Constants.reDoseQuantityKey] ?? 0);
@@ -175,18 +176,18 @@ class _CustomSummaryReportState
                               key: _usedTablet_12_59monthKey,
                               width: 180,
                             ),
-                            DigitGridColumn(
-                              label: localizations.translate(
-                                  i18Local.homeShowcase.summaryReportRedVas),
-                              key: _zeroDoseChildrenKey,
-                              width: 180,
-                            ),
-                            DigitGridColumn(
-                              label: localizations.translate(
-                                  i18Local.homeShowcase.summaryReportBlueVas),
-                              key: _refusalsCasesKey,
-                              width: 180,
-                            ),
+                            // DigitGridColumn(
+                            //   label: localizations.translate(
+                            //       i18Local.homeShowcase.summaryReportRedVas),
+                            //   key: _zeroDoseChildrenKey,
+                            //   width: 180,
+                            // ),
+                            // DigitGridColumn(
+                            //   label: localizations.translate(
+                            //       i18Local.homeShowcase.summaryReportBlueVas),
+                            //   key: _refusalsCasesKey,
+                            //   width: 180,
+                            // ),
                             DigitGridColumn(
                               label: localizations.translate(i18Local
                                   .homeShowcase.summaryReportSPAQRedoseCount),
@@ -257,19 +258,19 @@ class _CustomSummaryReportState
                                             (entry.value[Constants.spaq2] ?? 0)
                                                 .toString(),
                                       ),
-                                      DigitGridCell(
-                                        key: _zeroDoseChildrenKey,
-                                        value:
-                                            (entry.value[Constants.redVAS] ?? 0)
-                                                .toString(),
-                                      ),
-                                      DigitGridCell(
-                                        key: _refusalsCasesKey,
-                                        value:
-                                            (entry.value[Constants.blueVAS] ??
-                                                    0)
-                                                .toString(),
-                                      ),
+                                      // DigitGridCell(
+                                      //   key: _zeroDoseChildrenKey,
+                                      //   value:
+                                      //       (entry.value[Constants.redVAS] ?? 0)
+                                      //           .toString(),
+                                      // ),
+                                      // DigitGridCell(
+                                      //   key: _refusalsCasesKey,
+                                      //   value:
+                                      //       (entry.value[Constants.blueVAS] ??
+                                      //               0)
+                                      //           .toString(),
+                                      // ),
                                       DigitGridCell(
                                         key: _spaqRedoseCount,
                                         value: (entry.value[Constants

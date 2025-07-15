@@ -177,9 +177,14 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     }
 
     for (var element in returnStockList) {
-      var dateKey = DigitDateUtils.getDateFromTimestamp(
-          element.auditDetails!.createdTime);
-      dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
+      final productName = element.additionalFields?.fields
+          .firstWhereOrNull((f) => f.key == "productName")
+          ?.value;
+      if (productName == Constants.spaq1 || productName == Constants.spaq2) {
+        var dateKey = DigitDateUtils.getDateFromTimestamp(
+            element.auditDetails!.createdTime);
+        dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
     // get a set of unique dates
     getUniqueSetOfDates(
