@@ -399,6 +399,10 @@ class HomeShowcase {
     return 'HOME_SHOWCASE_SUMMARY_REPORT_REGISTRED_CHILDREN';
   }
 
+  String get summaryReportRegistredHousehold {
+    return 'HOME_SHOWCASE_SUMMARY_REPORT_REGISTRED_HOUSEHOLD';
+  }
+
   String get summaryReportAdministredChildren {
     return 'HOME_SHOWCASE_SUMMARY_REPORT_ADMINISTRED_CHILDREN';
   }
@@ -417,6 +421,22 @@ class HomeShowcase {
 
   String get summaryReportBlueVas {
     return 'HOME_SHOWCASE_SUMMARY_REPORT_BLUEVAS';
+  }
+
+  String get summaryReportSPAQRedoseCount {
+    return 'HOME_SHOWCASE_SUMMARY_REPORT_COUNT_SPAQ_REDOSE';
+  }
+
+  String get summaryReportChildrenTreatedPrecentage {
+    return 'HOME_SHOWCASE_SUMMARY_REPORT_CHILDREN_TREATED_PRECENTAGE';
+  }
+
+  String get summaryReportDrugUsed {
+    return 'HOME_SHOWCASE_SUMMARY_REPORT_COUNT_DRUG_USED';
+  }
+
+  String get summaryReportDrugBalance {
+    return 'HOME_SHOWCASE_SUMMARY_REPORT_COUNT_DRUG_BALANCE';
   }
 
   String get distributorProgressBar {
@@ -551,7 +571,8 @@ class StockDetails {
   String get recordStockReturnedDescription =>
       'STOCK_DETAILS_RECORD_STOCK_RETURNED_DESCRIPTION';
 
-  String get issueStockLabelExceeded => 'STOCK_DETAILS_ISSUE_STOCK_LABEL_EXCEEDED';
+  String get issueStockLabelExceeded =>
+      'STOCK_DETAILS_ISSUE_STOCK_LABEL_EXCEEDED';
 }
 
 class StockReconciliationDetails {
@@ -1335,6 +1356,10 @@ class SearchBeneficiary {
   String get proximityLabel => 'PROXIMITY_LABEL';
   String get beneficiaryIdValidInfoDescription =>
       'BENEFICIARY_ID_VALID_INFO_DESCRIPTION';
+  String get mobileNumberValidInfoDescription =>
+      'MOBILE_NUMBER_VALID_INFO_DESCRIPTION';
+
+  String get mobileNumberInfoTitle => 'MOBILE_NUMBER_INFO_TITLE';
 }
 
 class IndividualDetails {
@@ -1416,6 +1441,7 @@ class BeneficiaryDetails {
       "ERROR_VALIDATION_FOR_EXCESS_STOCK_DISPATCH";
   String get searchbybeneficiaryidtextupdate =>
       'SEARCH_BY_BENEFICIARY_ID_TEXT_UPDATE';
+  String get searchByMobileNumber => 'SEARCH_BY_MOBILE_NUMBER';
   String get validationForExcessStockReturn =>
       "ERROR_VALIDATION_FOR_EXCESS_STOCK_RETURN";
   String get errorHeader => "ERROR_VALIDATION_HEADER";

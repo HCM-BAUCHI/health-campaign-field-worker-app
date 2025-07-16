@@ -61,6 +61,7 @@ class IndividualGlobalSearchSMCBloc extends SearchHouseholdsSMCBloc {
         maxRadius: event.globalSearchParams.maxRadius,
         nameSearch: event.globalSearchParams.nameSearch,
         beneficiaryId: event.globalSearchParams.beneficiaryId,
+        mobileNumber: event.globalSearchParams.mobileNumber,
         filter: event.globalSearchParams.filter,
         offset: event.globalSearchParams.offset,
         limit: event.globalSearchParams.limit,

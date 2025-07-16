@@ -273,6 +273,8 @@ class MainApplicationState extends State<MainApplication>
                             productVariantDataRepository: context.repository<
                                 ProductVariantModel,
                                 ProductVariantSearchModel>(),
+                            stockDataRepository: context
+                                .repository<StockModel, StockSearchModel>(),
                           ),
                         ),
                         BlocProvider(

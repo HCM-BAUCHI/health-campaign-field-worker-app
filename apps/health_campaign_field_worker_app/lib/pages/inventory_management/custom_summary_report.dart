@@ -53,6 +53,37 @@ class _CustomSummaryReportState
   static const _usedTablet_3_11monthKey = 'usedTablet3_11month';
   static const _usedTablet_12_59monthKey = 'usedTablet12s_59month';
   static const _zeroDoseChildrenKey = 'zeroDoseChildren';
+  static const _spaqRedoseCount = 'spaqRedoseCount';
+  static const _childrenTreatedPrecKey = 'childrenTreatedPercKey';
+  static const _drugUsedKey = 'drugUsedKey';
+  static const _drugBalanceKey = 'drugBalanceKey';
+
+  String _calculatePercentage(dynamic value, int total) {
+    if (value == null) return "0%";
+
+    final quantity = value is num ? value : int.tryParse(value.toString()) ?? 0;
+
+    final percent = (quantity / total) * 100;
+    return "${percent.toStringAsFixed(1)}%";
+  }
+
+  String _calculateDrugBalance(
+      MapEntry<String, Map<String, int>> entry, int previousDayBalance) {
+    int drugReceivedBalance = (entry.value[Constants.spaq1] ?? 0) +
+        (entry.value[Constants.spaq2] ?? 0);
+    // +
+    // (entry.value[Constants.redVAS] ?? 0) +
+    // (entry.value[Constants.blueVAS] ?? 0);
+    int drugReturnBalance = (entry.value[Constants.returnStock] ?? 0);
+    int drugUsedBalance = (entry.value[Constants.administered] ?? 0) +
+        (entry.value[Constants.reDoseQuantityKey] ?? 0);
+    int currentDrugBalance = drugReceivedBalance -
+        drugReturnBalance -
+        drugUsedBalance +
+        previousDayBalance;
+
+    return currentDrugBalance.toString();
+  }
 
   FormGroup _form() {
     return fb.group({});
@@ -113,7 +144,8 @@ class _CustomSummaryReportState
                             ),
                             DigitGridColumn(
                               label: localizations.translate(i18Local
-                                  .homeShowcase.summaryReportRegistredChildren),
+                                  .homeShowcase
+                                  .summaryReportRegistredHousehold),
                               key: _registeredChildrenKey,
                               width: 180,
                             ),
@@ -122,6 +154,14 @@ class _CustomSummaryReportState
                                   .homeShowcase
                                   .summaryReportAdministredChildren),
                               key: _administeredChildrenKey,
+                              width: 180,
+                            ),
+                            DigitGridColumn(
+                              label: localizations.translate(i18Local
+                                      .homeShowcase
+                                      .summaryReportAdministredChildren) +
+                                  '(%)',
+                              key: _childrenTreatedPrecKey,
                               width: 180,
                             ),
                             DigitGridColumn(
@@ -136,64 +176,128 @@ class _CustomSummaryReportState
                               key: _usedTablet_12_59monthKey,
                               width: 180,
                             ),
+                            // DigitGridColumn(
+                            //   label: localizations.translate(
+                            //       i18Local.homeShowcase.summaryReportRedVas),
+                            //   key: _zeroDoseChildrenKey,
+                            //   width: 180,
+                            // ),
+                            // DigitGridColumn(
+                            //   label: localizations.translate(
+                            //       i18Local.homeShowcase.summaryReportBlueVas),
+                            //   key: _refusalsCasesKey,
+                            //   width: 180,
+                            // ),
                             DigitGridColumn(
-                              label: localizations.translate(
-                                  i18Local.homeShowcase.summaryReportRedVas),
-                              key: _zeroDoseChildrenKey,
+                              label: localizations.translate(i18Local
+                                  .homeShowcase.summaryReportSPAQRedoseCount),
+                              key: _spaqRedoseCount,
                               width: 180,
                             ),
                             DigitGridColumn(
                               label: localizations.translate(
-                                  i18Local.homeShowcase.summaryReportBlueVas),
-                              key: _refusalsCasesKey,
+                                  i18Local.homeShowcase.summaryReportDrugUsed),
+                              key: _drugUsedKey,
+                              width: 180,
+                            ),
+                            DigitGridColumn(
+                              label: localizations.translate(i18Local
+                                  .homeShowcase.summaryReportDrugBalance),
+                              key: _drugBalanceKey,
                               width: 180,
                             ),
                           ],
                           rows: [
-                            for (final entry
-                                in sumamryReportState.data.entries) ...[
-                              DigitGridRow(
-                                [
-                                  DigitGridCell(
-                                    key: _dateKey,
-                                    value: entry.key,
-                                  ),
-                                  DigitGridCell(
-                                    key: _registeredChildrenKey,
-                                    value:
-                                        (entry.value[Constants.registered] ?? 0)
-                                            .toString(),
-                                  ),
-                                  DigitGridCell(
-                                    key: _administeredChildrenKey,
-                                    value:
-                                        (entry.value[Constants.administered] ??
+                            ...() {
+                              int previousDayBalance = 0;
+                              List<DigitGridRow> rows = [];
+
+                              for (final entry
+                                  in sumamryReportState.data.entries) {
+                                final currentBalance = _calculateDrugBalance(
+                                    entry, previousDayBalance);
+                                previousDayBalance =
+                                    int.tryParse(currentBalance) ?? 0;
+
+                                rows.add(
+                                  DigitGridRow(
+                                    [
+                                      DigitGridCell(
+                                        key: _dateKey,
+                                        value: entry.key,
+                                      ),
+                                      DigitGridCell(
+                                        key: _registeredChildrenKey,
+                                        value: (entry.value[
+                                                    Constants.registered] ??
                                                 0)
                                             .toString(),
+                                      ),
+                                      DigitGridCell(
+                                        key: _administeredChildrenKey,
+                                        value: (entry.value[
+                                                    Constants.administered] ??
+                                                0)
+                                            .toString(),
+                                      ),
+                                      DigitGridCell(
+                                        key: _childrenTreatedPrecKey,
+                                        value: _calculatePercentage(
+                                            entry.value[Constants.administered],
+                                            70),
+                                      ),
+                                      DigitGridCell(
+                                        key: _usedTablet_3_11monthKey,
+                                        value:
+                                            (entry.value[Constants.spaq1] ?? 0)
+                                                .toString(),
+                                      ),
+                                      DigitGridCell(
+                                        key: _usedTablet_12_59monthKey,
+                                        value:
+                                            (entry.value[Constants.spaq2] ?? 0)
+                                                .toString(),
+                                      ),
+                                      // DigitGridCell(
+                                      //   key: _zeroDoseChildrenKey,
+                                      //   value:
+                                      //       (entry.value[Constants.redVAS] ?? 0)
+                                      //           .toString(),
+                                      // ),
+                                      // DigitGridCell(
+                                      //   key: _refusalsCasesKey,
+                                      //   value:
+                                      //       (entry.value[Constants.blueVAS] ??
+                                      //               0)
+                                      //           .toString(),
+                                      // ),
+                                      DigitGridCell(
+                                        key: _spaqRedoseCount,
+                                        value: (entry.value[Constants
+                                                    .reDoseQuantityKey] ??
+                                                0)
+                                            .toString(),
+                                      ),
+                                      DigitGridCell(
+                                        key: _drugUsedKey,
+                                        value: ((entry.value[Constants
+                                                        .administered] ??
+                                                    0) +
+                                                (entry.value[Constants
+                                                        .reDoseQuantityKey] ??
+                                                    0))
+                                            .toString(),
+                                      ),
+                                      DigitGridCell(
+                                        key: _drugBalanceKey,
+                                        value: currentBalance,
+                                      ),
+                                    ],
                                   ),
-                                  DigitGridCell(
-                                    key: _usedTablet_3_11monthKey,
-                                    value: (entry.value[Constants.spaq1] ?? 0)
-                                        .toString(),
-                                  ),
-                                  DigitGridCell(
-                                    key: _usedTablet_12_59monthKey,
-                                    value: (entry.value[Constants.spaq2] ?? 0)
-                                        .toString(),
-                                  ),
-                                  DigitGridCell(
-                                    key: _zeroDoseChildrenKey,
-                                    value: (entry.value[Constants.redVAS] ?? 0)
-                                        .toString(),
-                                  ),
-                                  DigitGridCell(
-                                    key: _refusalsCasesKey,
-                                    value: (entry.value[Constants.blueVAS] ?? 0)
-                                        .toString(),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                );
+                              }
+                              return rows.reversed.toList();
+                            }(),
                           ],
                         ),
                       ),
