@@ -89,7 +89,8 @@ class CustomDeliverInterventionPageState
       DeliverInterventionState deliverInterventionState,
       FormGroup form,
       HouseholdMemberWrapper householdMember,
-      ProjectBeneficiaryModel projectBeneficiary) async {
+      ProjectBeneficiaryModel projectBeneficiary,
+      IndividualModel? selectedIndividual) async {
     final lat = locationState.latitude;
     final long = locationState.longitude;
     TaskModel taskModel = _getTaskModel(
@@ -106,6 +107,7 @@ class CustomDeliverInterventionPageState
       address: householdMember.members?.first.address?.first,
       latitude: lat,
       longitude: long,
+      selectedIndividual: selectedIndividual,
     );
     context.read<DeliverInterventionBloc>().add(
           DeliverInterventionSubmitEvent(
@@ -153,7 +155,8 @@ class CustomDeliverInterventionPageState
       DeliverInterventionState deliverInterventionState,
       FormGroup form,
       HouseholdMemberWrapper householdMember,
-      ProjectBeneficiaryModel projectBeneficiary) {
+      ProjectBeneficiaryModel projectBeneficiary,
+      IndividualModel? selectedIndividual) {
     if (context.mounted) {
       DigitComponentsUtils.showDialog(
         context,
@@ -170,7 +173,8 @@ class CustomDeliverInterventionPageState
             deliverInterventionState,
             form,
             householdMember,
-            projectBeneficiary);
+            projectBeneficiary,
+            selectedIndividual);
       });
     }
   }
@@ -367,7 +371,7 @@ class CustomDeliverInterventionPageState
                                     enableFixedDigitButton: true,
                                     footer: BlocBuilder<DeliverInterventionBloc,
                                         DeliverInterventionState>(
-                                      builder: (context, state) {
+                                      builder: (context, interventionState) {
                                         return DigitCard(
                                             margin: const EdgeInsets.only(
                                                 top: spacer2),
@@ -515,6 +519,8 @@ class CustomDeliverInterventionPageState
                                                             householdMemberWrapper,
                                                             projectBeneficiary!
                                                                 .first,
+                                                            state
+                                                                .selectedIndividual,
                                                           );
                                                         }
                                                         //   }
@@ -793,6 +799,7 @@ class CustomDeliverInterventionPageState
     AddressModel? address,
     double? latitude,
     double? longitude,
+    IndividualModel? selectedIndividual,
   }) {
     // Initialize task with oldTask if available, or create a new one
     var task = oldTask;
@@ -897,6 +904,9 @@ class CustomDeliverInterventionPageState
             widget.eligibilityAssessmentType == EligibilityAssessmentType.smc
                 ? EligibilityAssessmentStatus.smcDone.name
                 : EligibilityAssessmentStatus.vasDone.name,
+          ),
+          ...local_utils.getIndividualAdditionalFields(
+            selectedIndividual,
           ),
         ],
       ),

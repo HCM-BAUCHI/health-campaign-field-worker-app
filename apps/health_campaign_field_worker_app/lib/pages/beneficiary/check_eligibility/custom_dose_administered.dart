@@ -36,6 +36,7 @@ import '../../../models/entities/additional_fields_type.dart'
 import '../../../models/entities/identifier_types.dart';
 import '../../../router/app_router.dart';
 import '../../../utils/app_enums.dart';
+import '../../../utils/utils.dart' show getIndividualAdditionalFields;
 
 @RoutePage()
 class CustomDoseAdministeredPage extends LocalizedStatefulWidget {
@@ -268,6 +269,9 @@ class CustomDoseAdministeredPageState
                                                     .smcDone.name
                                                 : EligibilityAssessmentStatus
                                                     .vasDone.name,
+                                          ),
+                                          ...getIndividualAdditionalFields(
+                                            overViewBloc.selectedIndividual,
                                           ),
                                         ],
                                       ),
