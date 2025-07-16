@@ -27,6 +27,10 @@ class AdditionalFieldsTypeMapper extends EnumMapper<AdditionalFieldsType> {
     switch (value) {
       case "zeroDoseStatus":
         return AdditionalFieldsType.zeroDoseStatus;
+      case "selectedVaccines":
+        return AdditionalFieldsType.selectedVaccines;
+      case "noSelectedVaccines":
+        return AdditionalFieldsType.noSelectedVaccines;
       case "hasSideEffects":
         return AdditionalFieldsType.hasSideEffects;
       case "deliveryStrategy":
@@ -79,6 +83,10 @@ class AdditionalFieldsTypeMapper extends EnumMapper<AdditionalFieldsType> {
     switch (self) {
       case AdditionalFieldsType.zeroDoseStatus:
         return "zeroDoseStatus";
+      case AdditionalFieldsType.selectedVaccines:
+        return "selectedVaccines";
+      case AdditionalFieldsType.noSelectedVaccines:
+        return "noSelectedVaccines";
       case AdditionalFieldsType.hasSideEffects:
         return "hasSideEffects";
       case AdditionalFieldsType.deliveryStrategy:
