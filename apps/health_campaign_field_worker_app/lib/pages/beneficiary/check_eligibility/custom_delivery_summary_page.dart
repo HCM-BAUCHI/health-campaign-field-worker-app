@@ -179,6 +179,8 @@ class CustomDeliverySummaryPageState
                                       widget.eligibilityAssessmentType,
                                   isAdministration: true,
                                   task: widget.task,
+                                  projectBeneficiaryClientReferenceId: widget
+                                      .task.projectBeneficiaryClientReferenceId,
                                 ));
                                 // } else {
                                 //   final reloadState =

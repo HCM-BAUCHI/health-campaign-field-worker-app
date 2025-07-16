@@ -543,6 +543,9 @@ class _EligibilityChecklistViewPage
                                           widget.eligibilityAssessmentType,
                                       isAdministration: false,
                                       task: task,
+                                      projectBeneficiaryClientReferenceId: task
+                                              .projectBeneficiaryClientReferenceId ??
+                                          projectBeneficiaryClientReferenceId,
                                     ));
                                     // router.push(
                                     //   CustomHouseholdAcknowledgementRoute(

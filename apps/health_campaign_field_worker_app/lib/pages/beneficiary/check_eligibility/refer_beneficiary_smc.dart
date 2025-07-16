@@ -363,6 +363,10 @@ class CustomReferBeneficiarySMCPageState
                                               EligibilityAssessmentType.smc,
                                           isAdministration: false,
                                           task: task,
+                                          projectBeneficiaryClientReferenceId: task
+                                                  .projectBeneficiaryClientReferenceId ??
+                                              widget
+                                                  .projectBeneficiaryClientRefId,
                                         ),
                                         // CustomHouseholdAcknowledgementRoute(
                                         //   enableViewHousehold: true,
