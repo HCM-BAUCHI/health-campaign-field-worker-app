@@ -516,7 +516,11 @@ class _EligibilityChecklistViewPage
                                     final clientReferenceId =
                                         IdGen.i.identifier;
                                     final List<AdditionalField>
-                                        additionalFields = [];
+                                        additionalFields = [
+                                          ...getIndividualAdditionalFields(
+                                                      widget.individual,
+                                                    ),
+                                        ];
 
                                     if (ineligibilityReasons.isNotEmpty) {
                                       additionalFields.add(
