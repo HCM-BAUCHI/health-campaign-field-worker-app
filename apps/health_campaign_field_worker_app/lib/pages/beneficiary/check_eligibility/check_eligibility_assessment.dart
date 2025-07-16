@@ -408,9 +408,12 @@ class _EligibilityChecklistViewPage
                                                     version: 1,
                                                     fields: [
                                                       AdditionalField(
+                                                          'lng', longitude),
+                                                      AdditionalField(
+                                                          'lat', latitude),
+                                                      AdditionalField(
                                                           'boundaryCode',
-                                                          context
-                                                              .boundary.code),
+                                                          context.boundary.code)
                                                     ],
                                                   )),
                                             ),
@@ -504,6 +507,9 @@ class _EligibilityChecklistViewPage
                                                     .smcDone.name
                                                 : EligibilityAssessmentStatus
                                                     .vasDone.name,
+                                          ),
+                                          ...getIndividualAdditionalFields(
+                                            widget.individual,
                                           ),
                                         ],
                                       ),
@@ -1069,12 +1075,12 @@ class _EligibilityChecklistViewPage
       if (responses.containsKey(q2Key) &&
           responses[q2Key]!.isNotEmpty &&
           responses[q2Key] == yes) {
-            if (!isIneligible &&
-          (responses.containsKey(q6Key) && responses[q6Key]!.isNotEmpty)) {
-        ifAdministration = responses[q6Key] == yes ? false : true;
-        isIneligible = responses[q6Key] == yes ? true : false;
+        if (!isIneligible &&
+            (responses.containsKey(q6Key) && responses[q6Key]!.isNotEmpty)) {
+          ifAdministration = responses[q6Key] == yes ? false : true;
+          isIneligible = responses[q6Key] == yes ? true : false;
+        }
       }
-          }
       if (isIneligible) {
         for (var entry in responses.entries) {
           if (entry.key == q3Key || entry.key == q5Key) {
