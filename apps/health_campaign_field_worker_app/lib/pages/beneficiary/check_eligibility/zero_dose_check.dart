@@ -839,6 +839,8 @@ class ZeroDoseCheckPageState extends LocalizedState<ZeroDoseCheckPage> {
                                                                 : ZeroDoseStatus
                                                                     .done.name,
                                                       ),
+                                                      ...getIndividualAdditionalFields(
+                                                          widget.individual)
                                                     ],
                                                   ),
                                                   address: widget.individual
