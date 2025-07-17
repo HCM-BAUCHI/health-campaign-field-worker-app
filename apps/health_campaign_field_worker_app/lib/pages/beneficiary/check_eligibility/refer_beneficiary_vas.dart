@@ -12,6 +12,7 @@ import 'package:registration_delivery/pages/beneficiary/facility_selection.dart'
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
 import 'package:registration_delivery/widgets/inventory/no_facilities_assigned_dialog.dart';
 
+import '../../../models/entities/additional_fields_type.dart';
 import '../../../utils/app_enums.dart';
 import '../../../widgets/custom_back_navigation.dart';
 import '../../../widgets/localized.dart';
@@ -271,6 +272,12 @@ class CustomReferBeneficiaryVASPageState
                                                       'productVariantId',
                                                       widget.productVariantId,
                                                     ),
+                                                  AdditionalField(
+                                                    AdditionalFieldsType
+                                                        .cycleIndex
+                                                        .toValue(),
+                                                    "0${context.selectedCycle?.id}",
+                                                  ),
                                                   AdditionalField(
                                                     additional_fields_local
                                                         .AdditionalFieldsType

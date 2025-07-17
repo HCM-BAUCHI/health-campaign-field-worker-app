@@ -44,16 +44,18 @@ bool checkStatusSMC(List<TaskModel>? tasks, ProjectCycle? currentCycle) {
     return false;
   }
 
-  final date = DateTime.fromMillisecondsSinceEpoch(lastTaskCreatedTime);
-  final diff = DateTime.now().difference(date);
+  // final date = DateTime.fromMillisecondsSinceEpoch(lastTaskCreatedTime);
+  // final diff = DateTime.now().difference(date);
   final isLastCycleRunning = lastTaskCreatedTime >= currentCycle.startDate &&
       lastTaskCreatedTime <= currentCycle.endDate;
 
   if (isLastCycleRunning) {
-    if (lastTask.status == Status.delivered.name) {
-      return true;
+    if (lastTask.status == Status.delivered.name.toUpperCase() ||
+        lastTask.status == Status.administeredSuccess.name.toUpperCase() ||
+        lastTask.status == Status.visited.name.toUpperCase()) {
+      return false;
     }
-    return diff.inHours >= 24; // [TODO: Move gap between doses to config]
+    return false; // [TODO: Move gap between doses to config]
   }
 
   return true;
@@ -167,8 +169,12 @@ bool checkBeneficiaryReferredSMC(List<TaskModel>? tasks) {
   return successfulTask != null;
 }
 
-bool checkBeneficiaryInEligibleSMC(List<TaskModel>? tasks) {
-  if ((tasks ?? []).isEmpty) {
+bool checkBeneficiaryInEligibleSMC(
+    List<TaskModel>? tasks, ProjectCycle? currentCycle) {
+  if (currentCycle == null) {
+    return false;
+  }
+  if(tasks == null || tasks.isEmpty) {
     return false;
   }
   var successfulTask = tasks!
@@ -188,7 +194,19 @@ bool checkBeneficiaryInEligibleSMC(List<TaskModel>? tasks) {
       )
       .lastOrNull;
 
-  return successfulTask != null;
+  // return successfulTask != null;
+  final successfulTaskCreatedTime =
+      successfulTask?.clientAuditDetails?.createdTime;
+
+  if (successfulTaskCreatedTime == null) {
+    return false;
+  }
+
+  final isLastCycleRunning =
+      successfulTaskCreatedTime >= currentCycle.startDate &&
+          successfulTaskCreatedTime <= currentCycle.endDate;
+
+  return isLastCycleRunning;
 }
 
 bool checkBeneficiaryInEligibleVAS(List<TaskModel>? tasks) {

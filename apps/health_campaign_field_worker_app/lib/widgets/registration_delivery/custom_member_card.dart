@@ -120,13 +120,13 @@ class CustomMemberCard extends StatelessWidget {
         .toList();
   }
 
-  Widget statusWidget(context) {
+  Widget statusWidget(BuildContext context) {
     List<TaskModel>? smcTasks = _getSMCStatusData(context);
     List<TaskModel>? vasTasks = _getVACStatusData();
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
     bool isBeneficiaryReferredVAS = checkBeneficiaryReferredVAS(vasTasks);
 
-    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks);
+    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
     bool isBeneficiaryInEligibleVAS = checkBeneficiaryInEligibleVAS(vasTasks);
 
     final theme = Theme.of(context);
@@ -277,7 +277,7 @@ class CustomMemberCard extends StatelessWidget {
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
     bool isBeneficiaryReferredVAS = checkBeneficiaryReferredVAS(vasTasks);
 
-    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks);
+    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
     bool isBeneficiaryInEligibleVAS = checkBeneficiaryInEligibleVAS(vasTasks);
 
     final redosePendingStatus = smcAssessmentPendingStatus
