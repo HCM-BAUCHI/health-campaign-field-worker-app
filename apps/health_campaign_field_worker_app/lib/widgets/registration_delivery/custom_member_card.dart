@@ -155,7 +155,7 @@ class CustomMemberCard extends StatelessWidget {
         .toList();
   }
 
-  Widget statusWidget(context) {
+  Widget statusWidget(BuildContext context) {
     List<TaskModel>? smcTasks = _getSMCStatusData(context);
     // List<TaskModel>? vasTasks = _getVACStatusData();
     List<TaskModel>? zeroDoseTasks = _getZeroDoseStatusData(context);
@@ -164,7 +164,8 @@ class CustomMemberCard extends StatelessWidget {
         checkBeneficiaryIncompletementVaccine(zeroDoseTasks);
     bool isZeroDoseDelivered = checkBeneficiaryZeroDoseDelivered(zeroDoseTasks);
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
-    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks);
+    bool isBeneficiaryInEligibleSMC =
+        checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
     bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(tasks);
 
     final theme = Theme.of(context);
@@ -348,7 +349,8 @@ class CustomMemberCard extends StatelessWidget {
     final doseStatus = checkStatus(smcTasks, context.selectedCycle);
     bool smcAssessmentPendingStatus = assessmentSMCPending(smcTasks);
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
-    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks);
+    bool isBeneficiaryInEligibleSMC =
+        checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
     bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(tasks);
     final age = individual.dateOfBirth != null
         ? digits.DigitDateUtils.calculateAge(

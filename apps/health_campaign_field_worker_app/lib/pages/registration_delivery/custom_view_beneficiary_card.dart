@@ -175,15 +175,17 @@ class CustomViewBeneficiaryCardState
           currentCycle,
         );
 
-        final isIneligibleForSMC = util_local.checkBeneficiaryInEligibleSMC(taskData);
-        final isIneligibleForVAS = util_local.checkBeneficiaryInEligibleVAS(taskData);
+        final isIneligibleForSMC =
+            util_local.checkBeneficiaryInEligibleSMC(taskData, currentCycle);
+        final isIneligibleForVAS =
+            util_local.checkBeneficiaryInEligibleVAS(taskData);
 
         final isSMCDelivered =
             !util_local.checkStatusSMC(taskData, currentCycle);
         final isVASDelivered =
             !util_local.checkStatusVAS(taskData, currentCycle);
 
-        final isStatusReset = checkStatus(taskData, currentCycle);
+        final isStatusReset = util_local.checkStatusSMC(taskData, currentCycle);
 
         final isHeadOfHousehold = isNotEligible && (ageInYears >= 18);
 
@@ -214,7 +216,8 @@ class CustomViewBeneficiaryCardState
             cellKey: 'delivery',
             style: TextStyle(
               color: getTableCellTextColor(
-                isNotEligible: isNotEligible || isIneligibleForVAS || isIneligibleForSMC,
+                isNotEligible:
+                    isNotEligible || isIneligibleForVAS || isIneligibleForSMC,
                 taskdata: taskData,
                 isBeneficiaryRefused:
                     isBeneficiaryRefused || isBeneficiaryReferred,
@@ -405,14 +408,12 @@ class CustomViewBeneficiaryCardState
     List<TaskModel>? taskData,
   ) {
     if (statusKeys.isHeadOfHousehold) {
-      return localizations.translate(i18_local
-              .householdOverView.householdOverViewHouseholderHeadLabel);
-    }
-    else if(statusKeys.isNotEligible) {
-      return localizations.translate(i18
-              .householdOverView.householdOverViewNotEligibleIconLabel);
-    }
-    else if (statusKeys.isIneligibleForSMC || statusKeys.isIneligibleForVAS) {
+      return localizations.translate(
+          i18_local.householdOverView.householdOverViewHouseholderHeadLabel);
+    } else if (statusKeys.isNotEligible) {
+      return localizations.translate(
+          i18.householdOverView.householdOverViewNotEligibleIconLabel);
+    } else if (statusKeys.isIneligibleForSMC || statusKeys.isIneligibleForVAS) {
       return localizations.translate(
           i18.householdOverView.householdOverViewNotEligibleIconLabel);
     } else if (statusKeys.isBeneficiaryReferred) {
