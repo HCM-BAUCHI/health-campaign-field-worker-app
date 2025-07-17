@@ -139,7 +139,7 @@ bool redosePending(List<TaskModel>? tasks, ProjectCycle? selectedCycle) {
 
   return redosePending &&
       ( // selectedCycle.mandatoryWaitSinceLastCycleInDays == null ||
-          diff <= 30 * 60 * 1000
+          diff <= 60 * 60 * 1000
       // * (selectedCycle.mandatoryWaitSinceLastCycleInDays ?? 0)
       );
 }
