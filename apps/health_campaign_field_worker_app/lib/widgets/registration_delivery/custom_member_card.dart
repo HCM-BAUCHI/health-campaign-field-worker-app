@@ -155,7 +155,7 @@ class CustomMemberCard extends StatelessWidget {
         .toList();
   }
 
-  Widget statusWidget(context) {
+  Widget statusWidget(BuildContext context) {
     List<TaskModel>? smcTasks = _getSMCStatusData(context);
     // List<TaskModel>? vasTasks = _getVACStatusData();
     List<TaskModel>? zeroDoseTasks = _getZeroDoseStatusData(context);
@@ -164,7 +164,8 @@ class CustomMemberCard extends StatelessWidget {
         checkBeneficiaryIncompletementVaccine(zeroDoseTasks);
     bool isZeroDoseDelivered = checkBeneficiaryZeroDoseDelivered(zeroDoseTasks);
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
-    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks);
+    bool isBeneficiaryInEligibleSMC =
+        checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
     bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(tasks);
 
     final theme = Theme.of(context);
@@ -348,7 +349,8 @@ class CustomMemberCard extends StatelessWidget {
     final doseStatus = checkStatus(smcTasks, context.selectedCycle);
     bool smcAssessmentPendingStatus = assessmentSMCPending(smcTasks);
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
-    bool isBeneficiaryInEligibleSMC = checkBeneficiaryInEligibleSMC(smcTasks);
+    bool isBeneficiaryInEligibleSMC =
+        checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
     bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(tasks);
     final age = individual.dateOfBirth != null
         ? digits.DigitDateUtils.calculateAge(
@@ -428,6 +430,54 @@ class CustomMemberCard extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
+                final lastDose = tasks != null && tasks!.isNotEmpty
+                    ? tasks?.last.additionalFields?.fields
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.key ==
+                                  additional_fields_local
+                                      .AdditionalFieldsType.doseIndex
+                                      .toValue(),
+                            )
+                            ?.value ??
+                        '1'
+                    : '0';
+                final lastCycle = tasks != null && tasks!.isNotEmpty
+                    ? tasks?.last.additionalFields?.fields
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.key ==
+                                  additional_fields_local
+                                      .AdditionalFieldsType.cycleIndex
+                                      .toValue(),
+                            )
+                            ?.value ??
+                        '1'
+                    : '1';
+
+                final ProjectTypeModel projectType =
+                    RegistrationDeliverySingleton().projectType!;
+
+                if (projectType != null) {
+                  context.read<DeliverInterventionBloc>().add(
+                        DeliverInterventionEvent.setActiveCycleDose(
+                          lastDose: tasks != null && tasks!.isNotEmpty
+                              ? int.tryParse(
+                                    lastDose,
+                                  ) ??
+                                  1
+                              : 0,
+                          lastCycle: tasks != null && tasks!.isNotEmpty
+                              ? int.tryParse(
+                                    lastCycle,
+                                  ) ??
+                                  1
+                              : 1,
+                          individualModel: individual,
+                          projectType: projectType,
+                        ),
+                      );
+                }
                 // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
                 final currentCycle =
                     deliverState.cycle >= 0 ? deliverState.cycle : 0;
@@ -436,8 +486,6 @@ class CustomMemberCard extends StatelessWidget {
                 final currentDose =
                     deliverState.dose >= 0 ? deliverState.dose : 0;
 
-                final ProjectTypeModel projectType =
-                    RegistrationDeliverySingleton().projectType!;
                 final item = projectType
                     .cycles?[currentCycle - 1].deliveries?[currentDose - 1];
                 final productVariants =
