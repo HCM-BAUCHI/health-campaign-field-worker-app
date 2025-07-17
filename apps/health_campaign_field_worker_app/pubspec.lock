@@ -296,6 +296,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.3"
+  change_app_package_name:
+    dependency: "direct dev"
+    description:
+      name: change_app_package_name
+      sha256: "8e43b754fe960426904d77ed4c62fa8c9834deaf6e293ae40963fa447482c4c5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   characters:
     dependency: transitive
     description:
@@ -509,10 +517,10 @@ packages:
     dependency: "direct main"
     description:
       name: digit_data_model
-      sha256: "50446f677256efa55e89252f9ca7e794987b889a19db85e27ada43226fe9dc4d"
+      sha256: f0bce797c00f83e8ea6268dd89496890a9526b3fc13a1f1d9e5faf7dc3907c2e
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6-dev.2"
+    version: "1.0.6-dev.1"
   digit_dss:
     dependency: "direct main"
     description:
@@ -1344,10 +1352,10 @@ packages:
     dependency: "direct main"
     description:
       name: inventory_management
-      sha256: "2b3e900966fc88ca415bf117d08750cd221685a9db42b099cf456c8a9a04c2a7"
+      sha256: e3d53e1d913bb518061cfca63a5d9bf58f3da53f95e4511498080f24d5d861d7
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.5-dev.1"
+    version: "1.0.5-dev.2"
   io:
     dependency: transitive
     description:

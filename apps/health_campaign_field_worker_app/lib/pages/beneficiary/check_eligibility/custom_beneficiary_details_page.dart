@@ -119,46 +119,46 @@ class CustomBeneficiaryDetailsPageState
                   checkDeliveryType(element))
               .toList();
           final bloc = context.read<DeliverInterventionBloc>();
-          final lastDose = taskData != null && taskData.isNotEmpty
-              ? taskData.last.additionalFields?.fields
-                      .firstWhereOrNull(
-                        (e) =>
-                            e.key == AdditionalFieldsType.doseIndex.toValue(),
-                      )
-                      ?.value ??
-                  '1'
-              : '0';
-          final lastCycle = taskData != null && taskData.isNotEmpty
-              ? taskData.last.additionalFields?.fields
-                      .firstWhereOrNull(
-                        (e) =>
-                            e.key == AdditionalFieldsType.cycleIndex.toValue(),
-                      )
-                      ?.value ??
-                  '1'
-              : '1';
+          // final lastDose = taskData != null && taskData.isNotEmpty
+          //     ? taskData.last.additionalFields?.fields
+          //             .firstWhereOrNull(
+          //               (e) =>
+          //                   e.key == AdditionalFieldsType.doseIndex.toValue(),
+          //             )
+          //             ?.value ??
+          //         '1'
+          //     : '0';
+          // final lastCycle = taskData != null && taskData.isNotEmpty
+          //     ? taskData.last.additionalFields?.fields
+          //             .firstWhereOrNull(
+          //               (e) =>
+          //                   e.key == AdditionalFieldsType.cycleIndex.toValue(),
+          //             )
+          //             ?.value ??
+          //         '1'
+          //     : '1';
 
           // [TODO] Need to move this to Bloc Lisitner or consumer
-          if (projectType != null) {
-            bloc.add(
-              DeliverInterventionEvent.setActiveCycleDose(
-                lastDose: taskData != null && taskData.isNotEmpty
-                    ? int.tryParse(
-                          lastDose,
-                        ) ??
-                        1
-                    : 0,
-                lastCycle: taskData != null && taskData.isNotEmpty
-                    ? int.tryParse(
-                          lastCycle,
-                        ) ??
-                        1
-                    : 1,
-                individualModel: state.selectedIndividual,
-                projectType: projectType,
-              ),
-            );
-          }
+          // if (projectType != null) {
+          //   bloc.add(
+          //     DeliverInterventionEvent.setActiveCycleDose(
+          //       lastDose: taskData != null && taskData.isNotEmpty
+          //           ? int.tryParse(
+          //                 lastDose,
+          //               ) ??
+          //               1
+          //           : 0,
+          //       lastCycle: taskData != null && taskData.isNotEmpty
+          //           ? int.tryParse(
+          //                 lastCycle,
+          //               ) ??
+          //               1
+          //           : 1,
+          //       individualModel: state.selectedIndividual,
+          //       projectType: projectType,
+          //     ),
+          //   );
+          // }
 
           // Building the table content based on the DeliverInterventionState
 

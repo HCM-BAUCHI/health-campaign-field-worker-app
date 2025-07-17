@@ -15,6 +15,7 @@ import 'package:isar/isar.dart';
 import 'package:location/location.dart';
 import 'package:registration_delivery/data/repositories/local/household_global_search.dart';
 import 'package:registration_delivery/data/repositories/local/individual_global_search.dart';
+import 'package:inventory_management/data/repositories/remote/stock.dart';
 import 'package:registration_delivery/registration_delivery.dart';
 import 'package:survey_form/survey_form.dart';
 
@@ -392,7 +393,7 @@ class MainApplicationState extends State<MainApplication>
                                     StockSearchModel>>(),
                             stockRemoteRepository: ctx.read<
                                 RemoteRepository<StockModel,
-                                    StockSearchModel>>(),
+                                    StockSearchModel>>()  as StockRemoteRepository,
                             context: context,
                             attendanceLogLocalRepository: ctx.read<
                                 LocalRepository<AttendanceLogModel,
