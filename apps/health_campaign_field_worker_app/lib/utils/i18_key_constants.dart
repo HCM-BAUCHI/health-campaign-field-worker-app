@@ -207,6 +207,7 @@ class DeliverIntervention {
       'ALPHABETS_ONLY_VALIDATION';
 
   String get vaccinsSelectionLabel => 'VACCINS_DETAILS_LABEL';
+  String get vaccinsSelectionLabelForGroup => 'VACCINS_DETAILS_LABEL_FOR_GROUP';
 
   String get otherReasonLabel =>
       'DELIVER_INTERVENTION_OTHER_REASON_FOR_REDOSE_LABEL';

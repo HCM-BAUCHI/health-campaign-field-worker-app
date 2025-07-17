@@ -1,5 +1,6 @@
 // import 'dart:math';
 
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:math';
 
@@ -11,6 +12,7 @@ import 'package:digit_data_model/data/local_store/sql_store/tables/service.dart'
 import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/services/location_bloc.dart';
 import 'package:digit_ui_components/widgets/molecules/digit_card.dart';
+// import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -19,6 +21,7 @@ import 'package:health_campaign_field_worker_app/data/local_store/no_sql/schema/
 import 'package:registration_delivery/registration_delivery.dart';
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
 import '../../../blocs/localization/app_localization.dart';
+import '../../../data/repositories/custom_task.dart';
 import '../../../models/entities/additional_fields_type.dart';
 import '../../../models/entities/roles_type.dart';
 import 'package:registration_delivery/blocs/household_overview/household_overview.dart';
@@ -28,6 +31,7 @@ import '../../../router/app_router.dart';
 import '../../../utils/app_enums.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/date_utils.dart';
+import '../../../utils/utils.dart' show getIndividualAdditionalFields;
 import '../../../utils/environment_config.dart';
 import '../../../utils/extensions/extensions.dart';
 import '../../../widgets/localized.dart';
@@ -92,18 +96,11 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
   bool triggerLocalization = false;
   Set<String> selectedVaccines = {};
   List<String> selectedCodes = [];
+  List<String> noSelectedCodes = [];
+  int currentIndex = 0;
 
-  // List<AttributesModel>? initialAttributes;
-  // ServiceDefinitionModel? selectedServiceDefinition;
-  // bool isControllersInitialized = false;
-  // GlobalKey<FormState> checklistFormKey = GlobalKey<FormState>();
-
-  // [ADDED] Use a map to store controllers for each vaccine code for better management.
-  // This will store "YES" or "NO" for each vaccine.
-  final Map<String, TextEditingController> _vaccineControllers = {};
   final String _yes = "YES";
   final String _no = "NO";
-  // --- [MODIFICATION END] ---
 
   @override
   void initState() {
@@ -121,36 +118,336 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
             ),
           ));
     }
+    fetchTasksData();
     super.initState();
   }
 
-  // [ADDED] This function checks if all *enabled* vaccines have "YES" selected.
-  bool _isVaccinationSuccessful({
-    required List<String> allVaccineCodes,
-    required Map<String, int> vaccineAgeMap,
-    required int ageInDays,
-  }) {
-    // Loop through every vaccine defined in the checklist.
-    for (final code in allVaccineCodes) {
-      // First, determine if the current vaccine is enabled (age-appropriate).
-      final isEnabled = !(vaccineAgeMap.containsKey(code)
-          ? vaccineAgeMap[code]! >= ageInDays
-          : true);
+  Future<void> fetchTasksData() async {
+    final taskDataRepository =
+        context.read<LocalRepository<TaskModel, TaskSearchModel>>()
+            as CustomTaskLocalRepository;
 
-      // We only care about the response for vaccines that are enabled.
-      if (isEnabled) {
-        final response = _vaccineControllers[code]?.text;
-        // If an enabled vaccine was NOT answered "YES" (it's "NO" or empty),
-        // then the overall result is false.
-        if (response != _yes) {
+    List<TaskModel> tasksData = await taskDataRepository.search(
+      TaskSearchModel(
+        projectBeneficiaryClientReferenceId:
+            widget.projectBeneficiaryClientReferenceId != null
+                ? [widget.projectBeneficiaryClientReferenceId!]
+                : null,
+      ),
+    );
+
+    int lastCycle = context.selectedCycle!.id - 1;
+    lastCycle = lastCycle < 0 ? 0 : lastCycle;
+    List<TaskModel> lastVaccinationTask = tasksData.where(
+      (task) {
+        final fields = task.additionalFields?.fields;
+        if (fields == null) return false;
+        final hasCorrectCycle = fields.any(
+          (e) =>
+              e.key == AdditionalFieldsType.cycleIndex.toValue() &&
+              int.tryParse(e.value) == lastCycle,
+        );
+        final hasZeroDoseStatus = fields.any(
+          (e) =>
+              e.key ==
+              additional_fields_local.AdditionalFieldsType.zeroDoseStatus
+                  .toValue(),
+        );
+        final hasSelectedVaccines = fields.any(
+          (e) =>
+              e.key ==
+              additional_fields_local.AdditionalFieldsType.selectedVaccines
+                  .toValue(),
+        );
+        return hasCorrectCycle && hasZeroDoseStatus && hasSelectedVaccines;
+      },
+    ).toList();
+
+    if (lastVaccinationTask.isNotEmpty) {
+      // ignore: avoid_dynamic_calls
+      List<String> yesSelectedVaccines = lastVaccinationTask
+          .last.additionalFields!.fields
+          .firstWhere((e) =>
+              e.key ==
+              additional_fields_local.AdditionalFieldsType.selectedVaccines
+                  .toValue())
+          .value
+          .split('.')
+          .toList();
+      // ignore: avoid_dynamic_calls
+      List<String> noSelectedVaccines = lastVaccinationTask
+          .last.additionalFields!.fields
+          .firstWhere((e) =>
+              e.key ==
+              additional_fields_local.AdditionalFieldsType.noSelectedVaccines
+                  .toValue())
+          .value
+          .split('.')
+          .toList();
+      setState(() {
+        selectedCodes = yesSelectedVaccines;
+        noSelectedCodes = noSelectedVaccines;
+      });
+    }
+  }
+
+  bool isVaccineAllowedToShow({
+    required String vaccineCode,
+    required List<String> allVaccineCodes,
+  }) {
+    final match = RegExp(r'^(.*?)([_-])(\d+)$').firstMatch(vaccineCode);
+
+    // Vaccine code is not versioned (like just 'BCG'), allow by default
+    if (match == null) {
+      return true;
+    }
+
+    final base = match.group(1)!;
+    final sep = match.group(2)!;
+    final number = int.tryParse(match.group(3)!);
+
+    // Either no number or first dose — allow
+    if (number == null || number == 0) {
+      return true;
+    }
+
+    final prevCode = '$base$sep${number - 1}';
+
+    // If there's no previous code, allow by default
+    if (allVaccineCodes.contains(prevCode) == false) {
+      return true;
+    }
+
+    // Allow only if previous code was selected as "YES"
+    return selectedCodes.contains(prevCode);
+  }
+
+  void saveResponses(Map<String, String?> responses) {
+    final newlyNoSelected = <String>[];
+    for (var entry in responses.entries) {
+      final key = entry.key;
+      final value = entry.value;
+
+      if (value == _yes) {
+        // Remove from "no" if present
+        noSelectedCodes.remove(key);
+        // Add to "yes" if not present
+        if (!selectedCodes.contains(key)) {
+          selectedCodes.add(key);
+        }
+      } else if (value == _no) {
+        // Remove from "yes" if present
+        if (selectedCodes.remove(key)) {
+          // Moved from yes to no then add to newlyNoSeleced ones
+          newlyNoSelected.add(key);
+        }
+        // Add to "no" if not present
+        if (!noSelectedCodes.contains(key)) {
+          noSelectedCodes.add(key);
+        }
+      }
+    }
+
+    // Now remove dependent vaccines of the changed ones from selectedCodes to noSelectedCodes
+    for (final removedCode in newlyNoSelected) {
+      final match = RegExp(r'^(.*?)([_-])(\d+)$').firstMatch(removedCode);
+      if (match != null) {
+        final base = match.group(1)!;
+        final sep = match.group(2)!;
+        final num = int.tryParse(match.group(3)!);
+        if (num != null) {
+          // Remove all higher versioned vaccines (e.g., VPO-1, VPO-2)
+          final dependentCodesToRemove = selectedCodes.where((code) {
+            final m = RegExp(r'^(.*?)([_-])(\d+)$').firstMatch(code);
+            if (m == null) return false;
+            final b = m.group(1);
+            final s = m.group(2);
+            final n = int.tryParse(m.group(3)!);
+            return b == base && s == sep && n != null && n > num;
+          }).toList();
+
+          for (final dependent in dependentCodesToRemove) {
+            selectedCodes.remove(dependent);
+            if (!noSelectedCodes.contains(dependent)) {
+              noSelectedCodes.add(dependent);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  bool isValid({
+    required Map<String, String?> responses,
+    required List<String> allVaccineCodes,
+    required List<String> vaccineCodes,
+  }) {
+    for (int i = 0; i < vaccineCodes.length; i++) {
+      String vaccineCode = vaccineCodes[i];
+      if (isVaccineAllowedToShow(
+          vaccineCode: vaccineCode, allVaccineCodes: allVaccineCodes)) {
+        if (responses[vaccineCode] == null) {
           return false;
         }
       }
     }
 
-    // If we finished the loop without returning false, it means all
-    // enabled vaccines were answered "YES".
     return true;
+  }
+
+  String _numberToWords(int number) {
+    // Simple mapping for numbers 0-6, extend as needed
+    const words = [
+      'Zero',
+      'One',
+      'Two',
+      'Three',
+      'Four',
+      'Five',
+      'Six',
+    ];
+    if (number >= 0 && number < words.length) {
+      return words[number];
+    }
+    return number.toString();
+  }
+
+  Widget _buildVaccineRadioChecklist({
+    required int index,
+    required BuildContext context,
+    required Map<String, String> vaccineCodeToName,
+    required Map<String, String?> vaccineResponses,
+    required List<String> vaccineCodes,
+  }) {
+    final localizations = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return DigitCard(
+      padding: const EdgeInsets.fromLTRB(spacer4, spacer4, spacer4, spacer8),
+      margin: const EdgeInsets.fromLTRB(spacer3, spacer4, spacer3, spacer4),
+      children: [
+        Text(
+            localizations.translate(
+              '${i18_local.deliverIntervention.vaccinsSelectionLabelForGroup}_${_numberToWords(index).toUpperCase()}',
+            ),
+            style: theme.textTheme.headlineLarge),
+        const SizedBox(height: spacer4),
+        Column(
+          children: [
+            for (int i = 0; i < vaccineCodes.length; i++) ...{
+              Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.black,
+                  ),
+                ),
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    String vaccineCode = vaccineCodes[i];
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(
+                          width: spacer3,
+                        ),
+                        Expanded(
+                          child: Text(vaccineCodeToName[vaccineCode] ?? '',
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                              )),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                vaccineResponses[vaccineCode] = _yes;
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Radio<String>(
+                                  value: _yes,
+                                  groupValue: vaccineResponses[vaccineCode],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      vaccineResponses[vaccineCode] = value!;
+                                    });
+                                  },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                const SizedBox(
+                                  width: spacer1,
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    localizations.translate(i18_local
+                                        .householdDetails.capitalYesLabelText),
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: false,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                vaccineResponses[vaccineCode] = _no;
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Radio<String>(
+                                  value: _no,
+                                  groupValue: vaccineResponses[vaccineCode],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      vaccineResponses[vaccineCode] = value!;
+                                    });
+                                  },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                const SizedBox(
+                                  width: spacer1,
+                                ),
+                                Flexible(
+                                  child: Text(
+                                    localizations.translate(i18_local
+                                        .householdDetails.capitalNoLabelText),
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: false,
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: spacer4,
+              ),
+            }
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -162,6 +459,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
         ?.dateOfBirth;
     final theme = Theme.of(context);
     final ageInDays = calculateAgeInDaysFromDob(dob!);
+
     return BlocListener<ServiceBloc, ServiceState>(listener: (context, state) {
       state.maybeWhen(
         orElse: () {},
@@ -174,9 +472,9 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                   .toList()
                   .firstOrNull;
               final selectedCodesString = selectedAttribute?.value as String;
-              setState(() {
-                selectedCodes = selectedCodesString.split('.').toList();
-              });
+              // setState(() {
+              //   selectedCodes = selectedCodesString.split('.').toList();
+              // });
             }
           }
         },
@@ -188,13 +486,118 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
           vaccineDataList = appInitState.appConfiguration.vaccinationData ?? [];
         }
 
-        final Map<String, int> vaccineAgeMap = {
-          for (final v in vaccineDataList) v.code: v.ageInDays
-        };
+        final allVaccineCodes = vaccineDataList.map((e) => e.code).toList();
+
+        // final Map<String, int> vaccineAgeMap = {
+        //   for (final v in vaccineDataList) v.code: v.ageInDays
+        // };
 
         final Map<String, String> vaccineCodeToName = {
           for (final v in vaccineDataList) v.code: v.name
         };
+
+        final List<int> ageList =
+            vaccineDataList.map((e) => e.ageInDays).toSet().toList()..sort();
+
+        int lastIndex = ageList.length - 1;
+        for (int age in ageList) {
+          if (age > ageInDays) {
+            lastIndex = ageList.indexOf(age) - 1;
+            break;
+          }
+        }
+
+        final Map<int, List<String>> ageToVaccineCodes = {};
+        for (final v in vaccineDataList) {
+          ageToVaccineCodes.putIfAbsent(v.ageInDays, () => []);
+          ageToVaccineCodes[v.ageInDays]!.add(v.code);
+        }
+
+        Map<String, String?> currentResponses = {};
+        List<String> currentVaccineCodes = [];
+        for (int i = 0;
+            i < ageToVaccineCodes[ageList[currentIndex]]!.length;
+            i++) {
+          String vaccineCode = ageToVaccineCodes[ageList[currentIndex]]![i];
+          if (isVaccineAllowedToShow(
+              vaccineCode: vaccineCode, allVaccineCodes: allVaccineCodes)) {
+            currentVaccineCodes.add(
+              vaccineCode,
+            );
+          }
+        }
+
+        if (currentVaccineCodes.isEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() {
+              currentIndex++;
+            });
+          });
+          return const SizedBox.shrink();
+        }
+
+        for (int i = 0; i < currentVaccineCodes.length; i++) {
+          String vaccineCode = currentVaccineCodes[i];
+          if (selectedCodes.contains(vaccineCode)) {
+            currentResponses[vaccineCode] = _yes;
+          } else if (noSelectedCodes.contains(vaccineCode)) {
+            currentResponses[vaccineCode] = _no;
+          }
+        }
+
+        if (currentIndex < lastIndex) {
+          return ScrollableContent(
+            header: const Column(children: [
+              CustomBackNavigationHelpHeaderWidget(
+                showHelp: false,
+              )
+            ]),
+            enableFixedDigitButton: true,
+            footer: DigitCard(
+              margin: const EdgeInsets.fromLTRB(0, kPadding, 0, 0),
+              padding: const EdgeInsets.fromLTRB(kPadding, 0, kPadding, 0),
+              children: [
+                DigitElevatedButton(
+                  onPressed: () async {
+                    if (!isValid(
+                        responses: currentResponses,
+                        allVaccineCodes: allVaccineCodes,
+                        vaccineCodes: currentVaccineCodes)) {
+                      await DigitToast.show(
+                        context,
+                        options: DigitToastOptions(
+                          localizations.translate(
+                            i18.common.corecommonRequired,
+                          ),
+                          true,
+                          theme,
+                        ),
+                      );
+                      return;
+                    }
+                    saveResponses(currentResponses);
+                    setState(() {
+                      currentIndex++;
+                    });
+                  },
+                  child: Text(
+                    localizations.translate(i18.common.coreCommonNext),
+                  ),
+                )
+              ],
+            ),
+            children: [
+              _buildVaccineRadioChecklist(
+                context: context,
+                index: currentIndex,
+                vaccineCodeToName: vaccineCodeToName,
+                vaccineResponses: currentResponses,
+                vaccineCodes: currentVaccineCodes,
+              ),
+            ],
+          );
+        }
+
         return PopScope(
             canPop: true,
             child: Scaffold(body: BlocBuilder<LocationBloc, LocationState>(
@@ -253,14 +656,31 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                               children: [
                                 DigitElevatedButton(
                                   onPressed: () async {
-                                    /*submitTriggered = true;
-                                    final isValid = checklistFormKey
-                                        .currentState
-                                        ?.validate();
-                                    if (!isValid!) {
+                                    if (!isValid(
+                                        responses: currentResponses,
+                                        allVaccineCodes: allVaccineCodes,
+                                        vaccineCodes: currentVaccineCodes)) {
+                                      await DigitToast.show(
+                                        context,
+                                        options: DigitToastOptions(
+                                          localizations.translate(
+                                            i18.common.corecommonRequired,
+                                          ),
+                                          true,
+                                          theme,
+                                        ),
+                                      );
                                       return;
                                     }
+                                    saveResponses(currentResponses);
+
+                                    submitTriggered = true;
                                     final itemsAttributes = initialAttributes;
+
+                                    final nonEmptySelectedCodes = selectedCodes
+                                        .where((e) => e.trim().isNotEmpty)
+                                        .toList();
+
                                     for (int i = 0;
                                         i < initialAttributes!.length;
                                         i++) {
@@ -271,7 +691,11 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                       if (itemsAttributes?[i].dataType ==
                                               'MultiValueList' &&
                                           controller[i].text == '') {
-                                        controller[i].text = 'NOT_SELECTED';
+                                        controller[i].text =
+                                            (nonEmptySelectedCodes.isNotEmpty
+                                                ? nonEmptySelectedCodes
+                                                    .join('.')
+                                                : 'NOT_SELECTED');
                                       }
                                       if (itemsAttributes?[i].required ==
                                               true &&
@@ -314,63 +738,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                         }
                                       }
                                     }
-                                    triggerLocalization = true;*/
-                                    // NEW BLOCK
-                                    final multiValueAttribute =
-                                        initialAttributes?.firstWhere((e) =>
-                                            e.dataType == 'MultiValueList');
-
-                                    final allVaccineCodes = multiValueAttribute
-                                            ?.values
-                                            ?.where((v) => v != 'NOT_SELECTED')
-                                            .toList() ??
-                                        [];
-
-                                    // [MODIFIED] Get a list of codes where the user selected "YES".
-                                    final selectedCodes = allVaccineCodes
-                                        .where((code) =>
-                                            _vaccineControllers[code]?.text ==
-                                            _yes)
-                                        .toList();
-
-                                    // The original sequential check logic remains the same, using our new `selectedCodes` list.
-                                    for (final code in selectedCodes) {
-                                      final match =
-                                          RegExp(r'^(.*?)([_-])(\d+)$')
-                                              .firstMatch(code);
-                                      if (match != null) {
-                                        final base = match.group(1);
-                                        final sep =
-                                            match.group(2); // '_' or '-'
-                                        final num =
-                                            int.tryParse(match.group(3) ?? '');
-                                        if (num != null && num > 1) {
-                                          final prevCode =
-                                              '$base$sep${num - 1}';
-                                          if (!selectedCodes
-                                              .contains(prevCode)) {
-                                            DigitToast.show(
-                                              context,
-                                              options: DigitToastOptions(
-                                                'You have not selected ${vaccineCodeToName[prevCode] ?? prevCode}.',
-                                                true,
-                                                theme,
-                                              ),
-                                            );
-                                            return;
-                                          }
-                                        }
-                                      }
-                                    }
-
-                                    // [ADDED] Call our new function to determine if the vaccination was successful.
-                                    final isVaccinationSuccessful =
-                                        _isVaccinationSuccessful(
-                                      allVaccineCodes: allVaccineCodes,
-                                      vaccineAgeMap: vaccineAgeMap,
-                                      ageInDays: ageInDays,
-                                    );
-                                    // +++ END of NEW Block 1 +++
+                                    triggerLocalization = true;
 
                                     final shouldSubmit = await DigitDialog.show(
                                       context,
@@ -385,7 +753,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                           label: localizations.translate(
                                             i18.common.coreCommonSubmit,
                                           ),
-                                          /* action: (ctx) {
+                                          action: (ctx) {
                                             final referenceId =
                                                 IdGen.i.identifier;
                                             List<ServiceAttributesModel>
@@ -467,65 +835,7 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                   ],
                                                 ),
                                               ));
-                                            }*/
-                                          action: (ctx) {
-                                            final referenceId =
-                                                IdGen.i.identifier;
-
-                                            // [MODIFIED] A simpler way to build the attributes payload.
-                                            final attributes = initialAttributes
-                                                    ?.map((attribute) {
-                                                  String value;
-                                                  if (attribute.dataType ==
-                                                      'MultiValueList') {
-                                                    // Join the codes of vaccines marked "YES"
-                                                    value =
-                                                        selectedCodes.isEmpty
-                                                            ? i18_survey_form
-                                                                .surveyForm
-                                                                .notSelectedKey
-                                                            : selectedCodes
-                                                                .join('.');
-                                                  } else {
-                                                    // For any other attribute type, we are not collecting data on this page.
-                                                    value = i18_survey_form
-                                                        .surveyForm
-                                                        .notSelectedKey;
-                                                  }
-
-                                                  return ServiceAttributesModel(
-                                                    auditDetails: AuditDetails(
-                                                      createdBy: context
-                                                          .loggedInUserUuid,
-                                                      createdTime: context
-                                                          .millisecondsSinceEpoch(),
-                                                    ),
-                                                    attributeCode:
-                                                        '${attribute.code}',
-                                                    dataType:
-                                                        attribute.dataType,
-                                                    clientReferenceId:
-                                                        IdGen.i.identifier,
-                                                    referenceId: referenceId,
-                                                    value: value,
-                                                    rowVersion: 1,
-                                                    tenantId:
-                                                        attribute.tenantId,
-                                                    additionalFields:
-                                                        ServiceAttributesAdditionalFields(
-                                                      version: 1,
-                                                      fields: [
-                                                        AdditionalField(
-                                                            'latitude',
-                                                            latitude),
-                                                        AdditionalField(
-                                                            'longitude',
-                                                            longitude),
-                                                      ],
-                                                    ),
-                                                  );
-                                                }).toList() ??
-                                                [];
+                                            }
 
                                             context.read<ServiceBloc>().add(
                                                   ServiceCreateEvent(
@@ -579,10 +889,10 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                                 'boundaryCode',
                                                                 context.boundary
                                                                     .code),
-                                                            AdditionalField(
-                                                              'vaccinationsuccessful',
-                                                              isVaccinationSuccessful,
-                                                            ),
+                                                            // AdditionalField(
+                                                            //   'vaccinationsuccessful',
+                                                            //   isVaccinationSuccessful,
+                                                            // ),
                                                           ],
                                                         )),
                                                   ),
@@ -641,6 +951,20 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                 .zeroDoseStatus
                                                 .toValue(),
                                             ZeroDoseStatus.done.name,
+                                          ),
+                                          AdditionalField(
+                                            additional_fields_local
+                                                .AdditionalFieldsType
+                                                .selectedVaccines
+                                                .toValue(),
+                                            selectedCodes.join('.'),
+                                          ),
+                                          AdditionalField(
+                                            additional_fields_local
+                                                .AdditionalFieldsType
+                                                .noSelectedVaccines
+                                                .toValue(),
+                                            noSelectedCodes.join('.'),
                                           ),
                                         ];
 
@@ -824,6 +1148,22 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                     .toValue(),
                                                 ZeroDoseStatus.done.name,
                                               ),
+                                              AdditionalField(
+                                                additional_fields_local
+                                                    .AdditionalFieldsType
+                                                    .selectedVaccines
+                                                    .toValue(),
+                                                selectedCodes.join('.'),
+                                              ),
+                                              AdditionalField(
+                                                additional_fields_local
+                                                    .AdditionalFieldsType
+                                                    .noSelectedVaccines
+                                                    .toValue(),
+                                                noSelectedCodes.join('.'),
+                                              ),
+                                              ...getIndividualAdditionalFields(
+                                                  widget.individual)
                                             ],
                                           ),
                                           address: widget
@@ -893,133 +1233,12 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                               ],
                             ),
                             children: [
-                              Form(
-                                key: checklistFormKey, //assigning key to form
-                                child: DigitCard(
-                                  padding: const EdgeInsets.all(spacer5),
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: spacer5, vertical: spacer3),
-                                  children: [
-                                    Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            localizations.translate(
-                                              i18_local.deliverIntervention
-                                                  .vaccinsSelectionLabel,
-                                            ),
-                                            style:
-                                                theme.textTheme.headlineLarge,
-                                          ),
-                                          const SizedBox(height: spacer5),
-                                          /* ...initialAttributes!.map((e) {
-                                            int index =
-                                                (initialAttributes ?? [])
-                                                    .indexOf(e);
-
-                                            return Column(children: [
-                                              if (e.dataType ==
-                                                  'MultiValueList') ...[
-                                                Align(
-                                                  alignment: Alignment.topLeft,
-                                                  child: Column(
-                                                    children: [
-                                                      Text(
-                                                        '${localizations.translate(
-                                                          '${selectedServiceDefinition?.code}.${e.code}',
-                                                        )} ',
-                                                        style: theme.textTheme
-                                                            .headlineSmall,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                const SizedBox(height: spacer4),
-                                                BlocBuilder<ServiceBloc,
-                                                    ServiceState>(
-                                                  builder: (context, state) {
-                                                    return buildTwoColumnCheckboxes(
-                                                      selectedCodes:
-                                                          selectedCodes,
-                                                      values: e.values!,
-                                                      index: index,
-                                                      vaccineCodeToName:
-                                                          vaccineCodeToName,
-                                                      vaccineAgeMap:
-                                                          vaccineAgeMap,
-                                                      ageInDays: ageInDays,
-                                                      controller:
-                                                          controller[index],
-                                                      onChanged: (code, value) {
-                                                        setState(() {
-                                                          if (value) {
-                                                            selectedCodes
-                                                                .add(code);
-                                                          } else {
-                                                            selectedCodes
-                                                                .remove(code);
-                                                          }
-                                                          // If you still need to update the controller for submission:
-                                                          controller[index]
-                                                                  .text =
-                                                              selectedCodes
-                                                                  .join('.');
-                                                        });
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                              ]
-                                            ]);
-                                          }).toList(),*/
-                                          //New implementation for radio buttons
-                                          ...initialAttributes!
-                                              .where((e) =>
-                                                  e.dataType ==
-                                                  'MultiValueList')
-                                              .map((e) {
-                                            final vaccineCodes = e.values!
-                                                .where(
-                                                    (v) => v != 'NOT_SELECTED')
-                                                .toList();
-                                            return Column(
-                                              children:
-                                                  vaccineCodes.map((code) {
-                                                final isDisabled = vaccineAgeMap
-                                                        .containsKey(code)
-                                                    ? vaccineAgeMap[code]! >=
-                                                        ageInDays
-                                                    : true;
-
-                                                // This logic should now be inside your initState or serviceDefinitionFetch callback,
-                                                // but we ensure the controller exists here as a fallback.
-                                                if (!_vaccineControllers
-                                                    .containsKey(code)) {
-                                                  _vaccineControllers[code] =
-                                                      TextEditingController();
-                                                }
-
-                                                return _buildVaccineRadioRow(
-                                                  context: context,
-                                                  vaccineName:
-                                                      vaccineCodeToName[code] ??
-                                                          code,
-                                                  isDisabled: isDisabled,
-                                                  controller:
-                                                      _vaccineControllers[
-                                                          code]!,
-                                                );
-                                              }).toList(),
-                                            );
-                                          }).toList(),
-
-                                          const SizedBox(
-                                            height: 15,
-                                          ),
-                                        ])
-                                  ],
-                                ),
+                              _buildVaccineRadioChecklist(
+                                context: context,
+                                index: currentIndex,
+                                vaccineCodeToName: vaccineCodeToName,
+                                vaccineResponses: currentResponses,
+                                vaccineCodes: currentVaccineCodes,
                               ),
                             ],
                           );
@@ -1033,153 +1252,6 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
       },
     ));
   }
-}
-
-/*class CustomDigitCheckboxTile extends StatelessWidget {
-  final bool value;
-  final String label;
-  final ValueChanged<bool>? onChanged;
-  final EdgeInsets? margin;
-  final EdgeInsets? padding;
-  final bool isDisabled;
-
-  const CustomDigitCheckboxTile({
-    this.value = false,
-    required this.label,
-    this.onChanged,
-    this.padding,
-    this.margin,
-    this.isDisabled = false,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: padding ?? const EdgeInsets.all(0),
-      child: InkWell(
-        onTap:
-            isDisabled ? null : () => onChanged?.call(!value), // 3. Disable tap
-        child: Padding(
-          padding: const EdgeInsets.only(left: 0, bottom: kPadding * 2),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              value
-                  ? const CheckboxIcon(
-                      value: true,
-                    )
-                  : const CheckboxIcon(),
-              const SizedBox(width: kPadding * 2),
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: isDisabled
-                            ? Colors.grey
-                            : Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-Widget buildTwoColumnCheckboxes({
-  required List<String> values,
-  required int index,
-  required Map<String, String> vaccineCodeToName,
-  required Map<String, int> vaccineAgeMap,
-  required int ageInDays,
-  required TextEditingController controller,
-  required void Function(String code, bool value) onChanged,
-  required List<String> selectedCodes,
-}) {
-  final filtered = values.where((e) => e != 'NOT_SELECTED').toList();
-  final mid = (filtered.length / 2).ceil();
-  final firstCol = filtered.sublist(0, mid);
-  final secondCol = filtered.sublist(mid);
-
-  Widget buildCol(List<String> col) => Column(
-        children: col
-            .map((code) => CustomDigitCheckboxTile(
-                  label: vaccineCodeToName.containsKey(code)
-                      ? vaccineCodeToName[code] ?? code
-                      : code,
-                  isDisabled: vaccineAgeMap.containsKey(code)
-                      ? vaccineAgeMap[code]! >= ageInDays
-                      : true,
-                  // value: controller.text.split('.').contains(code),
-                  value: selectedCodes.contains(code),
-                  onChanged: (value) => onChanged(code, value),
-                ))
-            .toList(),
-      );
-
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(child: buildCol(firstCol)),
-      const SizedBox(width: 16),
-      Expanded(child: buildCol(secondCol)),
-    ],
-  );
-}*/
-
-// [ADDED] This new helper builds a row with a vaccine name and Yes/No radio buttons.
-Widget _buildVaccineRadioRow({
-  required BuildContext context,
-  required String vaccineName,
-  required bool isDisabled,
-  required TextEditingController controller,
-}) {
-  final theme = Theme.of(context);
-  final localizations = AppLocalizations.of(context);
-
-// [ADDED] Wrap the entire content in a DigitCard for consistent UI.
-
-  return DigitCard(
-    margin: const EdgeInsets.only(top: kPadding, bottom: kPadding),
-    children: [
-      Padding(
-        padding: const EdgeInsets.all(kPadding), // Add some internal padding
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              vaccineName,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: isDisabled ? theme.disabledColor : null,
-              ),
-            ),
-            const SizedBox(height: 8),
-            RadioGroup<String>.builder(
-              direction: Axis.vertical,
-              groupValue: controller.text,
-              onChanged: isDisabled
-                  ? null // Disable selection if the vaccine is not age-appropriate
-                  : (value) {
-                      // We need to use setState here to update the UI when a radio button is clicked.
-                      // This is a small but important detail. We find the State object to call setState.
-                      (context as Element).markNeedsBuild();
-                      controller.text = value ?? '';
-                    },
-              items: const ["YES", "NO"],
-              itemBuilder: (item) => RadioButtonBuilder(
-                localizations.translate(
-                  'CORE_COMMON_${item.trim().toUpperCase()}',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
 }
 
 int calculateAgeInDaysFromDob(String dobString) {
