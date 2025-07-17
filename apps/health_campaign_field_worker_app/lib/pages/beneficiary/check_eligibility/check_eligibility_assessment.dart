@@ -501,7 +501,7 @@ class _EligibilityChecklistViewPage
                                   bool isBeneficiaryReferredSMC =
                                       checkBeneficiaryReferredSMC(smcTasks);
                                   bool isBeneficiaryInEligibleSMC =
-                                      checkBeneficiaryInEligibleSMC(smcTasks);
+                                      checkBeneficiaryInEligibleSMC(smcTasks, currentCycle);
                                   bool isSMCDelivered = taskData == null
                                       ? false
                                       : taskData.isNotEmpty &&

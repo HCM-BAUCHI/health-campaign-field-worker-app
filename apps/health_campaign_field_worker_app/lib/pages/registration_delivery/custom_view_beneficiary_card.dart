@@ -181,7 +181,7 @@ class CustomViewBeneficiaryCardState
             util_local.checkBeneficiaryReferredVAS(taskData);
 
         final isIneligibleForSMC =
-            util_local.checkBeneficiaryInEligibleSMC(taskData);
+            util_local.checkBeneficiaryInEligibleSMC(taskData, currentCycle);
         final isIneligibleForVAS =
             util_local.checkBeneficiaryInEligibleVAS(taskData);
 
@@ -198,7 +198,7 @@ class CustomViewBeneficiaryCardState
                 : false;
         // !util_local.checkStatusVAS(taskData, currentCycle);
 
-        final isStatusReset = checkStatus(taskData, currentCycle);
+        final isStatusReset = util_local.checkStatusSMC(taskData, currentCycle);
 
         final rowTableData = [
           DigitTableData(
