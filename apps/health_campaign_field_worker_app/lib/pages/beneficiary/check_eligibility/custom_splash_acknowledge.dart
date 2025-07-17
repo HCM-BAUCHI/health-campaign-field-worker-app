@@ -59,6 +59,8 @@ class CustomSplashAcknowledgementPageState
               eligibilityAssessmentType: widget.eligibilityAssessmentType,
               isAdministration: false,
               task: widget.task,
+              projectBeneficiaryClientReferenceId:
+                  widget.task?.projectBeneficiaryClientReferenceId,
             ));
           } catch (e) {
             rethrow;
