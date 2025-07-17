@@ -21,6 +21,7 @@ import 'package:digit_data_model/data_model.dart';
 import 'package:registration_delivery/models/entities/task.dart';
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
 // import '../../../blocs/service/service.dart' as service;
+import '../../../models/entities/additional_fields_type.dart';
 import '../../../models/entities/roles_type.dart';
 import '../../../router/app_router.dart';
 import '../../../utils/app_enums.dart';
@@ -517,6 +518,11 @@ class _EligibilityChecklistViewPage
                                         IdGen.i.identifier;
                                     final List<AdditionalField>
                                         additionalFields = [
+                                          AdditionalField(
+                                            AdditionalFieldsType.cycleIndex
+                                                .toValue(),
+                                            "0${context.selectedCycle?.id}",
+                                          ),
                                           ...getIndividualAdditionalFields(
                                                       widget.individual,
                                                     ),

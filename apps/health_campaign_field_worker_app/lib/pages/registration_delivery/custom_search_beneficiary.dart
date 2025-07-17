@@ -904,14 +904,14 @@ class _CustomSearchBeneficiaryPageState
                           descriptionText +=
                               "\n ${localizations.translate(i18_local.beneficiaryDetails.spaq2DoseUnit)}";
                         }
-                        if (blueVas == 0) {
-                          descriptionText +=
-                              "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
-                        }
-                        if (redVas == 0) {
-                          descriptionText +=
-                              "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
-                        }
+                        // if (blueVas == 0) {
+                        //   descriptionText +=
+                        //       "\n ${localizations.translate(i18_local.beneficiaryDetails.blueVasZeroQuantity)}";
+                        // }
+                        // if (redVas == 0) {
+                        //   descriptionText +=
+                        //       "\n ${localizations.translate(i18_local.beneficiaryDetails.redVasZeroQuantity)}";
+                        // }
 
                         if ((spaq1 > 0 ||
                             spaq2 > 0 ||

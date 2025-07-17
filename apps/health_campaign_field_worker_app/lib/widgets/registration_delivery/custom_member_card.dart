@@ -80,7 +80,19 @@ class CustomMemberCard extends StatelessWidget {
     required this.variant,
   });
 
-  List<TaskModel>? _getSMCStatusData() {
+  List<TaskModel>? _getSMCStatusData(BuildContext context) {
+    List<TaskModel>? tasks = this
+        .tasks
+        ?.where((e) =>
+            e.additionalFields?.fields
+                .where((field) =>
+                    field.key ==
+                        additional_fields_local.AdditionalFieldsType.cycleIndex
+                            .toValue() &&
+                    int.tryParse(field.value) == context.selectedCycle?.id)
+                .isNotEmpty ??
+            false)
+        .toList();
     return tasks
         ?.where((e) =>
             e.additionalFields?.fields.firstWhereOrNull(
@@ -109,7 +121,7 @@ class CustomMemberCard extends StatelessWidget {
   }
 
   Widget statusWidget(context) {
-    List<TaskModel>? smcTasks = _getSMCStatusData();
+    List<TaskModel>? smcTasks = _getSMCStatusData(context);
     List<TaskModel>? vasTasks = _getVACStatusData();
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
     bool isBeneficiaryReferredVAS = checkBeneficiaryReferredVAS(vasTasks);
@@ -257,7 +269,7 @@ class CustomMemberCard extends StatelessWidget {
   Widget actionButton(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.digitTextTheme(context);
-    List<TaskModel>? smcTasks = _getSMCStatusData();
+    List<TaskModel>? smcTasks = _getSMCStatusData(context);
     List<TaskModel>? vasTasks = _getVACStatusData();
     final doseStatus = checkStatus(smcTasks, context.selectedCycle);
     bool smcAssessmentPendingStatus = assessmentSMCPending(smcTasks);
@@ -298,16 +310,57 @@ class CustomMemberCard extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
+                final ProjectTypeModel projectType =
+                    RegistrationDeliverySingleton().projectType!;
+                final lastDose = tasks != null && tasks!.isNotEmpty
+                    ? tasks?.last.additionalFields?.fields
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.key ==
+                                  additional_fields_local
+                                      .AdditionalFieldsType.doseIndex
+                                      .toValue(),
+                            )
+                            ?.value ??
+                        '1'
+                    : '0';
+                final lastCycle = tasks != null && tasks!.isNotEmpty
+                    ? tasks?.last.additionalFields?.fields
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.key ==
+                                  additional_fields_local
+                                      .AdditionalFieldsType.cycleIndex
+                                      .toValue(),
+                            )
+                            ?.value ??
+                        '1'
+                    : '1';
+                final bloc = context.read<DeliverInterventionBloc>();
+                bloc.add(
+                  DeliverInterventionEvent.setActiveCycleDose(
+                    lastDose: tasks != null && tasks!.isNotEmpty
+                        ? int.tryParse(
+                              lastDose,
+                            ) ??
+                            1
+                        : 0,
+                    lastCycle: tasks != null && tasks!.isNotEmpty
+                        ? int.tryParse(
+                              lastCycle,
+                            ) ??
+                            1
+                        : 1,
+                    individualModel: individual,
+                    projectType: projectType,
+                  ),
+                );
                 // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
-                final currentCycle =
-                    deliverState.cycle >= 0 ? deliverState.cycle : 0;
+                 final currentCycle = deliverState.cycle >= 0 ? deliverState.cycle : 0;
 
                 // Calculate the current dose. If deliverInterventionState.dose is negative, set it to 0.
                 final currentDose =
                     deliverState.dose >= 0 ? deliverState.dose : 0;
-
-                final ProjectTypeModel projectType =
-                    RegistrationDeliverySingleton().projectType!;
                 final item = projectType
                     .cycles?[currentCycle - 1].deliveries?[currentDose - 1];
                 final productVariants =
