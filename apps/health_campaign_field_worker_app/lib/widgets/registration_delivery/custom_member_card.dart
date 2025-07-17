@@ -428,6 +428,54 @@ class CustomMemberCard extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
+                final lastDose = tasks != null && tasks!.isNotEmpty
+                    ? tasks?.last.additionalFields?.fields
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.key ==
+                                  additional_fields_local
+                                      .AdditionalFieldsType.doseIndex
+                                      .toValue(),
+                            )
+                            ?.value ??
+                        '1'
+                    : '0';
+                final lastCycle = tasks != null && tasks!.isNotEmpty
+                    ? tasks?.last.additionalFields?.fields
+                            .firstWhereOrNull(
+                              (e) =>
+                                  e.key ==
+                                  additional_fields_local
+                                      .AdditionalFieldsType.cycleIndex
+                                      .toValue(),
+                            )
+                            ?.value ??
+                        '1'
+                    : '1';
+
+                final ProjectTypeModel projectType =
+                    RegistrationDeliverySingleton().projectType!;
+
+                if (projectType != null) {
+                  context.read<DeliverInterventionBloc>().add(
+                        DeliverInterventionEvent.setActiveCycleDose(
+                          lastDose: tasks != null && tasks!.isNotEmpty
+                              ? int.tryParse(
+                                    lastDose,
+                                  ) ??
+                                  1
+                              : 0,
+                          lastCycle: tasks != null && tasks!.isNotEmpty
+                              ? int.tryParse(
+                                    lastCycle,
+                                  ) ??
+                                  1
+                              : 1,
+                          individualModel: individual,
+                          projectType: projectType,
+                        ),
+                      );
+                }
                 // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
                 final currentCycle =
                     deliverState.cycle >= 0 ? deliverState.cycle : 0;
@@ -436,8 +484,6 @@ class CustomMemberCard extends StatelessWidget {
                 final currentDose =
                     deliverState.dose >= 0 ? deliverState.dose : 0;
 
-                final ProjectTypeModel projectType =
-                    RegistrationDeliverySingleton().projectType!;
                 final item = projectType
                     .cycles?[currentCycle - 1].deliveries?[currentDose - 1];
                 final productVariants =
