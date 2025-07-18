@@ -70,6 +70,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     returnStockList = await (stockDataRepository).search(StockSearchModel(
         transactionType: [TransactionType.dispatched.toValue()]));
     for (var element in taskList) {
+      if (element.status == null) continue;
       final status = StatusMapper.fromValue(element.status);
 
       if (status == Status.administeredSuccess) {
