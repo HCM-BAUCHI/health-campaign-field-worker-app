@@ -255,7 +255,7 @@ class CaregiverConsentPageState extends LocalizedState<CaregiverConsentPage> {
                         context,
                         options: DigitToastOptions(
                           localizations.translate(
-                              i18_local.common.coreCommonConsentReasonRequired),
+                              i18.common.corecommonRequired),
                           true,
                           theme,
                         ),
