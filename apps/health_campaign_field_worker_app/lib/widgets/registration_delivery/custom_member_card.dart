@@ -89,7 +89,21 @@ class CustomMemberCard extends StatelessWidget {
     required this.variant,
   });
 
-  List<TaskModel>? _getSMCStatusData(BuildContext context) {
+  bool _checkIfFutureTaskPresent(BuildContext context) {
+    List<TaskModel>? tasks = this.tasks;
+    if (tasks == null || tasks.isEmpty) {
+      return false;
+    }
+
+    return tasks?.firstWhereOrNull((e) =>
+            e.additionalFields?.fields.firstWhereOrNull((field) =>
+                field.key == AdditionalFieldsType.cycleIndex.toValue() &&
+                int.tryParse(field.value)! > context.selectedCycle!.id) !=
+            null) !=
+        null;
+  }
+
+  List<TaskModel>? _getCurrentCycleData(BuildContext context) {
     List<TaskModel>? tasks = this
         .tasks
         ?.where((e) =>
@@ -100,6 +114,11 @@ class CustomMemberCard extends StatelessWidget {
                 .isNotEmpty ??
             false)
         .toList();
+    return tasks;
+  }
+
+  List<TaskModel>? _getSMCStatusData(BuildContext context) {
+    List<TaskModel>? tasks = _getCurrentCycleData(context);
     return tasks
         ?.where((e) =>
             e.additionalFields?.fields.firstWhereOrNull(
@@ -114,16 +133,7 @@ class CustomMemberCard extends StatelessWidget {
   }
 
   List<TaskModel>? _getZeroDoseStatusData(BuildContext context) {
-    List<TaskModel>? tasks = this
-        .tasks
-        ?.where((e) =>
-            e.additionalFields?.fields
-                .where((field) =>
-                    field.key == AdditionalFieldsType.cycleIndex.toValue() &&
-                    int.tryParse(field.value) == context.selectedCycle?.id)
-                .isNotEmpty ??
-            false)
-        .toList();
+    List<TaskModel>? tasks = _getCurrentCycleData(context);
     return tasks
         ?.where((e) =>
             e.additionalFields?.fields.firstWhereOrNull(
@@ -156,6 +166,7 @@ class CustomMemberCard extends StatelessWidget {
   }
 
   Widget statusWidget(BuildContext context) {
+    bool isFutureTaskPresent = _checkIfFutureTaskPresent(context);
     List<TaskModel>? smcTasks = _getSMCStatusData(context);
     // List<TaskModel>? vasTasks = _getVACStatusData();
     List<TaskModel>? zeroDoseTasks = _getZeroDoseStatusData(context);
@@ -166,7 +177,8 @@ class CustomMemberCard extends StatelessWidget {
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
     bool isBeneficiaryInEligibleSMC =
         checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
-    bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(tasks);
+    List<TaskModel>? currentTasks = _getCurrentCycleData(context);
+    bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(currentTasks);
 
     final theme = Theme.of(context);
     if (isHead) {
@@ -181,6 +193,9 @@ class CustomMemberCard extends StatelessWidget {
           iconColor: theme.colorScheme.error,
         ),
       );
+    }
+    if (isFutureTaskPresent) {
+      return Container();
     }
     if ((isSMCDelivered ||
             isBeneficiaryReferredSMC ||
@@ -344,6 +359,7 @@ class CustomMemberCard extends StatelessWidget {
   Widget actionButton(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.digitTextTheme(context);
+    bool isFutureTaskPresent = _checkIfFutureTaskPresent(context);
     List<TaskModel>? smcTasks = _getSMCStatusData(context);
     List<TaskModel>? zeroDoseTasks = _getZeroDoseStatusData(context);
     final doseStatus = checkStatus(smcTasks, context.selectedCycle);
@@ -351,7 +367,8 @@ class CustomMemberCard extends StatelessWidget {
     bool isBeneficiaryReferredSMC = checkBeneficiaryReferredSMC(smcTasks);
     bool isBeneficiaryInEligibleSMC =
         checkBeneficiaryInEligibleSMC(smcTasks, context.selectedCycle);
-    bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(tasks);
+    List<TaskModel>? currentTasks = _getCurrentCycleData(context);
+    bool hasBeneficiaryRefused = checkBeneficiaryRefusedSMC(currentTasks);
     final age = individual.dateOfBirth != null
         ? digits.DigitDateUtils.calculateAge(
             DateFormat(Constants.defaultDateFormat)
@@ -363,6 +380,9 @@ class CustomMemberCard extends StatelessWidget {
         ? true
         : redosePending(smcTasks, context.selectedCycle);
 
+    if (isFutureTaskPresent) {
+      return const Offstage();
+    }
     if (!isHead &&
         isNotEligibleSMC &&
         !isSMCDelivered &&
@@ -414,6 +434,52 @@ class CustomMemberCard extends StatelessWidget {
     }
     return BlocBuilder<DeliverInterventionBloc, DeliverInterventionState>(
         builder: (context, deliverState) {
+      final lastDose = tasks != null && tasks!.isNotEmpty
+          ? tasks?.last.additionalFields?.fields
+                  .firstWhereOrNull(
+                    (e) =>
+                        e.key ==
+                        additional_fields_local.AdditionalFieldsType.doseIndex
+                            .toValue(),
+                  )
+                  ?.value ??
+              '0'
+          : '0';
+      final lastCycle = tasks != null && tasks!.isNotEmpty
+          ? tasks?.last.additionalFields?.fields
+                  .firstWhereOrNull(
+                    (e) =>
+                        e.key ==
+                        additional_fields_local.AdditionalFieldsType.cycleIndex
+                            .toValue(),
+                  )
+                  ?.value ??
+              '1'
+          : '1';
+
+      final ProjectTypeModel projectType =
+          RegistrationDeliverySingleton().projectType!;
+
+      if (projectType != null) {
+        context.read<DeliverInterventionBloc>().add(
+              DeliverInterventionEvent.setActiveCycleDose(
+                lastDose: tasks != null && tasks!.isNotEmpty
+                    ? int.tryParse(
+                          lastDose,
+                        ) ??
+                        1
+                    : 0,
+                lastCycle: tasks != null && tasks!.isNotEmpty
+                    ? int.tryParse(
+                          lastCycle,
+                        ) ??
+                        1
+                    : 1,
+                individualModel: individual,
+                projectType: projectType,
+              ),
+            );
+      }
       return Column(
         children: [
           if (smcAssessmentPendingStatus &&
@@ -430,54 +496,6 @@ class CustomMemberCard extends StatelessWidget {
                 ),
               ),
               onPressed: () async {
-                final lastDose = tasks != null && tasks!.isNotEmpty
-                    ? tasks?.last.additionalFields?.fields
-                            .firstWhereOrNull(
-                              (e) =>
-                                  e.key ==
-                                  additional_fields_local
-                                      .AdditionalFieldsType.doseIndex
-                                      .toValue(),
-                            )
-                            ?.value ??
-                        '1'
-                    : '0';
-                final lastCycle = tasks != null && tasks!.isNotEmpty
-                    ? tasks?.last.additionalFields?.fields
-                            .firstWhereOrNull(
-                              (e) =>
-                                  e.key ==
-                                  additional_fields_local
-                                      .AdditionalFieldsType.cycleIndex
-                                      .toValue(),
-                            )
-                            ?.value ??
-                        '1'
-                    : '1';
-
-                final ProjectTypeModel projectType =
-                    RegistrationDeliverySingleton().projectType!;
-
-                if (projectType != null) {
-                  context.read<DeliverInterventionBloc>().add(
-                        DeliverInterventionEvent.setActiveCycleDose(
-                          lastDose: tasks != null && tasks!.isNotEmpty
-                              ? int.tryParse(
-                                    lastDose,
-                                  ) ??
-                                  1
-                              : 0,
-                          lastCycle: tasks != null && tasks!.isNotEmpty
-                              ? int.tryParse(
-                                    lastCycle,
-                                  ) ??
-                                  1
-                              : 1,
-                          individualModel: individual,
-                          projectType: projectType,
-                        ),
-                      );
-                }
                 // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
                 final currentCycle =
                     deliverState.cycle >= 0 ? deliverState.cycle : 0;
