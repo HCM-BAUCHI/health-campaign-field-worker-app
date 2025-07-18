@@ -466,33 +466,6 @@ class _CustomSearchBeneficiaryPageState
                                 ),
                               ),
                             ),
-                          if (isSearchByBeneficaryIdEnabled &&
-                              searchController.text.trim().isNotEmpty &&
-                              !isBeneficiaryIdValidPattern(
-                                  searchController.text.trim()))
-                            DigitInfoCard(
-                              description: localizations.translate(
-                                i18_local.searchBeneficiary
-                                    .beneficiaryIdValidInfoDescription,
-                              ),
-                              title: localizations.translate(
-                                i18.searchBeneficiary.beneficiaryInfoTitle,
-                              ),
-                            ),
-                          if (isSearchByMobileNumberEnabled &&
-                              searchController.text.trim().isNotEmpty &&
-                              searchController.text.trim().length !=
-                                  Constants.mobileNumberLength)
-                            DigitInfoCard(
-                              description: localizations.translate(
-                                i18_local.searchBeneficiary
-                                    .mobileNumberValidInfoDescription,
-                              ),
-                              title: localizations.translate(
-                                i18_local
-                                    .searchBeneficiary.mobileNumberInfoTitle,
-                              ),
-                            ),
                         ],
                       ),
                     ),

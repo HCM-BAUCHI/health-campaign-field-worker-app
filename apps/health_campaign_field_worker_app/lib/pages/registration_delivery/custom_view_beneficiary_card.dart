@@ -15,12 +15,14 @@ import 'package:registration_delivery/models/entities/status.dart';
 import 'package:registration_delivery/models/entities/task.dart';
 import 'package:registration_delivery/utils/constants.dart';
 import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
+import '../../models/entities/additional_fields_type.dart';
 import '../../utils/i18_key_constants.dart' as i18_local;
 import 'package:registration_delivery/utils/utils.dart';
 import 'package:registration_delivery/widgets/beneficiary/beneficiary_card.dart';
 import 'package:registration_delivery/widgets/localized.dart';
 
 import '../../utils/registration_delivery/utils_smc.dart' as util_local;
+import '../../utils/utils.dart';
 
 class CustomViewBeneficiaryCard extends LocalizedStatefulWidget {
   final HouseholdMemberWrapper householdMember;
@@ -114,19 +116,47 @@ class CustomViewBeneficiaryCardState
           }
         }).toList();
 
+        // final taskData = (projectBeneficiary ?? []).isNotEmpty &&
+        //         householdMember.tasks != null
+        //     ? householdMember.tasks
+        //         ?.where((element) =>
+        //             element.projectBeneficiaryClientReferenceId ==
+        //             projectBeneficiary?.first.clientReferenceId)
+        //         .toList()
+        //     : null;
+        // final referralData = (projectBeneficiary ?? []).isNotEmpty
+        //     ? householdMember.referrals
+        //         ?.where((element) =>
+        //             element.projectBeneficiaryClientReferenceId ==
+        //             projectBeneficiary?.first.clientReferenceId)
+        //         .toList()
+        //     : null;
+        final selectedCycleId = context.selectedCycle?.id;
+
         final taskData = (projectBeneficiary ?? []).isNotEmpty &&
                 householdMember.tasks != null
             ? householdMember.tasks
-                ?.where((element) =>
-                    element.projectBeneficiaryClientReferenceId ==
-                    projectBeneficiary?.first.clientReferenceId)
+                ?.where((task) =>
+                    task.projectBeneficiaryClientReferenceId ==
+                        projectBeneficiary?.first.clientReferenceId &&
+                    task.additionalFields?.fields.any((field) =>
+                            field.key ==
+                                AdditionalFieldsType.cycleIndex.toValue() &&
+                            int.tryParse(field.value) == selectedCycleId) ==
+                        true)
                 .toList()
             : null;
+
         final referralData = (projectBeneficiary ?? []).isNotEmpty
             ? householdMember.referrals
-                ?.where((element) =>
-                    element.projectBeneficiaryClientReferenceId ==
-                    projectBeneficiary?.first.clientReferenceId)
+                ?.where((referral) =>
+                    referral.projectBeneficiaryClientReferenceId ==
+                        projectBeneficiary?.first.clientReferenceId &&
+                    referral.additionalFields?.fields.any((field) =>
+                            field.key ==
+                                AdditionalFieldsType.cycleIndex.toValue() &&
+                            int.tryParse(field.value) == selectedCycleId) ==
+                        true)
                 .toList()
             : null;
         final sideEffects = taskData != null && taskData.isNotEmpty

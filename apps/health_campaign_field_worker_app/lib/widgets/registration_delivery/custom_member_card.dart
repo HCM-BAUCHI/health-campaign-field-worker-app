@@ -292,25 +292,7 @@ class CustomMemberCard extends StatelessWidget {
 
     return BlocBuilder<DeliverInterventionBloc, DeliverInterventionState>(
         builder: (context, deliverState) {
-      final pastCycles = deliverState.pastCycles;
-
-      return Column(
-        children: [
-          if (smcAssessmentPendingStatus &&
-              !isBeneficiaryReferredSMC &&
-              !isBeneficiaryInEligibleSMC)
-            DigitElevatedButton(
-              child: Center(
-                child: Text(
-                  localizations.translate(
-                    i18_local.householdOverView
-                        .householdOverViewSMCAssessmentActionText,
-                  ),
-                  style: textTheme.headingM.copyWith(color: Colors.white),
-                ),
-              ),
-              onPressed: () async {
-                final ProjectTypeModel projectType =
+          final ProjectTypeModel projectType =
                     RegistrationDeliverySingleton().projectType!;
                 final lastDose = tasks != null && tasks!.isNotEmpty
                     ? tasks?.last.additionalFields?.fields
@@ -355,6 +337,25 @@ class CustomMemberCard extends StatelessWidget {
                     projectType: projectType,
                   ),
                 );
+      final pastCycles = deliverState.pastCycles;
+
+      return Column(
+        children: [
+          if (smcAssessmentPendingStatus &&
+              !isBeneficiaryReferredSMC &&
+              !isBeneficiaryInEligibleSMC)
+            DigitElevatedButton(
+              child: Center(
+                child: Text(
+                  localizations.translate(
+                    i18_local.householdOverView
+                        .householdOverViewSMCAssessmentActionText,
+                  ),
+                  style: textTheme.headingM.copyWith(color: Colors.white),
+                ),
+              ),
+              onPressed: () async {
+                
                 // Calculate the current cycle. If deliverInterventionState.cycle is negative, set it to 0.
                  final currentCycle = deliverState.cycle >= 0 ? deliverState.cycle : 0;
 
