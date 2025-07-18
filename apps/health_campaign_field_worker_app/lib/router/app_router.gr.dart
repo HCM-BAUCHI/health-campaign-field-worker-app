@@ -841,6 +841,7 @@ abstract class _$AppRouter extends RootStackRouter {
               args.projectBeneficiaryClientReferenceId,
           individual: args.individual,
           hasSideEffects: args.hasSideEffects,
+          isRefused: args.isRefused,
           sideEffect: args.sideEffect,
           task: args.task,
         ),
@@ -3861,6 +3862,7 @@ class ZeroDoseCheckRoute extends PageRouteInfo<ZeroDoseCheckRouteArgs> {
     String? projectBeneficiaryClientReferenceId,
     IndividualModel? individual,
     bool? hasSideEffects = false,
+    bool isRefused = false,
     SideEffectModel? sideEffect,
     TaskModel? task,
     List<PageRouteInfo>? children,
@@ -3877,6 +3879,7 @@ class ZeroDoseCheckRoute extends PageRouteInfo<ZeroDoseCheckRouteArgs> {
                 projectBeneficiaryClientReferenceId,
             individual: individual,
             hasSideEffects: hasSideEffects,
+            isRefused: isRefused,
             sideEffect: sideEffect,
             task: task,
           ),
@@ -3900,6 +3903,7 @@ class ZeroDoseCheckRouteArgs {
     this.projectBeneficiaryClientReferenceId,
     this.individual,
     this.hasSideEffects = false,
+    this.isRefused = false,
     this.sideEffect,
     this.task,
   });
@@ -3922,12 +3926,14 @@ class ZeroDoseCheckRouteArgs {
 
   final bool? hasSideEffects;
 
+  final bool isRefused;
+
   final SideEffectModel? sideEffect;
 
   final TaskModel? task;
 
   @override
   String toString() {
-    return 'ZeroDoseCheckRouteArgs{key: $key, appLocalizations: $appLocalizations, eligibilityAssessmentType: $eligibilityAssessmentType, isAdministration: $isAdministration, isEditing: $isEditing, isChecklistAssessmentDone: $isChecklistAssessmentDone, projectBeneficiaryClientReferenceId: $projectBeneficiaryClientReferenceId, individual: $individual, hasSideEffects: $hasSideEffects, sideEffect: $sideEffect, task: $task}';
+    return 'ZeroDoseCheckRouteArgs{key: $key, appLocalizations: $appLocalizations, eligibilityAssessmentType: $eligibilityAssessmentType, isAdministration: $isAdministration, isEditing: $isEditing, isChecklistAssessmentDone: $isChecklistAssessmentDone, projectBeneficiaryClientReferenceId: $projectBeneficiaryClientReferenceId, individual: $individual, hasSideEffects: $hasSideEffects, isRefused: $isRefused, sideEffect: $sideEffect, task: $task}';
   }
 }
