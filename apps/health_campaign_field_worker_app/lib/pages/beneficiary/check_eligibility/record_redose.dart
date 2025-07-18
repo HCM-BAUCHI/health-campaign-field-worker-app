@@ -437,7 +437,7 @@ class _RecordRedosePageState extends LocalizedState<RecordRedosePage> {
                                                             Future.delayed(
                                                               const Duration(
                                                                 milliseconds:
-                                                                    300,
+                                                                    50,
                                                               ),
                                                               () {
                                                                 reloadState.add(
