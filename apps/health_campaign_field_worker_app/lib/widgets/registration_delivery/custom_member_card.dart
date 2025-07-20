@@ -434,8 +434,13 @@ class CustomMemberCard extends StatelessWidget {
     }
     return BlocBuilder<DeliverInterventionBloc, DeliverInterventionState>(
         builder: (context, deliverState) {
-      final lastDose = tasks != null && tasks!.isNotEmpty
-          ? tasks?.last.additionalFields?.fields
+      List<TaskModel>? pastTasks = tasks;
+      if (tasks?.lastOrNull?.status ==
+          Status.beneficiaryRefused.toValue().toString()) {
+        pastTasks?.removeLast();
+      }
+      final lastDose = pastTasks != null && pastTasks!.isNotEmpty
+          ? pastTasks?.last.additionalFields?.fields
                   .firstWhereOrNull(
                     (e) =>
                         e.key ==
@@ -445,8 +450,8 @@ class CustomMemberCard extends StatelessWidget {
                   ?.value ??
               '0'
           : '0';
-      final lastCycle = tasks != null && tasks!.isNotEmpty
-          ? tasks?.last.additionalFields?.fields
+      final lastCycle = pastTasks != null && pastTasks!.isNotEmpty
+          ? pastTasks?.last.additionalFields?.fields
                   .firstWhereOrNull(
                     (e) =>
                         e.key ==
