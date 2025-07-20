@@ -1364,6 +1364,12 @@ class SearchBeneficiary {
 
   String get beneficiarySearchHintText => 'BENEFICIARY_SEARCH_HINT_TEXT';
 
+  String get beneficiarySearchByBeneficiaryIdHintText =>
+      'BENEFICIARY_SEARCH_BY_BENEFICIARY_ID_HINT_TEXT';
+
+  String get beneficiarySearchByMobileNumberHintText =>
+      'BENEFICIARY_SEARCH_BY_MOBILE_NUMBER_HINT_TEXT';
+
   String get beneficiaryIndividualSearchHintText =>
       'BENEFICIARY_INDIVIDUAL_SEARCH_HINT_TEXT';
 

@@ -327,10 +327,21 @@ class _CustomSearchBeneficiaryPageState
                                           ? localizations.translate(i18
                                               .searchBeneficiary
                                               .clfSearchHintText)
-                                          : localizations.translate(
-                                              i18.searchBeneficiary
-                                                  .beneficiarySearchHintText,
-                                            ),
+                                          : isSearchByBeneficaryIdEnabled
+                                              ? localizations.translate(
+                                                  i18_local.searchBeneficiary
+                                                      .beneficiarySearchByBeneficiaryIdHintText,
+                                                )
+                                              : isSearchByMobileNumberEnabled
+                                                  ? localizations.translate(
+                                                      i18_local
+                                                          .searchBeneficiary
+                                                          .beneficiarySearchByMobileNumberHintText,
+                                                    )
+                                                  : localizations.translate(
+                                                      i18.searchBeneficiary
+                                                          .beneficiarySearchHintText,
+                                                    ),
                                       textCapitalization:
                                           TextCapitalization.words,
                                       onChanged: (value) {
