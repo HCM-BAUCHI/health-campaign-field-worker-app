@@ -89,6 +89,7 @@ abstract class _$AppRouter extends RootStackRouter {
           appLocalizations: args.appLocalizations,
           acknowledgementType: args.acknowledgementType,
           enableViewHousehold: args.enableViewHousehold,
+          selectedIndividual: args.selectedIndividual,
         ),
       );
     },
@@ -1093,6 +1094,7 @@ class CustomBeneficiaryAcknowledgementRoute
     RegistrationDeliveryLocalization? appLocalizations,
     required AcknowledgementType acknowledgementType,
     bool? enableViewHousehold,
+    IndividualModel? selectedIndividual,
     List<PageRouteInfo>? children,
   }) : super(
           CustomBeneficiaryAcknowledgementRoute.name,
@@ -1101,6 +1103,7 @@ class CustomBeneficiaryAcknowledgementRoute
             appLocalizations: appLocalizations,
             acknowledgementType: acknowledgementType,
             enableViewHousehold: enableViewHousehold,
+            selectedIndividual: selectedIndividual,
           ),
           initialChildren: children,
         );
@@ -1117,6 +1120,7 @@ class CustomBeneficiaryAcknowledgementRouteArgs {
     this.appLocalizations,
     required this.acknowledgementType,
     this.enableViewHousehold,
+    this.selectedIndividual,
   });
 
   final Key? key;
@@ -1127,9 +1131,11 @@ class CustomBeneficiaryAcknowledgementRouteArgs {
 
   final bool? enableViewHousehold;
 
+  final IndividualModel? selectedIndividual;
+
   @override
   String toString() {
-    return 'CustomBeneficiaryAcknowledgementRouteArgs{key: $key, appLocalizations: $appLocalizations, acknowledgementType: $acknowledgementType, enableViewHousehold: $enableViewHousehold}';
+    return 'CustomBeneficiaryAcknowledgementRouteArgs{key: $key, appLocalizations: $appLocalizations, acknowledgementType: $acknowledgementType, enableViewHousehold: $enableViewHousehold, selectedIndividual: $selectedIndividual}';
   }
 }
 
