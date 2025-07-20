@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:digit_components/widgets/atoms/digit_toaster.dart';
 import 'package:digit_components/widgets/digit_checkbox_tile.dart';
 import 'package:digit_components/widgets/digit_dialog.dart';
@@ -159,29 +160,37 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
               additional_fields_local.AdditionalFieldsType.selectedVaccines
                   .toValue(),
         );
-        return hasCorrectCycle && hasZeroDoseStatus && hasSelectedVaccines;
+        final hasNoSelectedVaccines = fields.any(
+          (e) =>
+              e.key ==
+              additional_fields_local.AdditionalFieldsType.noSelectedVaccines
+                  .toValue(),
+        );
+        return hasCorrectCycle &&
+            hasZeroDoseStatus &&
+            (hasSelectedVaccines || hasNoSelectedVaccines);
       },
     ).toList();
 
     if (lastVaccinationTask.isNotEmpty) {
+      List<String> yesSelectedVaccines = [];
+      List<String> noSelectedVaccines = [];
       // ignore: avoid_dynamic_calls
-      List<String> yesSelectedVaccines = lastVaccinationTask
-          .last.additionalFields!.fields
-          .firstWhere((e) =>
+      yesSelectedVaccines = lastVaccinationTask.last.additionalFields!.fields
+          .firstWhereOrNull((e) =>
               e.key ==
               additional_fields_local.AdditionalFieldsType.selectedVaccines
                   .toValue())
-          .value
+          ?.value
           .split('.')
           .toList();
       // ignore: avoid_dynamic_calls
-      List<String> noSelectedVaccines = lastVaccinationTask
-          .last.additionalFields!.fields
-          .firstWhere((e) =>
+      noSelectedVaccines = lastVaccinationTask.last.additionalFields!.fields
+          .firstWhereOrNull((e) =>
               e.key ==
               additional_fields_local.AdditionalFieldsType.noSelectedVaccines
                   .toValue())
-          .value
+          ?.value
           .split('.')
           .toList();
       setState(() {
@@ -952,20 +961,22 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
                                                 .toValue(),
                                             ZeroDoseStatus.done.name,
                                           ),
-                                          AdditionalField(
-                                            additional_fields_local
-                                                .AdditionalFieldsType
-                                                .selectedVaccines
-                                                .toValue(),
-                                            selectedCodes.join('.'),
-                                          ),
-                                          AdditionalField(
-                                            additional_fields_local
-                                                .AdditionalFieldsType
-                                                .noSelectedVaccines
-                                                .toValue(),
-                                            noSelectedCodes.join('.'),
-                                          ),
+                                          if (selectedCodes.isNotEmpty)
+                                            AdditionalField(
+                                              additional_fields_local
+                                                  .AdditionalFieldsType
+                                                  .selectedVaccines
+                                                  .toValue(),
+                                              selectedCodes.join('.'),
+                                            ),
+                                          if (noSelectedCodes.isNotEmpty)
+                                            AdditionalField(
+                                              additional_fields_local
+                                                  .AdditionalFieldsType
+                                                  .noSelectedVaccines
+                                                  .toValue(),
+                                              noSelectedCodes.join('.'),
+                                            ),
                                         ];
 
                                         final updatedTask = oldTask.copyWith(
