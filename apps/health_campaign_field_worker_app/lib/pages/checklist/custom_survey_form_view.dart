@@ -1,3 +1,4 @@
+import 'dart:core';
 import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
@@ -16,6 +17,7 @@ import 'package:digit_ui_components/widgets/molecules/show_pop_up.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:survey_form/survey_form.dart';
 import 'package:survey_form/utils/extensions/context_utility.dart';
 
@@ -65,6 +67,10 @@ class CustomSurveyFormViewPageState
           ),
         );
     super.initState();
+  }
+
+  bool isDateAttribute(String? code) {
+    return (code == "UHFWA_Q9" || code == "CDD_UPA_Q10" || code == "UHFA_Q5");
   }
 
   @override
@@ -234,22 +240,31 @@ class CustomSurveyFormViewPageState
                                                               .toString()
                                                               .trim()
                                                               .isNotEmpty
-                                                          ? controller[i]
-                                                              .text
-                                                              .toString()
-                                                          : (attribute?[i]
-                                                                      .dataType !=
+                                                          ? (isDateAttribute(attribute?[i].code)
+                                                              ? DateFormat('d MMM yyyy')
+                                                                  .parse(controller[i]
+                                                                      .text
+                                                                      .toString())
+                                                                  .millisecondsSinceEpoch
+                                                                  .toString()
+                                                              : controller[i]
+                                                                  .text
+                                                                  .toString())
+                                                          : (attribute?[i].dataType !=
                                                                   'Number'
                                                               ? i18.surveyForm
                                                                   .notSelectedKey
-                                                              : '0')
+                                                              : isDateAttribute(
+                                                                      attribute?[i]
+                                                                          .code)
+                                                                  ? DateTime.now()
+                                                                      .millisecondsSinceEpoch
+                                                                      .toString()
+                                                                  : '0')
                                                       : visibleSurveyFormIndexes
                                                               .contains(i)
-                                                          ? controller[i]
-                                                              .text
-                                                              .toString()
-                                                          : i18.surveyForm
-                                                              .notSelectedKey,
+                                                          ? controller[i].text.toString()
+                                                          : i18.surveyForm.notSelectedKey,
                                               rowVersion: 1,
                                               additionalDetails:
                                                   additionalDetailValue,
@@ -472,24 +487,35 @@ class CustomSurveyFormViewPageState
                                       isRequired: e.required ?? false,
                                       capitalizedFirstLetter: false,
                                       charCondition: true,
-                                      child: DigitTextFormInput(
-                                        onChange: (value) {
-                                          field.didChange(value);
-                                          controller[index].text = value;
-                                          // surveyFormKey.currentState
-                                          //     ?.validate();
-                                        },
-                                        errorMessage: field.errorText,
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: [
-                                          UpperCaseTextFormatter(),
-                                          FilteringTextInputFormatter.allow(
-                                              RegExp(
-                                            "[0-9]",
-                                          )),
-                                        ],
-                                        controller: controller[index],
-                                      ),
+                                      child: isDateAttribute(e.code)
+                                          ? DigitDateFormInput(
+                                              readOnly: true,
+                                              errorMessage: field.errorText,
+                                              initialValue:
+                                                  DateFormat('d MMM yyyy')
+                                                      .format(DateTime.now())
+                                                      .toString(),
+                                              controller: controller[index],
+                                            )
+                                          : DigitTextFormInput(
+                                              onChange: (value) {
+                                                field.didChange(value);
+                                                controller[index].text = value;
+                                                // surveyFormKey.currentState
+                                                //     ?.validate();
+                                              },
+                                              errorMessage: field.errorText,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                UpperCaseTextFormatter(),
+                                                FilteringTextInputFormatter
+                                                    .allow(RegExp(
+                                                  "[0-9]",
+                                                )),
+                                              ],
+                                              controller: controller[index],
+                                            ),
                                     );
                                   }),
                             ] else if (e.dataType == 'MultiValueList' &&
