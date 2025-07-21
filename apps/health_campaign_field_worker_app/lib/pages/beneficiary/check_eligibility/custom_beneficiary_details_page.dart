@@ -22,6 +22,7 @@ import 'package:registration_delivery/models/entities/task.dart';
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
 import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
 import '../../../models/entities/identifier_types.dart';
+import '../../../models/entities/status.dart';
 import '../../../router/app_router.dart';
 import '../../../utils/app_enums.dart';
 import '../../../utils/i18_key_constants.dart' as i18_local;
@@ -116,8 +117,13 @@ class CustomBeneficiaryDetailsPageState
                   checkDeliveryType(element))
               .toList();
           final bloc = context.read<DeliverInterventionBloc>();
-          final lastDose = taskData != null && taskData.isNotEmpty
-              ? taskData.last.additionalFields?.fields
+          List<TaskModel>? pastTasks = taskData;
+          if (taskData?.lastOrNull?.status ==
+              Status.beneficiaryRefused.toValue().toString()) {
+            pastTasks?.removeLast();
+          }
+          final lastDose = pastTasks != null && pastTasks.isNotEmpty
+              ? pastTasks.last.additionalFields?.fields
                       .firstWhereOrNull(
                         (e) =>
                             e.key == AdditionalFieldsType.doseIndex.toValue(),
@@ -125,8 +131,8 @@ class CustomBeneficiaryDetailsPageState
                       ?.value ??
                   '1'
               : '0';
-          final lastCycle = taskData != null && taskData.isNotEmpty
-              ? taskData.last.additionalFields?.fields
+          final lastCycle = pastTasks != null && pastTasks.isNotEmpty
+              ? pastTasks.last.additionalFields?.fields
                       .firstWhereOrNull(
                         (e) =>
                             e.key == AdditionalFieldsType.cycleIndex.toValue(),

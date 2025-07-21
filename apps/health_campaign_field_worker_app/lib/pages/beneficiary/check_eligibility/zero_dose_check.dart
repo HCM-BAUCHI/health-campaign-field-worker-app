@@ -59,6 +59,7 @@ class ZeroDoseCheckPage extends LocalizedStatefulWidget {
   final TaskModel task;
   final bool? hasSideEffects;
   final SideEffectModel sideEffect;
+  final bool isRefused;
 
   ZeroDoseCheckPage({
     super.key,
@@ -70,6 +71,7 @@ class ZeroDoseCheckPage extends LocalizedStatefulWidget {
     this.projectBeneficiaryClientReferenceId,
     this.individual,
     this.hasSideEffects = false,
+    this.isRefused = false,
     SideEffectModel? sideEffect,
     TaskModel? task,
   })  : task = task ?? TaskModel(clientReferenceId: ''),
@@ -206,7 +208,14 @@ class ZeroDoseCheckPageState extends LocalizedState<ZeroDoseCheckPage> {
     );
 
     return WillPopScope(
-      onWillPop: () async => _onBackPressed(context),
+      onWillPop: () async {
+        bool shouldPop = await _onBackPressed(context);
+        if (shouldPop && widget.isRefused) {
+          context.router
+              .popUntilRouteWithName(CustomHouseholdOverviewRoute.name);
+        }
+        return shouldPop;
+      },
       child: Scaffold(
         body: BlocBuilder<location.LocationBloc, location.LocationState>(
           builder: (context, locationState) {
@@ -1548,7 +1557,10 @@ class ZeroDoseCheckPageState extends LocalizedState<ZeroDoseCheckPage> {
           primaryAction: DigitDialogActions(
             label: localizations.translate(
                 i18_local.checklist.checklistBackDialogPrimaryAction),
-            action: (ctx) {
+            action: (context) {
+              final router = context.router;
+              router.pop();
+              router.pop();
               Navigator.of(
                 context,
                 rootNavigator: true,

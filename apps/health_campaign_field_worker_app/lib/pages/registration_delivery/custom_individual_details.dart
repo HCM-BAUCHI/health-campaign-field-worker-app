@@ -98,9 +98,10 @@ class CustomIndividualDetailsPageState
     super.initState();
   }
 
-  onSubmit(name, bool isCreate) async {
+  onSubmit(IndividualModel individual, bool isCreate) async {
     final bloc = context.read<CustomBeneficiaryRegistrationBloc>();
     final router = context.router;
+    final name = individual?.name?.givenName ?? '';
 
     if (context.mounted) {
       if (isCreate) {
@@ -125,6 +126,7 @@ class CustomIndividualDetailsPageState
           acknowledgementType: isCreate
               ? AcknowledgementType.addHousehold
               : AcknowledgementType.addMember,
+          selectedIndividual: individual,
         ));
       }
     }
@@ -356,8 +358,7 @@ class CustomIndividualDetailsPageState
                                       ),
                                     );
                                     // router.push(CustomSummaryRoute());
-                                    await onSubmit(
-                                        individual.name?.givenName ?? "", true);
+                                    await onSubmit(individual, true);
                                   }
                                 },
                                 editIndividual: (
@@ -442,8 +443,7 @@ class CustomIndividualDetailsPageState
                                             : null,
                                       ),
                                     );
-                                    onSubmit(individual.name?.givenName ?? "",
-                                        false);
+                                    onSubmit(individual, false);
                                   }
                                 },
                                 addMember: (

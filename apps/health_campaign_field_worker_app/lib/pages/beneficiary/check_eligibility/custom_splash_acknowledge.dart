@@ -61,6 +61,7 @@ class CustomSplashAcknowledgementPageState
               task: widget.task,
               projectBeneficiaryClientReferenceId:
                   widget.task?.projectBeneficiaryClientReferenceId,
+              isRefused: true,
             ));
           } catch (e) {
             rethrow;
