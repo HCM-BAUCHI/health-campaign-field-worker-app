@@ -629,10 +629,11 @@ class CustomMemberCard extends StatelessWidget {
                         size: DigitButtonSize.large,
                         onPressed: () {
                           Navigator.of(context, rootNavigator: true).pop();
+                          final clientReferenceId = IdGen.i.identifier;
                           TaskModel refusalTask = TaskModel(
                             projectBeneficiaryClientReferenceId:
                                 projectBeneficiaryClientReferenceId,
-                            clientReferenceId: IdGen.i.identifier,
+                            clientReferenceId: clientReferenceId,
                             tenantId: RegistrationDeliverySingleton().tenantId,
                             rowVersion: 1,
                             auditDetails: AuditDetails(
@@ -666,7 +667,10 @@ class CustomMemberCard extends StatelessWidget {
                                 ...getIndividualAdditionalFields(individual)
                               ],
                             ),
-                            address: individual.address?.first,
+                            address: individual!.address?.first.copyWith(
+                              relatedClientReferenceId: clientReferenceId,
+                              id: null,
+                            ),
                           );
 
                           // TODO: Currently it's been shifted to the zero dose flow
