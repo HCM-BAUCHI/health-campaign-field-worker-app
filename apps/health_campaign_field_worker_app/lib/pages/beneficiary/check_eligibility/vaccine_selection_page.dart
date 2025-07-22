@@ -137,17 +137,11 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
       ),
     );
 
-    int lastCycle = context.selectedCycle!.id - 1;
-    lastCycle = lastCycle < 0 ? 0 : lastCycle;
     List<TaskModel> lastVaccinationTask = tasksData.where(
       (task) {
         final fields = task.additionalFields?.fields;
         if (fields == null) return false;
-        final hasCorrectCycle = fields.any(
-          (e) =>
-              e.key == AdditionalFieldsType.cycleIndex.toValue() &&
-              int.tryParse(e.value) == lastCycle,
-        );
+
         final hasZeroDoseStatus = fields.any(
           (e) =>
               e.key ==
@@ -166,33 +160,71 @@ class _VaccineSelectionPageState extends LocalizedState<VaccineSelectionPage> {
               additional_fields_local.AdditionalFieldsType.noSelectedVaccines
                   .toValue(),
         );
-        return hasCorrectCycle &&
-            hasZeroDoseStatus &&
+        return hasZeroDoseStatus &&
             (hasSelectedVaccines || hasNoSelectedVaccines);
       },
     ).toList();
 
     if (lastVaccinationTask.isNotEmpty) {
+      lastVaccinationTask.sort((a, b) {
+        final aCycle = a.additionalFields?.fields
+            .firstWhereOrNull(
+              (e) =>
+                  e.key ==
+                  additional_fields_local.AdditionalFieldsType.cycleIndex
+                      .toValue(),
+            )
+            ?.value;
+        final bCycle = b.additionalFields?.fields
+            .firstWhereOrNull(
+              (e) =>
+                  e.key ==
+                  additional_fields_local.AdditionalFieldsType.cycleIndex
+                      .toValue(),
+            )
+            ?.value;
+
+        if (aCycle == bCycle) {
+          final aCreatedTime = a.auditDetails?.createdTime;
+          final bCreatedTime = b.auditDetails?.createdTime;
+          return (aCreatedTime != null && bCreatedTime != null)
+              ? aCreatedTime.compareTo(bCreatedTime)
+              : 0;
+        }
+        return (int.tryParse(aCycle ?? '0') ?? 0) -
+            (int.tryParse(bCycle ?? '0') ?? 0);
+      });
+
       List<String> yesSelectedVaccines = [];
       List<String> noSelectedVaccines = [];
       // ignore: avoid_dynamic_calls
-      yesSelectedVaccines = lastVaccinationTask.last.additionalFields!.fields
-          .firstWhereOrNull((e) =>
-              e.key ==
-              additional_fields_local.AdditionalFieldsType.selectedVaccines
-                  .toValue())
-          ?.value
+      yesSelectedVaccines = ((lastVaccinationTask.last.additionalFields!.fields
+                  .firstWhereOrNull((e) =>
+                      e.key ==
+                      additional_fields_local
+                          .AdditionalFieldsType.selectedVaccines
+                          .toValue())
+                  ?.value as String?) ??
+              '')
           .split('.')
+          // ignore: avoid_dynamic_calls
+          .where((e) => e.isNotEmpty)
           .toList();
+
       // ignore: avoid_dynamic_calls
-      noSelectedVaccines = lastVaccinationTask.last.additionalFields!.fields
-          .firstWhereOrNull((e) =>
-              e.key ==
-              additional_fields_local.AdditionalFieldsType.noSelectedVaccines
-                  .toValue())
-          ?.value
+      noSelectedVaccines = ((lastVaccinationTask.last.additionalFields!.fields
+                  .firstWhereOrNull((e) =>
+                      e.key ==
+                      additional_fields_local
+                          .AdditionalFieldsType.noSelectedVaccines
+                          .toValue())
+                  ?.value as String?) ??
+              '')
           .split('.')
+          // ignore: avoid_dynamic_calls
+          .where((e) => e.isNotEmpty)
           .toList();
+
       setState(() {
         selectedCodes = yesSelectedVaccines;
         noSelectedCodes = noSelectedVaccines;
