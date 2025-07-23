@@ -846,7 +846,7 @@ List<AdditionalField> getIndividualAdditionalFields(
         'individualClientReferenceId',
         individualModel?.clientReferenceId,
       ),
-    if (individualModel != null && getBeneficiaryId(individualModel) != null)
+    if (individualModel != null)
       AdditionalField(
         'uniqueBeneficiaryId',
         getBeneficiaryId(individualModel),
