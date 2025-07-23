@@ -134,10 +134,13 @@ bool redosePending(List<TaskModel>? tasks, ProjectCycle? selectedCycle) {
   redosePending = redoseTask == null ? true : false;
 
   return redosePending &&
-      ( // selectedCycle.mandatoryWaitSinceLastCycleInDays == null ||
-          diff <= 60 * 60 * 1000
-      // * (selectedCycle.mandatoryWaitSinceLastCycleInDays ?? 0)
-      );
+      (selectedCycle.mandatoryWaitSinceLastCycleInDays == null ||
+          diff <=
+              24 *
+                  60 *
+                  60 *
+                  1000 *
+                  (selectedCycle.mandatoryWaitSinceLastCycleInDays ?? 0));
 }
 
 bool checkBeneficiaryZeroDose(List<TaskModel>? tasks) {
