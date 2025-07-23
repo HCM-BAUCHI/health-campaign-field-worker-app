@@ -517,10 +517,10 @@ packages:
     dependency: "direct main"
     description:
       name: digit_data_model
-      sha256: f0bce797c00f83e8ea6268dd89496890a9526b3fc13a1f1d9e5faf7dc3907c2e
+      sha256: "6fdaa41a27b9fc2a84d9b7e238cad83d18b70d10f9fa9b797a4039365c27ce9b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6-dev.1"
+    version: "1.0.6-dev.3"
   digit_dss:
     dependency: "direct main"
     description:
