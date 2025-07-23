@@ -184,40 +184,40 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     for (var element in spaq1List) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+      if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
+          element.auditDetails!.createdTime <= currentCycle.endDate) {
         dateVsSpaq1List.putIfAbsent(dateKey, () => []).add(element);
       }
     }
     for (var element in spaq2List) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+      if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
+          element.auditDetails!.createdTime <= currentCycle.endDate) {
         dateVsSpaq2List.putIfAbsent(dateKey, () => []).add(element);
       }
     }
     for (var element in redVasList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+      if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
+          element.auditDetails!.createdTime <= currentCycle.endDate) {
         dateVsRedVasList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
     for (var element in blueVasList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+      if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
+          element.auditDetails!.createdTime <= currentCycle.endDate) {
         dateVsBlueVasList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
     for (var element in SPAQRedoseList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+      if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
+          element.auditDetails!.createdTime <= currentCycle.endDate) {
         dateVsSPAQRedoseList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
@@ -229,9 +229,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       if (productName == Constants.spaq1 || productName == Constants.spaq2) {
         var dateKey = DigitDateUtils.getDateFromTimestamp(
             element.auditDetails!.createdTime);
-        if (element.clientAuditDetails!.createdTime >=
-                currentCycle!.startDate &&
-            element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
+            element.auditDetails!.createdTime <= currentCycle.endDate) {
           dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
         }
       }
