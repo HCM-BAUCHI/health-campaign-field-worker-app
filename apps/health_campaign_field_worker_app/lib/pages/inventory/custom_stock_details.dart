@@ -538,6 +538,13 @@ class CustomStockDetailsPageState
                                             senderId = secondaryKey
                                                 .split(Constants.pipeSeparator)
                                                 .last;
+                                            if (deliveryTeamName != null &&
+                                                deliveryTeamName
+                                                    .trim()
+                                                    .isNotEmpty) {
+                                              senderId = deliveryTeamName
+                                                  .toLowerCase();
+                                            }
 
                                             receiverId = primaryId;
                                             receiverType = primaryType;
@@ -560,6 +567,13 @@ class CustomStockDetailsPageState
                                             receiverId = secondaryKey
                                                 .split(Constants.pipeSeparator)
                                                 .last;
+                                            if (deliveryTeamName != null &&
+                                                deliveryTeamName
+                                                    .trim()
+                                                    .isNotEmpty) {
+                                              receiverId = deliveryTeamName
+                                                  .toLowerCase();
+                                            }
                                             receiverType = "STAFF";
                                             senderId = primaryId;
                                             senderType = primaryType;
@@ -661,7 +675,8 @@ class CustomStockDetailsPageState
                                                           .isNotEmpty)
                                                     AdditionalField(
                                                       'deliveryTeam',
-                                                      deliveryTeamName,
+                                                      deliveryTeamName
+                                                          .toLowerCase(),
                                                     ),
                                                   if (hasLocationData) ...[
                                                     AdditionalField(
