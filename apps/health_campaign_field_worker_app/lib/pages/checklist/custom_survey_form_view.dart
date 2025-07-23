@@ -349,6 +349,14 @@ class CustomSurveyFormViewPageState
                                             context,
                                             rootNavigator: true,
                                           ).pop(true);
+                                          while (Navigator.of(context,
+                                                  rootNavigator: true)
+                                              .canPop()) {
+                                            Navigator.of(context,
+                                                    rootNavigator: true)
+                                                .pop(
+                                                    false); // Send false to all others
+                                          }
                                           router.push(
                                               CustomSurveyFormAcknowledgementRoute());
                                         },
@@ -364,6 +372,14 @@ class CustomSurveyFormViewPageState
                                             context,
                                             rootNavigator: true,
                                           ).pop(false);
+                                          while (Navigator.of(context,
+                                                  rootNavigator: true)
+                                              .canPop()) {
+                                            Navigator.of(context,
+                                                    rootNavigator: true)
+                                                .pop(
+                                                    false); // Send false to all others
+                                          }
                                         },
                                         type: DigitButtonType.secondary,
                                         size: DigitButtonSize.large)
