@@ -116,7 +116,11 @@ bool redosePending(List<TaskModel>? tasks, ProjectCycle? selectedCycle) {
   // get the fist task which was marked as visited as this is the one which was created in redose flow
   TaskModel? redoseTask = tasks!
       .where(
-        (element) => element.status == Status.delivered.toValue(),
+        (element) =>
+            element.status == Status.delivered.toValue() &&
+            element.additionalFields?.fields.firstWhereOrNull(
+                    (e) => e.key == Constants.reAdministeredKey) !=
+                null,
       )
       .lastOrNull;
   TaskModel? successfullTask = tasks
@@ -127,15 +131,7 @@ bool redosePending(List<TaskModel>? tasks, ProjectCycle? selectedCycle) {
   int diff = DateTime.now().millisecondsSinceEpoch -
       (successfullTask?.clientAuditDetails?.createdTime ??
           DateTime.now().millisecondsSinceEpoch);
-  redosePending = redoseTask == null
-      ? true
-      : (redoseTask.additionalFields?.fields
-                  .where(
-                    (element) => element.key == Constants.reAdministeredKey,
-                  )
-                  .toList() ??
-              [])
-          .isEmpty;
+  redosePending = redoseTask == null ? true : false;
 
   return redosePending &&
       ( // selectedCycle.mandatoryWaitSinceLastCycleInDays == null ||
