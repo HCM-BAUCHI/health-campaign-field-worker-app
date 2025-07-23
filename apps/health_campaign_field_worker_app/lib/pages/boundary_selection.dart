@@ -41,7 +41,8 @@ class _BoundarySelectionPageState
   int i = 0;
   int pendingSyncCount = 0;
   final clickedStatus = ValueNotifier<bool>(false);
-  StreamController<double> downloadProgress = StreamController<double>();
+  StreamController<double> downloadProgress =
+      StreamController<double>.broadcast();
 
   Map<String, TextEditingController> dropdownControllers = {};
   late StreamSubscription syncSubscription;
@@ -311,7 +312,8 @@ class _BoundarySelectionPageState
                                         i18.beneficiaryDetails.downloadreport,
                                       )}\n\n\n${localizations.translate(
                                         i18.beneficiaryDetails.boundary,
-                                      )} ${result.boundaryName}\n${localizations.translate(
+                                        // )} ${result.boundaryName}\n${localizations.translate(
+                                      )} ${localizations.translate(result.locality ?? result.boundaryName ?? "")}\n${localizations.translate(
                                         i18.beneficiaryDetails.status,
                                       )} ${localizations.translate(
                                         i18.beneficiaryDetails
@@ -337,7 +339,10 @@ class _BoundarySelectionPageState
                                         descriptionTableData: {
                                           localizations.translate(
                                             i18.beneficiaryDetails.boundary,
-                                          ): result.boundaryName!,
+                                            // ): result.boundaryCode!,
+                                          ): localizations.translate(
+                                              result.locality ??
+                                                  result.boundaryName!),
                                           localizations.translate(
                                             i18.beneficiaryDetails.status,
                                           ): localizations.translate(
