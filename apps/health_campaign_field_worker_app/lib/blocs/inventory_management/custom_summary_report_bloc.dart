@@ -12,6 +12,7 @@ import 'package:registration_delivery/models/entities/household_member.dart';
 import 'package:registration_delivery/models/entities/task.dart';
 import 'package:registration_delivery/models/entities/task_resource.dart';
 import 'package:registration_delivery/utils/typedefs.dart';
+import 'package:registration_delivery/utils/utils.dart';
 
 import '../../models/entities/additional_fields_type.dart';
 import '../../models/entities/assessment_checklist/status.dart';
@@ -52,23 +53,29 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     List<TaskModel> taskList = [];
     List<TaskModel> administeredChildrenList = [];
     List<TaskModel> SPAQRedoseTaskList = [];
-    List<StockModel> stockList = [];
-    List<StockModel> returnStockList = [];
+    List<StockModel> stockListData = [];
+    List<StockModel> returnStockListData = [];
     List<ProductVariantModel> productVariantList = [];
     List<StockModel> spaq1List = [];
     List<StockModel> spaq2List = [];
     List<StockModel> redVasList = [];
     List<StockModel> blueVasList = [];
     List<TaskResourceModel> SPAQRedoseList = [];
+    final currentCycle =
+        RegistrationDeliverySingleton().projectType?.cycles?.firstWhere(
+              (e) =>
+                  (e.startDate) < DateTime.now().millisecondsSinceEpoch &&
+                  (e.endDate) > DateTime.now().millisecondsSinceEpoch,
+            );
     householdMemberList = await (householdMemberRepository)
         .search(HouseholdMemberSearchModel(isHeadOfHousehold: true));
     taskList = await (taskDataRepository).search(TaskSearchModel());
     productVariantList = await (productVariantDataRepository)
         .search(ProductVariantSearchModel());
-    stockList = await (stockDataRepository).search(StockSearchModel(
+    stockListData = await (stockDataRepository).search(StockSearchModel(
         transactionType: [TransactionType.received.toValue()],
         receiverId: [event.userId]));
-    returnStockList = await (stockDataRepository).search(StockSearchModel(
+    returnStockListData = await (stockDataRepository).search(StockSearchModel(
         transactionType: [TransactionType.dispatched.toValue()],
         senderId: event.userId));
     for (var element in taskList) {
@@ -107,6 +114,21 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
         }
       }
     }
+
+    final stockList = currentCycle == null
+        ? stockListData
+        : stockListData.where((stock) {
+            final createdTime = stock.auditDetails?.createdTime ?? 0;
+            return createdTime >= currentCycle.startDate &&
+                createdTime <= currentCycle.endDate;
+          }).toList();
+    final returnStockList = currentCycle == null
+        ? returnStockListData
+        : returnStockListData.where((stock) {
+            final createdTime = stock.auditDetails?.createdTime ?? 0;
+            return createdTime >= currentCycle.startDate &&
+                createdTime <= currentCycle.endDate;
+          }).toList();
     for (var stock in stockList) {
       final productName = stock.additionalFields?.fields
           .firstWhereOrNull((f) => f.key == "productName")
@@ -143,40 +165,61 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     for (var element in householdMemberList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.clientAuditDetails!.createdTime);
-      dateVsHouseholdMembersList.putIfAbsent(dateKey, () => []).add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsHouseholdMembersList.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
     for (var element in administeredChildrenList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.clientAuditDetails!.createdTime);
-      dateVsAdministeredChilderenList
-          .putIfAbsent(dateKey, () => [])
-          .add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsAdministeredChilderenList
+            .putIfAbsent(dateKey, () => [])
+            .add(element);
+      }
     }
 
     for (var element in spaq1List) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      dateVsSpaq1List.putIfAbsent(dateKey, () => []).add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsSpaq1List.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
     for (var element in spaq2List) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      dateVsSpaq2List.putIfAbsent(dateKey, () => []).add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsSpaq2List.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
     for (var element in redVasList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      dateVsRedVasList.putIfAbsent(dateKey, () => []).add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsRedVasList.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
     for (var element in blueVasList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      dateVsBlueVasList.putIfAbsent(dateKey, () => []).add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsBlueVasList.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
     for (var element in SPAQRedoseList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
-      dateVsSPAQRedoseList.putIfAbsent(dateKey, () => []).add(element);
+      if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+        dateVsSPAQRedoseList.putIfAbsent(dateKey, () => []).add(element);
+      }
     }
 
     for (var element in returnStockList) {
@@ -186,7 +229,11 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       if (productName == Constants.spaq1 || productName == Constants.spaq2) {
         var dateKey = DigitDateUtils.getDateFromTimestamp(
             element.auditDetails!.createdTime);
-        dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
+        if (element.clientAuditDetails!.createdTime >=
+                currentCycle!.startDate &&
+            element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+          dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
+        }
       }
     }
     // get a set of unique dates
