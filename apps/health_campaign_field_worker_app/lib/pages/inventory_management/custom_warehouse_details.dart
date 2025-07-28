@@ -477,7 +477,16 @@ class CustomWarehouseDetailsPageState
 
   void _handleSubmission() {
     if (InventorySingleton().isDistributor) {
-      context.router.push(QRScannerRoute());
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const DigitScannerPage(
+            quantity: 5,
+            isGS1code: false,
+            singleValue: false,
+          ),
+          settings: const RouteSettings(name: '/qr-scanner'),
+        ),
+      );
     }
   }
 }
