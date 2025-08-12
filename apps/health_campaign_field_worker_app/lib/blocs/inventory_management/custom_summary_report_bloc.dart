@@ -49,10 +49,10 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
   ) async {
     emit(const SummaryReportLoadingState());
 
-    List<HouseholdMemberModel> householdMemberList = [];
-    List<TaskModel> taskList = [];
+    List<HouseholdMemberModel> householdMemberListData = [];
+    List<TaskModel> taskListData = [];
     List<TaskModel> administeredChildrenList = [];
-    List<TaskModel> SPAQRedoseTaskList = [];
+    List<TaskModel> spaqRedoseTaskList = [];
     List<StockModel> stockListData = [];
     List<StockModel> returnStockListData = [];
     List<ProductVariantModel> productVariantList = [];
@@ -60,16 +60,18 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     List<StockModel> spaq2List = [];
     List<StockModel> redVasList = [];
     List<StockModel> blueVasList = [];
-    List<TaskResourceModel> SPAQRedoseList = [];
+    List<TaskResourceModel> spaqRedoseList = [];
     final currentCycle =
         RegistrationDeliverySingleton().projectType?.cycles?.firstWhere(
               (e) =>
                   (e.startDate) < DateTime.now().millisecondsSinceEpoch &&
                   (e.endDate) > DateTime.now().millisecondsSinceEpoch,
             );
-    householdMemberList = await (householdMemberRepository)
+    final currentUserUuId =
+        RegistrationDeliverySingleton().loggedInUserUuid ?? '';
+    householdMemberListData = await (householdMemberRepository)
         .search(HouseholdMemberSearchModel(isHeadOfHousehold: true));
-    taskList = await (taskDataRepository).search(TaskSearchModel());
+    taskListData = await (taskDataRepository).search(TaskSearchModel());
     productVariantList = await (productVariantDataRepository)
         .search(ProductVariantSearchModel());
     stockListData = await (stockDataRepository).search(StockSearchModel(
@@ -78,6 +80,28 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     returnStockListData = await (stockDataRepository).search(StockSearchModel(
         transactionType: [TransactionType.dispatched.toValue()],
         senderId: event.userId));
+    final householdMemberList = currentCycle == null
+        ? householdMemberListData
+        : householdMemberListData.where((member) {
+            final createdTime = member.auditDetails?.createdTime ?? 0;
+            final createdBy = member.auditDetails?.createdBy;
+            if (createdBy == null) return false;
+            if (createdBy.isEmpty) return false;
+            return createdTime >= currentCycle.startDate &&
+                createdTime <= currentCycle.endDate &&
+                createdBy == currentUserUuId;
+          }).toList();
+    final taskList = currentCycle == null
+        ? taskListData
+        : taskListData.where((task) {
+            final createdTime = task.auditDetails?.createdTime ?? 0;
+            final createdBy = task.auditDetails?.createdBy;
+            if (createdBy == null) return false;
+            if (createdBy.isEmpty) return false;
+            return createdTime >= currentCycle.startDate &&
+                createdTime <= currentCycle.endDate &&
+                createdBy == currentUserUuId;
+          }).toList();
     for (var element in taskList) {
       if (element.status == null) continue;
       final status = StatusMapper.fromValue(element.status);
@@ -96,20 +120,20 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
             .firstWhereOrNull((f) => f.key == Constants.reAdministeredKey)
             ?.value;
         if (val == "true" || val == true) {
-          SPAQRedoseTaskList.add(element);
+          spaqRedoseTaskList.add(element);
         }
       }
     }
 
-    for (var task in SPAQRedoseTaskList) {
+    for (var task in spaqRedoseTaskList) {
       for (var resource in task.resources!) {
         for (var productVariant in productVariantList) {
           if (productVariant.id == resource.productVariantId &&
               productVariant.sku == Constants.spaq1) {
-            SPAQRedoseList.add(resource);
+            spaqRedoseList.add(resource);
           } else if (productVariant.id == resource.productVariantId &&
               productVariant.sku == Constants.spaq2) {
-            SPAQRedoseList.add(resource);
+            spaqRedoseList.add(resource);
           }
         }
       }
@@ -119,15 +143,23 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
         ? stockListData
         : stockListData.where((stock) {
             final createdTime = stock.auditDetails?.createdTime ?? 0;
+            final createdBy = stock.auditDetails?.createdBy;
+            if (createdBy == null) return false;
+            if (createdBy.isEmpty) return false;
             return createdTime >= currentCycle.startDate &&
-                createdTime <= currentCycle.endDate;
+                createdTime <= currentCycle.endDate &&
+                createdBy == currentUserUuId;
           }).toList();
     final returnStockList = currentCycle == null
         ? returnStockListData
         : returnStockListData.where((stock) {
             final createdTime = stock.auditDetails?.createdTime ?? 0;
+            final createdBy = stock.auditDetails?.createdBy;
+            if (createdBy == null) return false;
+            if (createdBy.isEmpty) return false;
             return createdTime >= currentCycle.startDate &&
-                createdTime <= currentCycle.endDate;
+                createdTime <= currentCycle.endDate &&
+                createdBy == currentUserUuId;
           }).toList();
     for (var stock in stockList) {
       final productName = stock.additionalFields?.fields
@@ -151,7 +183,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     Map<String, List<StockModel>> dateVsRedVasList = {};
     Map<String, List<StockModel>> dateVsBlueVasList = {};
     Map<String, List<StockModel>> dateVsReturnStockList = {};
-    Map<String, List<TaskResourceModel>> dateVsSPAQRedoseList = {};
+    Map<String, List<TaskResourceModel>> dateVsSpaqRedoseList = {};
     Set<String> uniqueDates = {};
     Map<String, int> dateVsHouseholdMembersCount = {};
     Map<String, int> dateVsAdministeredChilderenCount = {};
@@ -160,13 +192,14 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     Map<String, int> dateVsRedVasCount = {};
     Map<String, int> dateVsBlueVasCount = {};
     Map<String, int> dateVsReturnStockCount = {};
-    Map<String, int> dateVsSPAQRedoseCount = {};
+    Map<String, int> dateVsSpaqRedoseCount = {};
     Map<String, Map<String, int>> dateVsEntityVsCountMap = {};
     for (var element in householdMemberList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.clientAuditDetails!.createdTime);
       if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate &&
+          element.clientAuditDetails!.createdBy == currentUserUuId) {
         dateVsHouseholdMembersList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
@@ -174,7 +207,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.clientAuditDetails!.createdTime);
       if (element.clientAuditDetails!.createdTime >= currentCycle!.startDate &&
-          element.clientAuditDetails!.createdTime <= currentCycle.endDate) {
+          element.clientAuditDetails!.createdTime <= currentCycle.endDate &&
+          element.clientAuditDetails!.createdBy == currentUserUuId) {
         dateVsAdministeredChilderenList
             .putIfAbsent(dateKey, () => [])
             .add(element);
@@ -185,7 +219,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
       if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
-          element.auditDetails!.createdTime <= currentCycle.endDate) {
+          element.auditDetails!.createdTime <= currentCycle.endDate &&
+          element.auditDetails!.createdBy == currentUserUuId) {
         dateVsSpaq1List.putIfAbsent(dateKey, () => []).add(element);
       }
     }
@@ -193,7 +228,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
       if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
-          element.auditDetails!.createdTime <= currentCycle.endDate) {
+          element.auditDetails!.createdTime <= currentCycle.endDate &&
+          element.auditDetails!.createdBy == currentUserUuId) {
         dateVsSpaq2List.putIfAbsent(dateKey, () => []).add(element);
       }
     }
@@ -201,7 +237,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
       if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
-          element.auditDetails!.createdTime <= currentCycle.endDate) {
+          element.auditDetails!.createdTime <= currentCycle.endDate &&
+          element.auditDetails!.createdBy == currentUserUuId) {
         dateVsRedVasList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
@@ -209,16 +246,18 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
       if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
-          element.auditDetails!.createdTime <= currentCycle.endDate) {
+          element.auditDetails!.createdTime <= currentCycle.endDate &&
+          element.auditDetails!.createdBy == currentUserUuId) {
         dateVsBlueVasList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
-    for (var element in SPAQRedoseList) {
+    for (var element in spaqRedoseList) {
       var dateKey = DigitDateUtils.getDateFromTimestamp(
           element.auditDetails!.createdTime);
       if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
-          element.auditDetails!.createdTime <= currentCycle.endDate) {
-        dateVsSPAQRedoseList.putIfAbsent(dateKey, () => []).add(element);
+          element.auditDetails!.createdTime <= currentCycle.endDate &&
+          element.auditDetails!.createdBy == currentUserUuId) {
+        dateVsSpaqRedoseList.putIfAbsent(dateKey, () => []).add(element);
       }
     }
 
@@ -230,7 +269,8 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
         var dateKey = DigitDateUtils.getDateFromTimestamp(
             element.auditDetails!.createdTime);
         if (element.auditDetails!.createdTime >= currentCycle!.startDate &&
-            element.auditDetails!.createdTime <= currentCycle.endDate) {
+            element.auditDetails!.createdTime <= currentCycle.endDate &&
+            element.auditDetails!.createdBy == currentUserUuId) {
           dateVsReturnStockList.putIfAbsent(dateKey, () => []).add(element);
         }
       }
@@ -243,7 +283,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       dateVsSpaq2List,
       dateVsRedVasList,
       dateVsBlueVasList,
-      dateVsSPAQRedoseList,
+      dateVsSpaqRedoseList,
       dateVsReturnStockList,
       uniqueDates,
     );
@@ -258,7 +298,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     populateDateVsCountMapForDrugs(dateVsSpaq2List, dateVsSpaq2Count);
     populateDateVsCountMapForDrugs(dateVsRedVasList, dateVsRedVasCount);
     populateDateVsCountMapForDrugs(dateVsBlueVasList, dateVsBlueVasCount);
-    populateDateVsCountMap(dateVsSPAQRedoseList, dateVsSPAQRedoseCount);
+    populateDateVsCountMap(dateVsSpaqRedoseList, dateVsSpaqRedoseCount);
     populateDateVsCountMapForDrugs(
         dateVsReturnStockList, dateVsReturnStockCount);
     popoulateDateVsEntityCountMap(
@@ -269,7 +309,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
       dateVsSpaq2Count,
       dateVsRedVasCount,
       dateVsBlueVasCount,
-      dateVsSPAQRedoseCount,
+      dateVsSpaqRedoseCount,
       dateVsReturnStockCount,
       uniqueDates,
     );
@@ -287,7 +327,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     Map<String, List<StockModel>> dateVsSpaq2List,
     Map<String, List<StockModel>> dateVsRedVasList,
     Map<String, List<StockModel>> dateVsBlueVasList,
-    Map<String, List<TaskResourceModel>> dateVsSPAQRedoseList,
+    Map<String, List<TaskResourceModel>> dateVsSpaqRedoseList,
     Map<String, List<StockModel>> dateVsReturnStockList,
     Set<String> uniqueDates,
   ) {
@@ -297,7 +337,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     uniqueDates.addAll(dateVsSpaq2List.keys.toSet());
     uniqueDates.addAll(dateVsRedVasList.keys.toSet());
     uniqueDates.addAll(dateVsBlueVasList.keys.toSet());
-    uniqueDates.addAll(dateVsSPAQRedoseList.keys.toSet());
+    uniqueDates.addAll(dateVsSpaqRedoseList.keys.toSet());
     uniqueDates.addAll(dateVsReturnStockList.keys.toSet());
   }
 
@@ -333,7 +373,7 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
     Map<String, int> dateVsSpaq2Count,
     Map<String, int> dateVsRedVasCount,
     Map<String, int> dateVsBlueVasCount,
-    Map<String, int> dateVsSPAQRedoseCount,
+    Map<String, int> dateVsSpaqRedoseCount,
     Map<String, int> dateVsReturnStockCount,
     Set<String> uniqueDates,
   ) {
@@ -369,9 +409,9 @@ class SummaryReportBloc extends Bloc<SummaryReportEvent, SummaryReportState> {
         var count = dateVsBlueVasCount[date];
         elementVsCount[Constants.blueVAS] = count ?? 0;
       }
-      if (dateVsSPAQRedoseCount.containsKey(date) &&
-          dateVsSPAQRedoseCount[date] != null) {
-        var count = dateVsSPAQRedoseCount[date];
+      if (dateVsSpaqRedoseCount.containsKey(date) &&
+          dateVsSpaqRedoseCount[date] != null) {
+        var count = dateVsSpaqRedoseCount[date];
         elementVsCount[Constants.reDoseQuantityKey] = count ?? 0;
       }
       if (dateVsReturnStockCount.containsKey(date) &&
