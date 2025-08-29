@@ -26,6 +26,8 @@ import 'package:registration_delivery/widgets/localized.dart';
 import 'package:registration_delivery/widgets/showcase/config/showcase_constants.dart';
 import 'package:registration_delivery/widgets/showcase/showcase_button.dart';
 
+import 'package:digit_components/widgets/atoms/digit_integer_form_picker.dart'
+    as datepicker;
 import '../../blocs/registration_delivery/custom_beneficairy_registration.dart';
 import '../../router/app_router.dart';
 import '../../utils/registration_delivery/registration_delivery_utils.dart';
@@ -398,55 +400,35 @@ class CustomHouseHoldDetailsPageState
                           householdDetailsShowcaseData
                               .numberOfMembersLivingInHousehold
                               .buildWith(
-                            child: ReactiveWrapperField(
+                            child: datepicker.DigitIntegerFormPicker(
+                              minimum: 1,
+                              maximum: !isCommunity ? 30 : 1000000,
+                              form: form,
+                              buttonWidth: 40,
                               formControlName: _memberCountKey,
-                              builder: (field) => LabeledField(
-                                label: (RegistrationDeliverySingleton()
-                                            .householdType ==
-                                        HouseholdType.community)
-                                    ? localizations.translate(
-                                        i18.householdDetails
-                                            .noOfMembersCountCLFLabel,
-                                      )
-                                    : localizations.translate(
-                                        i18.householdDetails
-                                            .noOfMembersCountLabel,
-                                      ),
-                                child: DigitNumericFormInput(
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  minValue: 1,
-                                  maxValue: !isCommunity ? 30 : 1000000,
-                                  maxLength: 5,
-                                  step: 1,
-                                  editable: isCommunity,
-                                  controller:
-                                      isCommunity ? _memberController : null,
-                                  initialValue: isCommunity
-                                      ? null
-                                      : form
-                                          .control(_memberCountKey)
-                                          .value
-                                          .toString(),
-                                  onChange: (value) {
-                                    if (value.isEmpty) {
-                                      _memberController.text = '1';
-                                      form.control(_memberCountKey).value = 1;
-                                      return;
-                                    }
-                                    // Remove leading zeros
-                                    String newValue = value;
-
-                                    if (value == '0' && isCommunity) {
-                                      newValue = '1';
-                                    }
-                                    _memberController.text = newValue;
-                                    form.control(_memberCountKey).value =
-                                        int.parse(newValue);
-                                  },
-                                ),
+                              label: localizations.translate(
+                                i18.householdDetails.noOfMembersCountLabel,
                               ),
+                              incrementer: !isCommunity,
+                              onChange: () {
+                                final rawValue = form
+                                        .control(_memberCountKey)
+                                        .value
+                                        ?.toString() ??
+                                    '1';
+
+                                String newValue = rawValue.trim();
+                                if (newValue.isEmpty || newValue == '0') {
+                                  newValue = '1';
+                                  _memberController.text = '1';
+                                } else {
+                                  newValue = int.parse(newValue).toString();
+                                }
+                                _memberController.text = newValue;
+
+                                form.control(_memberCountKey).value =
+                                    int.parse(newValue);
+                              },
                             ),
                           ),
                         ]),
