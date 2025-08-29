@@ -11,12 +11,12 @@ import '../widgets/localized.dart';
 
 @RoutePage()
 class AcknowledgementPage extends LocalizedStatefulWidget {
-  bool isDataRecordSuccess;
-  String? label;
-  String? description;
-  Map<String, dynamic>? descriptionTableData;
+  final bool isDataRecordSuccess;
+  final String? label;
+  final String? description;
+  final Map<String, dynamic>? descriptionTableData;
 
-  AcknowledgementPage({
+  const AcknowledgementPage({
     super.key,
     super.appLocalizations,
     this.isDataRecordSuccess = false,

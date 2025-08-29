@@ -7,37 +7,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:group_radio_button/group_radio_button.dart';
+import 'package:health_campaign_field_worker_app/widgets/custom_back_navigation.dart';
+import 'package:registration_delivery/blocs/household_overview/household_overview.dart';
+import 'package:intl/intl.dart';
 import 'package:registration_delivery/models/entities/status.dart';
 import 'package:survey_form/survey_form.dart';
-
 import 'package:registration_delivery/blocs/delivery_intervention/deliver_intervention.dart';
-import 'package:registration_delivery/blocs/household_overview/household_overview.dart';
 import 'package:registration_delivery/blocs/search_households/search_households.dart';
 import 'package:digit_data_model/data_model.dart';
 // import 'package:registration_delivery/models/entities/status.dart';
 import 'package:registration_delivery/models/entities/task.dart';
 import 'package:registration_delivery/router/registration_delivery_router.gm.dart';
-
-import '../../../blocs/service/service.dart' as service;
+// import '../../../blocs/service/service.dart' as service;
 import '../../../models/entities/roles_type.dart';
 import '../../../router/app_router.dart';
+import '../../../utils/app_enums.dart';
 import '../../../utils/environment_config.dart';
-import '../../../utils/i18_key_constants.dart' as i18;
+import '../../../utils/i18_key_constants.dart' as i18_local;
 import '../../../utils/utils.dart';
 import '../../../widgets/header/back_navigation_help_header.dart';
 import '../../../widgets/localized.dart';
+import '../../../models/entities/assessment_checklist/status.dart'
+    as status_local;
+import 'package:digit_ui_components/services/location_bloc.dart' as location;
+import '../../../models/entities/additional_fields_type.dart'
+    as additional_fields_local;
 
 @RoutePage()
 class EligibilityChecklistViewPage extends LocalizedStatefulWidget {
   final String? referralClientRefId;
   final IndividualModel? individual;
   final String? projectBeneficiaryClientReferenceId;
+  final EligibilityAssessmentType eligibilityAssessmentType;
 
   const EligibilityChecklistViewPage({
     super.key,
     this.referralClientRefId,
     this.individual,
     this.projectBeneficiaryClientReferenceId,
+    required this.eligibilityAssessmentType,
     super.appLocalizations,
   });
 
@@ -63,12 +71,13 @@ class _EligibilityChecklistViewPage
 
   @override
   void initState() {
-    // context.read<ServiceBloc>().add(
-    //       service.ServiceChecklistEvent(
-    //         value: Random().nextInt(100).toString(),
-    //         submitTriggered: true,
-    //       ) as ServiceEvent,
-    //     );
+    context
+        .read<location.LocationBloc>()
+        .add(const location.LocationEvent.load());
+    context.read<ServiceBloc>().add(ServiceSurveyFormEvent(
+          value: Random().nextInt(100).toString(),
+          submitTriggered: true,
+        ));
     super.initState();
   }
 
@@ -89,348 +98,63 @@ class _EligibilityChecklistViewPage
         widget.projectBeneficiaryClientReferenceId;
 
     return WillPopScope(
-      onWillPop: context.isHealthFacilitySupervisor &&
-              widget.referralClientRefId != null
-          ? () async => false
-          : () async => _onBackPressed(context, ifIneligible),
-      child: Scaffold(
-        body: BlocBuilder<HouseholdOverviewBloc, HouseholdOverviewState>(
-          builder: (context, householdOverviewState) {
-            return BlocBuilder<ServiceDefinitionBloc, ServiceDefinitionState>(
-              builder: (context, state) {
-                state.mapOrNull(
-                  serviceDefinitionFetch: (value) {
-                    // todo: verify the checklist name
-                    selectedServiceDefinition = value.serviceDefinitionList
-                        .where((element) => element.code.toString().contains(
-                              '${context.selectedProject.name}.ELIGIBLITY_ASSESSMENT.${context.isCommunityDistributor ? RolesType.communityDistributor.toValue() : RolesType.healthFacilitySupervisor.toValue()}',
-                            ))
-                        .toList()
-                        .first as ServiceDefinitionModel?;
-                    initialAttributes = selectedServiceDefinition?.attributes;
-                    if (!isControllersInitialized) {
-                      initialAttributes?.forEach((e) {
-                        controller.add(TextEditingController());
-                      });
+        onWillPop: context.isHealthFacilitySupervisor &&
+                widget.referralClientRefId != null
+            ? () async => false
+            : () async => _onBackPressed(context, ifIneligible),
+        child: Scaffold(body:
+            BlocBuilder<location.LocationBloc, location.LocationState>(
+                builder: (context, locationState) {
+          return BlocBuilder<HouseholdOverviewBloc, HouseholdOverviewState>(
+            builder: (context, householdOverviewState) {
+              double? latitude = locationState.latitude;
+              double? longitude = locationState.longitude;
+              String eligibilityAssessment = widget.eligibilityAssessmentType ==
+                      EligibilityAssessmentType.smc
+                  ? "ELIGIBLITY_ASSESSMENT"
+                  : "ELIGIBLITY_ASSESSMENT_2";
+              return BlocBuilder<ServiceDefinitionBloc, ServiceDefinitionState>(
+                builder: (context, state) {
+                  state.mapOrNull(
+                    serviceDefinitionFetch: (value) {
+                      // todo: verify the checklist name
+                      selectedServiceDefinition = value.serviceDefinitionList
+                          .where((element) => element.code.toString().contains(
+                                '${context.selectedProject.name}.$eligibilityAssessment.${context.isCommunityDistributor ? RolesType.communityDistributor.toValue() : RolesType.healthFacilitySupervisor.toValue()}',
+                              ))
+                          .toList()
+                          .firstOrNull;
+                      initialAttributes = selectedServiceDefinition?.attributes;
+                      if (!isControllersInitialized) {
+                        initialAttributes?.forEach((e) {
+                          controller.add(TextEditingController());
+                        });
 
-                      // Set the flag to true after initializing controllers
-                      isControllersInitialized = true;
-                    }
-                  },
-                );
+                        // Set the flag to true after initializing controllers
+                        isControllersInitialized = true;
+                      }
+                    },
+                  );
 
-                return state.maybeMap(
-                  orElse: () => Text(state.runtimeType.toString()),
-                  serviceDefinitionFetch: (value) {
-                    return ScrollableContent(
-                      header: Column(children: [
-                        if (!(context.isHealthFacilitySupervisor &&
-                            widget.referralClientRefId != null))
-                          const BackNavigationHelpHeaderWidget(
-                            showHelp: false,
-                            showcaseButton: null,
-                          ),
-                      ]),
-                      enableFixedButton: true,
-                      footer: BlocListener<LocationBloc, LocationState>(
-                        listener: (context, state) async {
-                          if (state.accuracy != null && triggerLocalization) {
-                            triggerLocalization = false;
-                            final router = context.router;
-                            // close the location capturing `dialog`
-                            DigitComponentsUtils().hideDialog(context);
-
-                            // Wait for the location to be obtained
-                            final locationState =
-                                context.read<LocationBloc>().state;
-                            double? latitude = locationState.latitude;
-                            double? longitude = locationState.longitude;
-
-                            List<String>? referralReasons = [];
-                            List<String?> ineligibilityReasons = [];
-                            List<bool> checkIfIneligibleFlow = [];
-
-                            ifReferral = isReferral(responses, referralReasons);
-                            ifDeliver = isDelivery(responses);
-                            checkIfIneligibleFlow = isIneligible(
-                              responses,
-                              ineligibilityReasons,
-                              ifAdministration,
-                            );
-                            if (checkIfIneligibleFlow.isNotEmpty &&
-                                checkIfIneligibleFlow.length >= 2) {
-                              ifIneligible = checkIfIneligibleFlow[0];
-                              ifAdministration = checkIfIneligibleFlow[1];
-                            }
-
-                            var descriptionText = ifIneligible
-                                ? localizations.translate(
-                                    i18.deliverIntervention
-                                        .beneficiaryIneligibleDescription,
-                                  )
-                                : ifReferral
-                                    ? localizations.translate(
-                                        i18.deliverIntervention
-                                            .beneficiaryReferralDescription,
-                                      )
-                                    : localizations.translate(
-                                        i18.deliverIntervention
-                                            .spaqRedirectionScreenDescription,
-                                      );
-
-                            final shouldSubmit = await DigitDialog.show(
-                              context,
-                              options: DigitDialogOptions(
-                                titleText: localizations.translate(
-                                  i18.checklist.submitButtonDialogLabelText,
-                                ),
-                                content: Text(localizations
-                                    .translate(
-                                      i18.checklist
-                                          .checklistDialogDynamicDescription,
-                                    )
-                                    .replaceFirst('{}', descriptionText)),
-                                primaryAction: DigitDialogActions(
-                                  label: localizations.translate(
-                                    i18.checklist.checklistDialogPrimaryAction,
-                                  ),
-                                  action: (ctx) {
-                                    final referenceId = IdGen.i.identifier;
-                                    List<ServiceAttributesModel> attributes =
-                                        [];
-                                    for (int i = 0;
-                                        i < controller.length;
-                                        i++) {
-                                      final attribute = initialAttributes;
-
-                                      attributes.add(ServiceAttributesModel(
-                                        auditDetails: AuditDetails(
-                                          createdBy: context.loggedInUserUuid,
-                                          createdTime:
-                                              context.millisecondsSinceEpoch(),
-                                        ),
-                                        attributeCode: '${attribute?[i].code}',
-                                        dataType: attribute?[i].dataType,
-                                        clientReferenceId: IdGen.i.identifier,
-                                        referenceId: isHealthFacilityWorker &&
-                                                widget.referralClientRefId !=
-                                                    null
-                                            ? widget.referralClientRefId
-                                            : referenceId,
-                                        value: attribute?[i].dataType !=
-                                                'SingleValueList'
-                                            ? controller[i]
-                                                    .text
-                                                    .toString()
-                                                    .trim()
-                                                    .isNotEmpty
-                                                ? controller[i].text.toString()
-                                                : ''
-                                            : visibleChecklistIndexes
-                                                    .contains(i)
-                                                ? controller[i].text.toString()
-                                                : i18.checklist.notSelectedKey,
-                                        rowVersion: 1,
-                                        tenantId: attribute?[i].tenantId,
-                                        additionalFields:
-                                            ServiceAttributesAdditionalFields(
-                                          version: 1,
-                                          fields: [
-                                            AdditionalField(
-                                              'latitude',
-                                              latitude,
-                                            ),
-                                            AdditionalField(
-                                              'longitude',
-                                              longitude,
-                                            ),
-                                          ],
-                                        ),
-                                      ));
-                                    }
-
-                                    context.read<ServiceBloc>().add(
-                                          ServiceCreateEvent(
-                                            serviceModel: ServiceModel(
-                                              createdAt: DigitDateUtils
-                                                  .getDateFromTimestamp(
-                                                DateTime.now()
-                                                    .toLocal()
-                                                    .millisecondsSinceEpoch,
-                                                dateFormat: Constants
-                                                    .checklistViewDateFormat,
-                                              ),
-                                              tenantId:
-                                                  selectedServiceDefinition!
-                                                      .tenantId,
-                                              clientId: isHealthFacilityWorker &&
-                                                      widget.referralClientRefId !=
-                                                          null
-                                                  ? widget.referralClientRefId
-                                                      .toString()
-                                                  : referenceId,
-                                              serviceDefId:
-                                                  selectedServiceDefinition?.id,
-                                              attributes: attributes,
-                                              rowVersion: 1,
-                                              accountId: context.projectId,
-                                              auditDetails: AuditDetails(
-                                                createdBy:
-                                                    context.loggedInUserUuid,
-                                                createdTime: DateTime.now()
-                                                    .millisecondsSinceEpoch,
-                                              ),
-                                              clientAuditDetails:
-                                                  ClientAuditDetails(
-                                                createdBy:
-                                                    context.loggedInUserUuid,
-                                                createdTime: context
-                                                    .millisecondsSinceEpoch(),
-                                                lastModifiedBy:
-                                                    context.loggedInUserUuid,
-                                                lastModifiedTime: context
-                                                    .millisecondsSinceEpoch(),
-                                              ),
-                                              additionalDetails: {
-                                                "boundaryCode":
-                                                    context.boundary.code
-                                              },
-                                            ),
-                                          ),
-                                        );
-
-                                    Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).pop(true);
-                                  },
-                                ),
-                                secondaryAction: DigitDialogActions(
-                                  label: localizations.translate(
-                                    i18.checklist
-                                        .checklistDialogSecondaryAction,
-                                  ),
-                                  action: (context) {
-                                    Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).pop(false);
-                                  },
-                                ),
-                              ),
-                            );
-                            if (shouldSubmit ?? false) {
-                              if (context.mounted &&
-                                  ((ifDeliver || ifAdministration) ||
-                                      ifIneligible ||
-                                      ifReferral)) {
-                                if (ifIneligible) {
-                                  // added the deliversubmitevent here
-                                  final clientReferenceId = IdGen.i.identifier;
-                                  context.read<DeliverInterventionBloc>().add(
-                                        DeliverInterventionSubmitEvent(
-                                            task: TaskModel(
-                                              projectBeneficiaryClientReferenceId:
-                                                  projectBeneficiaryClientReferenceId,
-                                              clientReferenceId:
-                                                  clientReferenceId,
-                                              tenantId:
-                                                  envConfig.variables.tenantId,
-                                              rowVersion: 1,
-                                              auditDetails: AuditDetails(
-                                                createdBy:
-                                                    context.loggedInUserUuid,
-                                                createdTime: context
-                                                    .millisecondsSinceEpoch(),
-                                              ),
-                                              projectId: context.projectId,
-                                              // status: Status
-                                              //     .beneficiaryInEligible
-                                              //     .toValue(),
-                                              clientAuditDetails:
-                                                  ClientAuditDetails(
-                                                createdBy:
-                                                    context.loggedInUserUuid,
-                                                createdTime: context
-                                                    .millisecondsSinceEpoch(),
-                                                lastModifiedBy:
-                                                    context.loggedInUserUuid,
-                                                lastModifiedTime: context
-                                                    .millisecondsSinceEpoch(),
-                                              ),
-                                              additionalFields:
-                                                  TaskAdditionalFields(
-                                                version: 1,
-                                                fields: [
-                                                  // AdditionalField(
-                                                  //   'taskStatus',
-                                                  //   Status.beneficiaryInEligible
-                                                  //       .toValue(),
-                                                  // ),
-                                                  AdditionalField(
-                                                    'ineligibleReasons',
-                                                    ineligibilityReasons
-                                                        .join(","),
-                                                  ),
-                                                ],
-                                              ),
-                                              address: widget
-                                                  .individual!.address?.first
-                                                  .copyWith(
-                                                relatedClientReferenceId:
-                                                    clientReferenceId,
-                                                id: null,
-                                              ),
-                                            ),
-                                            isEditing: false,
-                                            boundaryModel: context.boundary,
-                                            navigateToSummary: false,
-                                            householdMemberWrapper:
-                                                householdOverviewState
-                                                    .householdMemberWrapper),
-                                      );
-                                  final searchBloc =
-                                      context.read<SearchHouseholdsBloc>();
-                                  searchBloc.add(
-                                    const SearchHouseholdsClearEvent(),
-                                  );
-
-                                  router.push(
-                                    HouseholdAcknowledgementRoute(
-                                        enableViewHousehold: true),
-                                  );
-                                } else if (ifReferral) {
-                                  router.push(
-                                    CustomReferBeneficiarySMCRoute(
-                                      projectBeneficiaryClientRefId:
-                                          projectBeneficiaryClientReferenceId ??
-                                              "",
-                                      individual: widget.individual!,
-                                      referralReasons: referralReasons,
-                                    ),
-                                  );
-                                } else {
-                                  router.push(BeneficiaryDetailsRoute());
-                                }
-                              }
-                            }
-                          }
-                        },
-                        child: DigitCard(
+                  return state.maybeMap(
+                    orElse: () => Text(state.runtimeType.toString()),
+                    serviceDefinitionFetch: (value) {
+                      return ScrollableContent(
+                        header: Column(children: [
+                          if (!(context.isHealthFacilitySupervisor &&
+                              widget.referralClientRefId != null))
+                            const CustomBackNavigationHelpHeaderWidget(
+                              showHelp: true,
+                            ),
+                        ]),
+                        enableFixedButton: true,
+                        footer: DigitCard(
                           margin: const EdgeInsets.fromLTRB(0, kPadding, 0, 0),
                           padding: const EdgeInsets.fromLTRB(
                               kPadding, 0, kPadding, 0),
                           child: DigitElevatedButton(
                             onPressed: () async {
-                              final router = context.router;
                               submitTriggered = true;
-
-                              // context.read<ServiceBloc>().add(
-                              //       const ServiceChecklistEvent(
-                              //         value: '',
-                              //         submitTriggered: true,
-                              //       ),
-                              //     );
                               final isValid =
                                   checklistFormKey.currentState?.validate();
                               if (!isValid!) {
@@ -473,214 +197,565 @@ class _EligibilityChecklistViewPage
                                             : '0')
                                     : visibleChecklistIndexes.contains(i)
                                         ? controller[i].text.toString()
-                                        : i18.checklist.notSelectedKey;
+                                        : i18_local.checklist.notSelectedKey;
                                 responses[attributeCode] = value;
                               }
                               triggerLocalization = true;
+                              // final router = context.router;
 
-                              // Request location from LocationBloc
-                              context
-                                  .read<LocationBloc>()
-                                  .add(const LocationEvent.load());
-                              DigitComponentsUtils()
-                                  .showLocationCapturingDialog(
-                                context,
-                                localizations
-                                    .translate(i18.common.locationCapturing),
-                                DigitSyncDialogType.inProgress,
+                              List<String>? referralReasons = [];
+                              List<String?> ineligibilityReasons = [];
+                              List<bool> checkIfIneligibleFlow = [];
+
+                              ifReferral = widget.eligibilityAssessmentType ==
+                                      EligibilityAssessmentType.smc
+                                  ? isReferral(responses, referralReasons)
+                                  : isVASReferral(responses, referralReasons);
+                              ifDeliver = isDelivery(responses);
+                              checkIfIneligibleFlow = isIneligible(
+                                responses,
+                                ineligibilityReasons,
+                                ifAdministration,
                               );
+                              if (checkIfIneligibleFlow.isNotEmpty &&
+                                  checkIfIneligibleFlow.length >= 2) {
+                                ifIneligible = checkIfIneligibleFlow[0];
+                                ifAdministration = checkIfIneligibleFlow[1];
+                              }
+
+                              var descriptionText = ifIneligible
+                                  ? localizations.translate(
+                                      i18_local.deliverIntervention
+                                          .beneficiaryIneligibleDescription,
+                                    )
+                                  : ifReferral
+                                      ? localizations.translate(
+                                          i18_local.deliverIntervention
+                                              .beneficiaryReferralDescription,
+                                        )
+                                      : localizations.translate(
+                                          i18_local.deliverIntervention
+                                              .spaqRedirectionScreenDescription,
+                                        );
+
+                              final shouldSubmit = await DigitDialog.show(
+                                context,
+                                options: DigitDialogOptions(
+                                  titleText: (widget
+                                                  .eligibilityAssessmentType ==
+                                              EligibilityAssessmentType.smc ||
+                                          ifIneligible ||
+                                          ifReferral)
+                                      ? localizations.translate(
+                                          i18_local.checklist
+                                              .submitButtonDialogLabelText,
+                                        )
+                                      : localizations.translate(
+                                          i18_local.deliverIntervention
+                                              .proceedToVASLabel,
+                                        ),
+                                  content: widget.eligibilityAssessmentType ==
+                                          EligibilityAssessmentType.smc
+                                      ? Text(localizations
+                                          .translate(
+                                            i18_local.checklist
+                                                .checklistDialogDynamicDescription,
+                                          )
+                                          .replaceFirst('{}', descriptionText))
+                                      : (ifIneligible || ifReferral)
+                                          ? getHighlightedText(localizations
+                                              .translate(
+                                                i18_local.checklist
+                                                    .checklistDialogDynamicDescription,
+                                              )
+                                              .replaceFirst(
+                                                  '{}', descriptionText))
+                                          : getHighlightedText(
+                                              localizations.translate(
+                                                i18_local.deliverIntervention
+                                                    .proceedToVASDescription,
+                                              ),
+                                            ),
+                                  primaryAction: DigitDialogActions(
+                                    label: widget.eligibilityAssessmentType ==
+                                            EligibilityAssessmentType.smc
+                                        ? localizations.translate(
+                                            i18_local.checklist
+                                                .checklistDialogPrimaryAction,
+                                          )
+                                        : localizations.translate(
+                                            i18_local.common.coreCommonProceed,
+                                          ),
+                                    action: (ctx) {
+                                      final referenceId = IdGen.i.identifier;
+                                      List<ServiceAttributesModel> attributes =
+                                          [];
+                                      for (int i = 0;
+                                          i < controller.length;
+                                          i++) {
+                                        final attribute = initialAttributes;
+
+                                        attributes.add(ServiceAttributesModel(
+                                          auditDetails: AuditDetails(
+                                            createdBy: context.loggedInUserUuid,
+                                            createdTime: context
+                                                .millisecondsSinceEpoch(),
+                                          ),
+                                          attributeCode:
+                                              '${attribute?[i].code}',
+                                          dataType: attribute?[i].dataType,
+                                          clientReferenceId: IdGen.i.identifier,
+                                          referenceId: isHealthFacilityWorker &&
+                                                  widget.referralClientRefId !=
+                                                      null
+                                              ? widget.referralClientRefId
+                                              : referenceId,
+                                          value: attribute?[i].dataType !=
+                                                  'SingleValueList'
+                                              ? controller[i]
+                                                      .text
+                                                      .toString()
+                                                      .trim()
+                                                      .isNotEmpty
+                                                  ? controller[i]
+                                                      .text
+                                                      .toString()
+                                                  : ''
+                                              : visibleChecklistIndexes
+                                                      .contains(i)
+                                                  ? controller[i]
+                                                      .text
+                                                      .toString()
+                                                  : i18_local
+                                                      .checklist.notSelectedKey,
+                                          rowVersion: 1,
+                                          tenantId: attribute?[i].tenantId,
+                                          additionalFields:
+                                              ServiceAttributesAdditionalFields(
+                                            version: 1,
+                                            // TODO: This needs to be done after adding locationbloc
+                                            fields: [
+                                              AdditionalField(
+                                                'latitude',
+                                                latitude,
+                                              ),
+                                              AdditionalField(
+                                                'longitude',
+                                                longitude,
+                                              ),
+                                            ],
+                                          ),
+                                        ));
+                                      }
+
+                                      context.read<ServiceBloc>().add(
+                                            ServiceCreateEvent(
+                                              serviceModel: ServiceModel(
+                                                createdAt: DigitDateUtils
+                                                    .getDateFromTimestamp(
+                                                  DateTime.now()
+                                                      .toLocal()
+                                                      .millisecondsSinceEpoch,
+                                                  dateFormat: Constants
+                                                      .checklistViewDateFormat,
+                                                ),
+                                                tenantId:
+                                                    selectedServiceDefinition!
+                                                        .tenantId,
+                                                clientId: isHealthFacilityWorker &&
+                                                        widget.referralClientRefId !=
+                                                            null
+                                                    ? widget.referralClientRefId
+                                                        .toString()
+                                                    : referenceId,
+                                                serviceDefId:
+                                                    selectedServiceDefinition
+                                                        ?.id,
+                                                attributes: attributes,
+                                                rowVersion: 1,
+                                                accountId: context.projectId,
+                                                auditDetails: AuditDetails(
+                                                  createdBy:
+                                                      context.loggedInUserUuid,
+                                                  createdTime: DateTime.now()
+                                                      .millisecondsSinceEpoch,
+                                                ),
+                                                clientAuditDetails:
+                                                    ClientAuditDetails(
+                                                  createdBy:
+                                                      context.loggedInUserUuid,
+                                                  createdTime: context
+                                                      .millisecondsSinceEpoch(),
+                                                  lastModifiedBy:
+                                                      context.loggedInUserUuid,
+                                                  lastModifiedTime: context
+                                                      .millisecondsSinceEpoch(),
+                                                ),
+                                                additionalDetails: {
+                                                  "boundaryCode":
+                                                      context.boundary.code
+                                                },
+                                              ),
+                                            ),
+                                          );
+
+                                      Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).pop(true);
+                                    },
+                                  ),
+                                  secondaryAction:
+                                      widget.eligibilityAssessmentType ==
+                                              EligibilityAssessmentType.smc
+                                          ? DigitDialogActions(
+                                              label: localizations.translate(
+                                                i18_local.checklist
+                                                    .checklistDialogSecondaryAction,
+                                              ),
+                                              action: (context) {
+                                                Navigator.of(
+                                                  context,
+                                                  rootNavigator: true,
+                                                ).pop(false);
+                                              },
+                                            )
+                                          : null,
+                                ),
+                              );
+                              if (shouldSubmit ?? false) {
+                                if (context.mounted &&
+                                    ((ifDeliver || ifAdministration) ||
+                                        ifIneligible ||
+                                        ifReferral)) {
+                                  final router = context.router;
+                                  if (ifIneligible) {
+                                    // added the deliversubmitevent here
+                                    final clientReferenceId =
+                                        IdGen.i.identifier;
+                                    context.read<DeliverInterventionBloc>().add(
+                                          DeliverInterventionSubmitEvent(
+                                              task: TaskModel(
+                                                projectBeneficiaryClientReferenceId:
+                                                    projectBeneficiaryClientReferenceId,
+                                                clientReferenceId:
+                                                    clientReferenceId,
+                                                tenantId: envConfig
+                                                    .variables.tenantId,
+                                                rowVersion: 1,
+                                                auditDetails: AuditDetails(
+                                                  createdBy:
+                                                      context.loggedInUserUuid,
+                                                  createdTime: context
+                                                      .millisecondsSinceEpoch(),
+                                                ),
+                                                projectId: context.projectId,
+                                                status: status_local.Status
+                                                    .beneficiaryInEligible
+                                                    .toValue(),
+                                                clientAuditDetails:
+                                                    ClientAuditDetails(
+                                                  createdBy:
+                                                      context.loggedInUserUuid,
+                                                  createdTime: context
+                                                      .millisecondsSinceEpoch(),
+                                                  lastModifiedBy:
+                                                      context.loggedInUserUuid,
+                                                  lastModifiedTime: context
+                                                      .millisecondsSinceEpoch(),
+                                                ),
+                                                additionalFields:
+                                                    TaskAdditionalFields(
+                                                  version: 1,
+                                                  fields: [
+                                                    // AdditionalField(
+                                                    //   'taskStatus',
+                                                    //   status_local.Status
+                                                    //       .beneficiaryInEligible
+                                                    //       .toValue(),
+                                                    // ),
+                                                    AdditionalField(
+                                                      'ineligibleReasons',
+                                                      ineligibilityReasons
+                                                          .join(","),
+                                                    ),
+                                                    AdditionalField(
+                                                      additional_fields_local
+                                                          .AdditionalFieldsType
+                                                          .deliveryType
+                                                          .toValue(),
+                                                      (widget.eligibilityAssessmentType ==
+                                                              EligibilityAssessmentType
+                                                                  .smc)
+                                                          ? EligibilityAssessmentStatus
+                                                              .smcDone.name
+                                                          : EligibilityAssessmentStatus
+                                                              .vasDone.name,
+                                                    ),
+                                                  ],
+                                                ),
+                                                address: widget
+                                                    .individual!.address?.first
+                                                    .copyWith(
+                                                  relatedClientReferenceId:
+                                                      clientReferenceId,
+                                                  id: null,
+                                                ),
+                                              ),
+                                              isEditing: false,
+                                              boundaryModel: context.boundary,
+                                              navigateToSummary: false,
+                                              householdMemberWrapper:
+                                                  householdOverviewState
+                                                      .householdMemberWrapper),
+                                        );
+                                    final searchBloc =
+                                        context.read<SearchHouseholdsBloc>();
+                                    searchBloc.add(
+                                      const SearchHouseholdsClearEvent(),
+                                    );
+
+                                    router.push(
+                                      CustomHouseholdAcknowledgementRoute(
+                                          enableViewHousehold: true,
+                                          eligibilityAssessmentType:
+                                              widget.eligibilityAssessmentType),
+                                    );
+                                  } else if (ifReferral) {
+                                    widget.eligibilityAssessmentType ==
+                                            EligibilityAssessmentType.smc
+                                        ? router.push(
+                                            CustomReferBeneficiarySMCRoute(
+                                            projectBeneficiaryClientRefId:
+                                                projectBeneficiaryClientReferenceId ??
+                                                    "",
+                                            individual: widget.individual!,
+                                            referralReasons: referralReasons,
+                                          ))
+                                        : router.push(
+                                            CustomReferBeneficiaryVASRoute(
+                                              projectBeneficiaryClientRefId:
+                                                  projectBeneficiaryClientReferenceId ??
+                                                      "",
+                                              individual: widget.individual!,
+                                              referralReasons: referralReasons,
+                                            ),
+                                          );
+                                  } else {
+                                    router.push(CustomBeneficiaryDetailsRoute(
+                                        eligibilityAssessmentType:
+                                            widget.eligibilityAssessmentType));
+                                  }
+                                }
+
+                                final router = context.router;
+                                submitTriggered = true;
+
+                                context.read<ServiceBloc>().add(
+                                      const ServiceSurveyFormEvent(
+                                        value: '',
+                                        submitTriggered: true,
+                                      ),
+                                    );
+                              }
                             },
                             child: Text(
                               localizations
-                                  .translate(i18.common.coreCommonSubmit),
+                                  .translate(i18_local.common.coreCommonSubmit),
                             ),
                           ),
                         ),
-                      ),
-                      children: [
-                        Form(
-                          key: checklistFormKey, //assigning key to form
-                          child: DigitCard(
-                            child: Column(children: [
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: Text(
-                                  "",
-                                  style: theme.textTheme.displayMedium,
-                                  textAlign: TextAlign.left,
-                                ),
-                              ),
-                              ...initialAttributes!.map((
-                                e,
-                              ) {
-                                int index =
-                                    (initialAttributes ?? []).indexOf(e);
-
-                                return Column(children: [
-                                  if (e.dataType == 'String' &&
-                                      !(e.code ?? '').contains('.')) ...[
-                                    DigitTextField(
-                                      autoValidation:
-                                          AutovalidateMode.onUserInteraction,
-                                      isRequired: true,
-                                      controller: controller[index],
-                                      // inputFormatter: [
-                                      //   FilteringTextInputFormatter.allow(RegExp(
-                                      //     "[a-zA-Z0-9]",
-                                      //   )),
-                                      // ],
-                                      validator: (value) {
-                                        if (((value == null || value == '') &&
-                                            e.required == true)) {
-                                          return localizations.translate(
-                                            i18.common.corecommonRequired,
-                                          );
-                                        }
-                                        if (e.regex != null) {
-                                          return (RegExp(e.regex!)
-                                                  .hasMatch(value!))
-                                              ? null
-                                              : localizations
-                                                  .translate("${e.code}_REGEX");
-                                        }
-
-                                        return null;
-                                      },
-                                      label: localizations.translate(
-                                        '${selectedServiceDefinition?.code}.${e.code}',
+                        children: [
+                          Form(
+                            key: checklistFormKey, //assigning key to form
+                            child: DigitCard(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8),
+                                      child: Text(
+                                        localizations.translate(
+                                          selectedServiceDefinition!.code
+                                              .toString(),
+                                        ),
+                                        style: theme.textTheme.displayMedium,
+                                        textAlign: TextAlign.left,
                                       ),
                                     ),
-                                  ] else if (e.dataType == 'Number' &&
-                                      !(e.code ?? '').contains('.')) ...[
-                                    DigitTextField(
-                                      autoValidation:
-                                          AutovalidateMode.onUserInteraction,
-                                      textStyle: theme.textTheme.headlineMedium,
-                                      textInputType: TextInputType.number,
-                                      inputFormatter: [
-                                        FilteringTextInputFormatter.allow(
-                                          RegExp(
-                                            "[0-9]",
-                                          ),
-                                        ),
-                                      ],
-                                      validator: (value) {
-                                        if (((value == null || value == '') &&
-                                            e.required == true)) {
-                                          return localizations.translate(
-                                            i18.common.corecommonRequired,
-                                          );
-                                        }
-                                        if (e.regex != null) {
-                                          return (RegExp(e.regex!)
-                                                  .hasMatch(value!))
-                                              ? null
-                                              : localizations
-                                                  .translate("${e.code}_REGEX");
-                                        }
+                                    ...initialAttributes!.map((
+                                      e,
+                                    ) {
+                                      int index =
+                                          (initialAttributes ?? []).indexOf(e);
 
-                                        return null;
-                                      },
-                                      controller: controller[index],
-                                      label: '${localizations.translate(
-                                            '${selectedServiceDefinition?.code}.${e.code}',
-                                          ).trim()} ${e.required == true ? '*' : ''}',
-                                    ),
-                                  ] else if (e.dataType == 'MultiValueList' &&
-                                      !(e.code ?? '').contains('.')) ...[
-                                    Align(
-                                      alignment: Alignment.topLeft,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8),
-                                        child: Column(
-                                          children: [
-                                            Text(
-                                              '${localizations.translate(
-                                                '${selectedServiceDefinition?.code}.${e.code}',
-                                              )} ${e.required == true ? '*' : ''}',
-                                              style:
-                                                  theme.textTheme.headlineSmall,
+                                      return Column(children: [
+                                        if (e.dataType == 'String' &&
+                                            !(e.code ?? '').contains('.')) ...[
+                                          DigitTextField(
+                                            autoValidation: AutovalidateMode
+                                                .onUserInteraction,
+                                            isRequired: true,
+                                            controller: controller[index],
+                                            // inputFormatter: [
+                                            //   FilteringTextInputFormatter.allow(RegExp(
+                                            //     "[a-zA-Z0-9]",
+                                            //   )),
+                                            // ],
+                                            validator: (value) {
+                                              if (((value == null ||
+                                                      value == '') &&
+                                                  e.required == true)) {
+                                                return localizations.translate(
+                                                  i18_local.common
+                                                      .corecommonRequired,
+                                                );
+                                              }
+                                              if (e.regex != null) {
+                                                return (RegExp(e.regex!)
+                                                        .hasMatch(value!))
+                                                    ? null
+                                                    : localizations.translate(
+                                                        "${e.code}_REGEX");
+                                              }
+
+                                              return null;
+                                            },
+                                            label: localizations.translate(
+                                              '${selectedServiceDefinition?.code}.${e.code}',
                                             ),
-                                          ],
-                                        ),
-                                      ),
+                                          ),
+                                        ] else if (e.dataType == 'Number' &&
+                                            !(e.code ?? '').contains('.')) ...[
+                                          DigitTextField(
+                                            autoValidation: AutovalidateMode
+                                                .onUserInteraction,
+                                            textStyle:
+                                                theme.textTheme.headlineMedium,
+                                            textInputType: TextInputType.number,
+                                            inputFormatter: [
+                                              FilteringTextInputFormatter.allow(
+                                                RegExp(
+                                                  "[0-9]",
+                                                ),
+                                              ),
+                                            ],
+                                            validator: (value) {
+                                              if (((value == null ||
+                                                      value == '') &&
+                                                  e.required == true)) {
+                                                return localizations.translate(
+                                                  i18_local.common
+                                                      .corecommonRequired,
+                                                );
+                                              }
+                                              if (e.regex != null) {
+                                                return (RegExp(e.regex!)
+                                                        .hasMatch(value!))
+                                                    ? null
+                                                    : localizations.translate(
+                                                        "${e.code}_REGEX");
+                                              }
+
+                                              return null;
+                                            },
+                                            controller: controller[index],
+                                            label: '${localizations.translate(
+                                                  '${selectedServiceDefinition?.code}.${e.code}',
+                                                ).trim()} ${e.required == true ? '*' : ''}',
+                                          ),
+                                        ] else if (e.dataType ==
+                                                'MultiValueList' &&
+                                            !(e.code ?? '').contains('.')) ...[
+                                          Align(
+                                            alignment: Alignment.topLeft,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8),
+                                              child: Column(
+                                                children: [
+                                                  Text(
+                                                    '${localizations.translate(
+                                                      '${selectedServiceDefinition?.code}.${e.code}',
+                                                    )} ${e.required == true ? '*' : ''}',
+                                                    style: theme.textTheme
+                                                        .headlineSmall,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          BlocBuilder<ServiceBloc,
+                                              ServiceState>(
+                                            builder: (context, state) {
+                                              return Column(
+                                                children: e.values!
+                                                    .map((e) =>
+                                                        DigitCheckboxTile(
+                                                          label: e,
+                                                          value:
+                                                              controller[index]
+                                                                  .text
+                                                                  .split('.')
+                                                                  .contains(e),
+                                                          onChanged: (value) {
+                                                            final String ele;
+                                                            var val =
+                                                                controller[
+                                                                        index]
+                                                                    .text
+                                                                    .split('.');
+                                                            if (val
+                                                                .contains(e)) {
+                                                              val.remove(e);
+                                                              ele =
+                                                                  val.join(".");
+                                                            } else {
+                                                              ele =
+                                                                  "${controller[index].text}.$e";
+                                                            }
+                                                            controller[index]
+                                                                    .value =
+                                                                TextEditingController
+                                                                    .fromValue(
+                                                              TextEditingValue(
+                                                                text: ele,
+                                                              ),
+                                                            ).value;
+                                                          },
+                                                        ))
+                                                    .toList(),
+                                              );
+                                            },
+                                          ),
+                                        ] else if (e.dataType ==
+                                            'SingleValueList') ...[
+                                          if (!(e.code ?? '').contains('.'))
+                                            DigitCard(
+                                              child: _buildChecklist(
+                                                e,
+                                                index,
+                                                selectedServiceDefinition,
+                                                context,
+                                              ),
+                                            ),
+                                        ],
+                                      ]);
+                                    }).toList(),
+                                    const SizedBox(
+                                      height: 15,
                                     ),
-                                    BlocBuilder<ServiceBloc, ServiceState>(
-                                      builder: (context, state) {
-                                        return Column(
-                                          children: e.values!
-                                              .map((e) => DigitCheckboxTile(
-                                                    label: e,
-                                                    value: controller[index]
-                                                        .text
-                                                        .split('.')
-                                                        .contains(e),
-                                                    onChanged: (value) {
-                                                      // context
-                                                      //     .read<ServiceBloc>()
-                                                      //     .add(
-                                                      //       ServiceChecklistEvent(
-                                                      //         value:
-                                                      //             e.toString(),
-                                                      //         submitTriggered:
-                                                      //             submitTriggered,
-                                                      //       ),
-                                                      //     );
-                                                      final String ele;
-                                                      var val =
-                                                          controller[index]
-                                                              .text
-                                                              .split('.');
-                                                      if (val.contains(e)) {
-                                                        val.remove(e);
-                                                        ele = val.join(".");
-                                                      } else {
-                                                        ele =
-                                                            "${controller[index].text}.$e";
-                                                      }
-                                                      controller[index].value =
-                                                          TextEditingController
-                                                              .fromValue(
-                                                        TextEditingValue(
-                                                          text: ele,
-                                                        ),
-                                                      ).value;
-                                                    },
-                                                  ))
-                                              .toList(),
-                                        );
-                                      },
-                                    ),
-                                  ] else if (e.dataType ==
-                                      'SingleValueList') ...[
-                                    if (!(e.code ?? '').contains('.'))
-                                      DigitCard(
-                                        child: _buildChecklist(
-                                          e,
-                                          index,
-                                          selectedServiceDefinition,
-                                          context,
-                                        ),
-                                      ),
-                                  ],
-                                ]);
-                              }).toList(),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                            ]),
+                                  ]),
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
+                        ],
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          );
+        })));
   }
 
   Widget _buildChecklist(
@@ -716,7 +791,7 @@ class _EligibilityChecklistViewPage
           Align(
             alignment: Alignment.topLeft,
             child: Padding(
-              padding: const EdgeInsets.all(16.0), // Add padding here
+              padding: const EdgeInsets.all(4.0), // Add padding here
               child: Text(
                 '${localizations.translate(
                   '${selectedServiceDefinition?.code}.${item.code}',
@@ -732,14 +807,7 @@ class _EligibilityChecklistViewPage
                   return RadioGroup<String>.builder(
                     groupValue: controller[index].text.trim(),
                     onChanged: (value) {
-                      // context.read<ServiceBloc>().add(
-                      //       ServiceChecklistEvent(
-                      //         value: Random().nextInt(100).toString(),
-                      //         submitTriggered: submitTriggered,
-                      //       ),
-                      //     );
                       setState(() {
-                        // Clear child controllers and update visibility
                         for (final matchingChildItem in childItems) {
                           final childIndex =
                               initialAttributes?.indexOf(matchingChildItem);
@@ -762,7 +830,8 @@ class _EligibilityChecklistViewPage
                     },
                     items: item.values != null
                         ? item.values!
-                            .where((e) => e != i18.checklist.notSelectedKey)
+                            .where(
+                                (e) => e != i18_local.checklist.notSelectedKey)
                             .toList()
                         : [],
                     itemBuilder: (item) => RadioButtonBuilder(
@@ -785,7 +854,7 @@ class _EligibilityChecklistViewPage
                       alignment: Alignment.centerLeft,
                       child: Text(
                         localizations.translate(
-                          i18.common.corecommonRequired,
+                          i18_local.common.corecommonRequired,
                         ),
                         style: TextStyle(
                           color: theme.colorScheme.error,
@@ -847,7 +916,7 @@ class _EligibilityChecklistViewPage
         validator: (value) {
           if (((value == null || value == '') && item.required == true)) {
             return localizations.translate(
-              i18.common.corecommonRequired,
+              i18_local.common.corecommonRequired,
             );
           }
           if (item.regex != null) {
@@ -890,12 +959,6 @@ class _EligibilityChecklistViewPage
                           label: e,
                           value: controller[index].text.split('.').contains(e),
                           onChanged: (value) {
-                            // context.read<ServiceBloc>().add(
-                            //       ServiceChecklistEvent(
-                            //         value: e.toString(),
-                            //         submitTriggered: submitTriggered,
-                            //       ),
-                            //     );
                             final String ele;
                             var val = controller[index].text.split('.');
                             if (val.contains(e)) {
@@ -923,26 +986,102 @@ class _EligibilityChecklistViewPage
     }
   }
 
+  Widget getHighlightedText(String description) {
+    // Find the position of the word "Proceed"
+    int startIndex = description.indexOf('Proceed');
+    int endIndex = startIndex + 'Proceed'.length;
+
+    if (startIndex == -1) {
+      // If "Proceed" is not found, return the original description
+      return Text(description);
+    }
+
+    // Split the description into parts
+    String partBefore = description.substring(0, startIndex);
+    String partHighlighted = description.substring(startIndex, endIndex);
+    String partAfter = description.substring(endIndex);
+
+    TextTheme textTheme = Theme.of(context).textTheme;
+    TextStyle normalTextStyle =
+        textTheme.titleMedium ?? TextStyle(color: Colors.black);
+
+    // Use RichText to style the word "Proceed"
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: partBefore,
+            style: normalTextStyle,
+          ),
+          TextSpan(
+            text: partHighlighted,
+            style: normalTextStyle.copyWith(fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: partAfter,
+            style: normalTextStyle,
+          ),
+        ],
+      ),
+    );
+  }
+
   List<bool> isIneligible(
     Map<String?, String> responses,
     List<String?> ineligibilityReasons,
     bool ifAdministration,
   ) {
     var isIneligible = false;
-    var q4Key = "SEA3";
+    var q3Key = "KBEA3";
+    var q5Key = "KBEA4";
+    var q6Key = "KBEA5";
+    // var q7Key = "KBEA6";
+
     Map<String, String> keyVsReason = {
-      q4Key: "CHILD_ON_MEDICATION_1",
+      q3Key: "NOT_ADMINISTERED_IN_PREVIOUS_CYCLE",
+      q5Key: "CHILD_ON_MEDICATION_1",
+      q6Key: "RESPIRATORY_INFECTION",
+      // q7Key: "TAKEN_VITAMIN_A",
     };
+    final individualModel = widget.individual;
 
     if (responses.isNotEmpty) {
-      if (!isIneligible &&
-          (responses.containsKey(q4Key) && responses[q4Key]!.isNotEmpty)) {
-        isIneligible = responses[q4Key] == yes ? true : false;
+      if (responses.containsKey(q3Key) && responses[q3Key]!.isNotEmpty) {
+        isIneligible = responses[q3Key] == yes ? true : false;
+        if (individualModel != null && isIneligible) {
+          // added a try catch as a fallback
+          try {
+            final dateOfBirth = DateFormat("dd/MM/yyyy")
+                .parse(individualModel.dateOfBirth ?? '');
+            final age = DigitDateUtils.calculateAge(dateOfBirth);
+            final ageInMonths = getAgeMonths(age);
+            isIneligible = !(ageInMonths < 60);
+            if (!isIneligible) {
+              ifAdministration = true;
+            }
+          } catch (error) {
+            // if any error in parsing , will use fallback case
+            isIneligible = false;
+            ifAdministration = true;
+          }
+        }
       }
+      if (!isIneligible &&
+          (responses.containsKey(q5Key) && responses[q5Key]!.isNotEmpty)) {
+        isIneligible = responses[q5Key] == yes ? true : false;
+      }
+      //       if (!isIneligible &&
+      //     (responses.containsKey(q6Key) && responses[q6Key]!.isNotEmpty)) {
+      //   isIneligible = responses[q6Key] == yes ? true : false;
+      // }
+      //       if (!isIneligible &&
+      //     (responses.containsKey(q7Key) && responses[q7Key]!.isNotEmpty)) {
+      //   isIneligible = responses[q7Key] == yes ? true : false;
+      // }
       // passing all the reasons which have response as true
       if (isIneligible) {
         for (var entry in responses.entries) {
-          if (entry.key == q4Key) {
+          if (entry.key == q3Key || entry.key == q5Key) {
             entry.value == yes
                 ? ineligibilityReasons.add(keyVsReason[entry.key])
                 : null;
@@ -959,13 +1098,19 @@ class _EligibilityChecklistViewPage
     List<String?> referralReasons,
   ) {
     var isReferral = false;
-    var q1Key = "SEA1";
-    var q2Key = "SEA1.YES.ADT1";
-    var q3Key = "SEA2";
+    var q1Key = "KBEA1";
+    var q2Key = "KBEA2";
+    var q4Key = "KBEA3.NO.ADT1";
+    var q6Key = "KBEA5";
+    // var q7Key = "KBEA6";
+    // var q3Key = "KBEA3";
     Map<String, String> referralKeysVsCode = {
       q1Key: "SICK",
       q2Key: "FEVER",
-      q3Key: "DRUG_SE_PC",
+      q4Key: "DRUG_SE_PC",
+      q6Key: "RESPIRATORY_INFECTION",
+      // q7Key: "TAKEN_VITAMIN_A",
+      // q3Key: "DRUG_SE_PC",
     };
     // TODO Configure the reasons ,verify hardcoded strings
 
@@ -978,9 +1123,56 @@ class _EligibilityChecklistViewPage
         isReferral = responses[q2Key] == yes ? true : false;
       }
       if (!isReferral &&
-          (responses.containsKey(q3Key) && responses[q3Key]!.isNotEmpty)) {
-        isReferral = responses[q3Key] == yes ? true : false;
+          (responses.containsKey(q4Key) && responses[q4Key]!.isNotEmpty)) {
+        isReferral = responses[q4Key] == yes ? true : false;
       }
+      if (!isReferral &&
+              (responses.containsKey(q6Key) && responses[q6Key]!.isNotEmpty)
+          // && (responses.containsKey(q7Key) && responses[q7Key]!.isNotEmpty)
+          ) {
+        isReferral = (responses[q6Key] == yes)
+            // && (responses[q7Key] == yes)
+            ? true
+            : false;
+      }
+    }
+    if (isReferral) {
+      for (var entry in referralKeysVsCode.entries) {
+        if (responses.containsKey(entry.key) &&
+            responses[entry.key]!.isNotEmpty) {
+          if (responses[entry.key] == yes) {
+            referralReasons.add(entry.value);
+          }
+        }
+      }
+    }
+
+    return isReferral;
+  }
+
+  bool isVASReferral(
+    Map<String?, String> responses,
+    List<String?> referralReasons,
+  ) {
+    var isReferral = false;
+    var q1Key = "KBEA5";
+    // var q2Key = "KBEA6";
+    // var q3Key = "KBEA3";
+    Map<String, String> referralKeysVsCode = {
+      q1Key: "RESPIRATORY_INFECTION",
+      // q2Key: "TAKEN_VITAMIN_A",
+      // q3Key: "DRUG_SE_PC",
+    };
+    // TODO Configure the reasons ,verify hardcoded strings
+
+    if (responses.isNotEmpty) {
+      if (responses.containsKey(q1Key) && responses[q1Key]!.isNotEmpty) {
+        isReferral = responses[q1Key] == yes ? true : false;
+      }
+      // if (!isReferral &&
+      //     (responses.containsKey(q2Key) && responses[q2Key]!.isNotEmpty)) {
+      //   isReferral = responses[q2Key] == yes ? true : false;
+      // }
     }
     if (isReferral) {
       for (var entry in referralKeysVsCode.entries) {
@@ -998,7 +1190,12 @@ class _EligibilityChecklistViewPage
 
   bool isDelivery(Map<String?, String> responses) {
     var isDeliver = true;
+    var q1Key = "KBEA6";
+
     for (var entry in responses.entries) {
+      if (entry.key == q1Key) {
+        continue;
+      }
       if (entry.value == yes) {
         isDeliver = false;
         break;
@@ -1075,14 +1272,14 @@ class _EligibilityChecklistViewPage
         builder: (context) => DigitDialog(
           options: DigitDialogOptions(
             titleText: localizations.translate(
-              i18.checklist.checklistBackDialogLabel,
+              i18_local.checklist.checklistBackDialogLabel,
             ),
             content: Text(localizations.translate(
-              i18.checklist.checklistBackDialogDescription,
+              i18_local.checklist.checklistBackDialogDescription,
             )),
             primaryAction: DigitDialogActions(
-              label: localizations
-                  .translate(i18.checklist.checklistBackDialogPrimaryAction),
+              label: localizations.translate(
+                  i18_local.checklist.checklistBackDialogPrimaryAction),
               action: (ctx) {
                 Navigator.of(
                   context,
@@ -1091,8 +1288,8 @@ class _EligibilityChecklistViewPage
               },
             ),
             secondaryAction: DigitDialogActions(
-              label: localizations
-                  .translate(i18.checklist.checklistBackDialogSecondaryAction),
+              label: localizations.translate(
+                  i18_local.checklist.checklistBackDialogSecondaryAction),
               action: (context) {
                 Navigator.of(
                   context,

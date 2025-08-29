@@ -10,7 +10,7 @@ import 'entities/assessment_checklist/service.dart' as p3;
 import 'entities/assessment_checklist/service_attributes.dart' as p4;
 import 'entities/assessment_checklist/service_definition.dart' as p5;
 import 'entities/assessment_checklist/status.dart' as p6;
-import 'entities/entities_beneficiary/identifier_types.dart' as p7;
+import 'entities/identifier_types.dart' as p7;
 import 'entities/mdms_master_enums.dart' as p8;
 import 'entities/mdms_module_enums.dart' as p9;
 import 'entities/roles.dart' as p10;

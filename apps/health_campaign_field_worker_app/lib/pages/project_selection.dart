@@ -1,6 +1,4 @@
-import 'package:attendance_management/attendance_management.dart';
 import 'package:digit_data_model/data_model.dart';
-import 'package:digit_dss/digit_dss.dart';
 import 'package:digit_location_tracker/location_tracker.dart';
 import 'package:digit_ui_components/digit_components.dart';
 import 'package:digit_ui_components/services/location_bloc.dart';
@@ -9,13 +7,7 @@ import 'package:digit_ui_components/utils/component_utils.dart';
 import 'package:digit_ui_components/widgets/atoms/menu_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:health_campaign_field_worker_app/blocs/app_initialization/app_initialization.dart';
-import 'package:health_campaign_field_worker_app/data/local_store/no_sql/schema/service_registry.dart';
-import 'package:health_campaign_field_worker_app/utils/utils.dart';
 import 'package:isar/isar.dart';
-import 'package:inventory_management/inventory_management.dart';
-import 'package:registration_delivery/registration_delivery.dart';
-import 'package:inventory_management/models/entities/inventory_transport_type.dart';
 
 import '../blocs/auth/auth.dart';
 import '../blocs/project/project.dart';
@@ -26,7 +18,6 @@ import '../utils/extensions/extensions.dart';
 import '../utils/i18_key_constants.dart' as i18;
 import '../widgets/header/back_navigation_help_header.dart';
 import '../widgets/localized.dart';
-import '../models/entities/roles_type.dart';
 
 @RoutePage()
 class ProjectSelectionPage extends LocalizedStatefulWidget {
@@ -149,8 +140,6 @@ class _ProjectSelectionPageState extends LocalizedState<ProjectSelectionPage> {
               final selectedProject = state.selectedProject;
               if (selectedProject != null) {
                 final boundary = selectedProject.address?.boundary;
-
-                setPackagesSingleton(context);
 
                 if (boundary != null) {
                   // triggerLocationTracking(state.selectedProject!); // TODO: Enable location tracking
@@ -286,90 +275,5 @@ class _ProjectSelectionPageState extends LocalizedState<ProjectSelectionPage> {
     } else {
       context.read<LocationBloc>().add(const LocationEvent.requestPermission());
     }
-  }
-
-  List<String> getHouseholdFiltersBasedOnProjectType(
-      AppConfiguration appConfiguration, BuildContext context) {
-    List<String> list = [];
-    // TODO add the household search logic if required
-    return list;
-  }
-
-  void setPackagesSingleton(BuildContext context) {
-    context.read<AppInitializationBloc>().state.maybeWhen(
-        orElse: () {},
-        initialized: (
-          AppConfiguration appConfiguration,
-          List<ServiceRegistry> serviceRegistry,
-          List<DashboardConfigSchema?>? dashboardConfigSchema,
-        ) {
-          // INFO : Need to add singleton of package Here
-          AttendanceSingleton().setInitialData(
-              projectId: context.projectId,
-              loggedInIndividualId: context.loggedInIndividualId ?? '',
-              loggedInUserUuid: context.loggedInUserUuid,
-              appVersion: Constants().version);
-
-          InventorySingleton().setInitialData(
-            isWareHouseMgr: context.loggedInUserRoles
-                .where((role) =>
-                    role.code == RolesType.warehouseManager.toValue() ||
-                    role.code == RolesType.spaqManager.toValue())
-                .toList()
-                .isNotEmpty,
-            isDistributor: context.loggedInUserRoles
-                .where(
-                  (role) =>
-                      role.code == RolesType.distributor.toValue() ||
-                      role.code == RolesType.communityDistributor.toValue(),
-                )
-                .toList()
-                .isNotEmpty,
-            loggedInUser: context.loggedInUserModel,
-            projectId: context.projectId,
-            loggedInUserUuid: context.loggedInUserUuid,
-            transportTypes: appConfiguration.transportTypes
-                ?.map((e) => InventoryTransportTypes()
-                  ..name = e.code
-                  ..code = e.code)
-                .toList(),
-          );
-
-          RegistrationDeliverySingleton().setInitialData(
-              loggedInUser: context.loggedInUserModel,
-              loggedInUserUuid: context.loggedInUserUuid,
-              maxRadius: appConfiguration.maxRadius!,
-              projectId: context.projectId,
-              selectedBeneficiaryType: context.beneficiaryType,
-              projectType: context.selectedProjectType,
-              selectedProject: context.selectedProject,
-              genderOptions:
-                  appConfiguration.genderOptions!.map((e) => e.code).toList(),
-              idTypeOptions:
-                  appConfiguration.idTypeOptions!.map((e) => e.code).toList(),
-              householdDeletionReasonOptions: appConfiguration
-                  .householdDeletionReasonOptions!
-                  .map((e) => e.code)
-                  .toList(),
-              householdMemberDeletionReasonOptions: appConfiguration
-                  .householdMemberDeletionReasonOptions!
-                  .map((e) => e.code)
-                  .toList(),
-              deliveryCommentOptions: appConfiguration.deliveryCommentOptions!
-                  .map((e) => e.code)
-                  .toList(),
-              symptomsTypes:
-                  appConfiguration.symptomsTypes?.map((e) => e.code).toList(),
-              searchHouseHoldFilter: getHouseholdFiltersBasedOnProjectType(
-                  appConfiguration, context),
-              referralReasons:
-                  appConfiguration.referralReasons?.map((e) => e.code).toList(),
-              houseStructureTypes: appConfiguration.houseStructureTypes
-                  ?.map((e) => e.code)
-                  .toList(),
-              refusalReasons:
-                  appConfiguration.refusalReasons?.map((e) => e.code).toList(),
-              searchCLFFilters: []);
-        });
   }
 }
