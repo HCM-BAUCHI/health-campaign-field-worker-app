@@ -16,6 +16,7 @@ import '../../router/app_router.dart';
 import '../../utils/extensions/extensions.dart';
 import 'package:digit_components/widgets/digit_dialog.dart' as dialog;
 import 'package:registration_delivery/utils/i18_key_constants.dart' as i18;
+import '../../utils/i18_key_constants.dart' as i18_local;
 
 @RoutePage()
 class QRScannerPage extends LocalizedStatefulWidget {
@@ -68,7 +69,8 @@ class _QRScannerPageState extends LocalizedState<QRScannerPage> {
       for (String item in decodedJson) {
         StockModel model = StockModelMapper.fromJson(item);
         if (model.receiverId != context.loggedInUserUuid) {
-          _showError('This QR code is not applicable for your account');
+          _showError(
+              localizations.translate(i18_local.common.codeNotApplicableError));
           return;
         }
         // dssfsf
@@ -99,7 +101,7 @@ class _QRScannerPageState extends LocalizedState<QRScannerPage> {
                 ?.toString() ??
             'N/A';
         if (minStock == mrnNumber) {
-          _showError('Stock already received');
+          _showError(i18_local.stockDetails.alreadyReceivedError);
           return;
         }
       }
@@ -147,7 +149,8 @@ class _QRScannerPageState extends LocalizedState<QRScannerPage> {
         }
       }
     } catch (e) {
-      _showError('Invalid QR code format: ${e.toString()}');
+      _showError(
+          '${localizations.translate(i18_local.common.invalidCodeFormatError)}: ${e.toString()}');
     } finally {
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) setState(() => _isScanning = true);
@@ -194,7 +197,7 @@ class _QRScannerPageState extends LocalizedState<QRScannerPage> {
               onPressed: () {
                 cameraController.toggleTorch();
               },
-              tooltip: 'Toggle Torch',
+              tooltip: localizations.translate(i18_local.common.toggleFlash),
             ),
           ],
         ),
@@ -227,7 +230,8 @@ class _QRScannerPageState extends LocalizedState<QRScannerPage> {
                 right: 32,
                 child: ElevatedButton(
                   onPressed: () => _processScannedData('test'),
-                  child: const Text('Test with Sample QR Data'),
+                  child: Text(
+                      localizations.translate(i18_local.common.testScanLabel)),
                 ),
               ),
           ],

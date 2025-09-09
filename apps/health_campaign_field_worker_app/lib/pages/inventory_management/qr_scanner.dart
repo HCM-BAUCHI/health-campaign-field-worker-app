@@ -16,6 +16,7 @@ import 'package:gs1_barcode_parser/gs1_barcode_parser.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'package:digit_scanner/utils/i18_key_constants.dart' as i18;
+import '../../utils/i18_key_constants.dart' as i18_local;
 import 'package:digit_scanner/blocs/scanner.dart';
 import 'package:digit_scanner/widgets/vision_detector_views/detector_view.dart';
 
@@ -606,7 +607,8 @@ class _DigitScannerPageState extends LocalizedState<DigitScannerPage> {
       Toast.showToast(
         context,
         type: ToastType.error,
-        message: localizations.translate('Invalid QR Code Format'),
+        message: localizations.translate(
+            localizations.translate(i18_local.common.invalidCodeFormatError)),
       );
 
       await Future.delayed(const Duration(seconds: 2));

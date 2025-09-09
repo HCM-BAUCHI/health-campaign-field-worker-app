@@ -10,6 +10,7 @@ import 'package:inventory_management/models/entities/stock.dart';
 import 'package:inventory_management/models/entities/transaction_reason.dart';
 import 'package:inventory_management/models/entities/transaction_type.dart';
 import 'package:inventory_management/utils/i18_key_constants.dart' as i18;
+import '../../utils/i18_key_constants.dart' as i18_local;
 import 'package:inventory_management/utils/utils.dart';
 import 'package:registration_delivery/widgets/localized.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -266,22 +267,27 @@ class _ViewStockRecordsLGAPageState
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Stock Receipt Details',
+                          Text(
+                            localizations.translate(i18_local
+                                .stockDetails.stockReceiptDetailsLabel),
                             style: TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              const Expanded(child: Text('MIN Number')),
+                              Expanded(
+                                  child: Text(localizations.translate(
+                                      i18_local.stockDetails.minNumberText))),
                               Expanded(child: Text(widget.mrnNumber)),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Expanded(child: Text('Received from')),
+                              Expanded(
+                                  child: Text(localizations.translate(i18_local
+                                      .stockDetails.receivedFromLabel))),
                               // TODO : verify this , showing senderId here
                               Expanded(
                                 child: Text(localizations
@@ -331,7 +337,8 @@ class _ViewStockRecordsLGAPageState
                                 const SizedBox(height: 12),
                                 InputField(
                                   type: InputType.text,
-                                  label: 'Waybill Number *',
+                                  label:
+                                      '${localizations.translate(i18_local.stockDetails.waybillNumberLabel)} *',
                                   initialValue: stock.wayBillNumber ?? '',
                                   isDisabled: true,
                                   readOnly: true,
@@ -339,12 +346,13 @@ class _ViewStockRecordsLGAPageState
                                 const SizedBox(height: 12),
                                 InputField(
                                   type: InputType.text,
-                                  label: 'Batch Number',
+                                  label: localizations.translate(
+                                      i18_local.stockDetails.batchNumberLabel),
                                   initialValue: stock.additionalFields?.fields
                                           .firstWhere(
                                             (field) =>
                                                 field.key == 'batchNumber',
-                                            orElse: () => AdditionalField(
+                                            orElse: () => const AdditionalField(
                                                 'batchNumber', ''),
                                           )
                                           .value
@@ -356,7 +364,8 @@ class _ViewStockRecordsLGAPageState
                                 const SizedBox(height: 12),
                                 InputField(
                                   type: InputType.text,
-                                  label: 'Quantity Sent by Warehouse *',
+                                  label:
+                                      '${localizations.translate(i18_local.stockDetails.quantitySentByWarehouseLabel)} *',
                                   initialValue: stock.quantity ?? '',
                                   isDisabled: true,
                                   readOnly: true,
@@ -366,7 +375,8 @@ class _ViewStockRecordsLGAPageState
                                   formControlName: 'quantityReceived',
                                   builder: (field) => InputField(
                                     type: InputType.text,
-                                    label: 'Actual Quantity Received *',
+                                    label:
+                                        '${localizations.translate(i18_local.stockDetails.actualQuantityReceivedLabel)} *',
                                     errorMessage: field.errorText,
                                     keyboardType: TextInputType.number,
                                     onChange: (value) {
@@ -379,11 +389,18 @@ class _ViewStockRecordsLGAPageState
                                     },
                                   ),
                                   validationMessages: {
-                                    'required': (_) => 'Quantity is required',
-                                    'min': (_) => 'Must be at least 1',
-                                    'number': (_) => 'Must be a valid number',
-                                    'maxIssued': (_) =>
-                                        'Received quantity cannot be more than issued quantity',
+                                    'required': (_) => localizations.translate(
+                                        i18_local.inventoryReportDetails
+                                            .quantityRequiredError),
+                                    'min': (_) => localizations.translate(
+                                        i18_local.inventoryReportDetails
+                                            .quantityMinError),
+                                    'number': (_) => localizations.translate(
+                                        i18_local.inventoryReportDetails
+                                            .quantityNumberError),
+                                    'maxIssued': (_) => localizations.translate(
+                                        i18_local.inventoryReportDetails
+                                            .receivedQuantityExceedsIssuedQuantityError),
                                   },
                                 ),
                                 const SizedBox(height: 12),
@@ -391,12 +408,15 @@ class _ViewStockRecordsLGAPageState
                                   formControlName: 'comments',
                                   validationMessages: {
                                     'requiredIfShort': (_) =>
-                                        'Comments are required if quantity received is less than issued',
+                                        localizations.translate(i18_local
+                                            .inventoryReportDetails
+                                            .commentRequiredIfShortError),
                                   },
                                   builder: (field) => InputField(
                                     isRequired: _commentsRequired,
                                     type: InputType.textArea,
-                                    label: 'Comments',
+                                    label: localizations.translate(i18_local
+                                        .inventoryReportDetails.commentsLabel),
                                     errorMessage: field.errorText,
                                     onChange: (value) =>
                                         field.control.value = value,

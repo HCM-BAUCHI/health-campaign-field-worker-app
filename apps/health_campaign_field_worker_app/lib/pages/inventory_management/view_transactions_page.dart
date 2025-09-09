@@ -7,17 +7,20 @@ import 'package:logger/logger.dart';
 
 import '../../blocs/inventory_management/stock_bloc.dart';
 import '../../router/app_router.dart';
+import '../../widgets/localized.dart';
+import '../../utils/i18_key_constants.dart' as i18_local;
 import 'view_stock_records.dart'; // Import your view stock page
 
 @RoutePage()
-class ViewTransactionsScreen extends StatefulWidget {
+class ViewTransactionsScreen extends LocalizedStatefulWidget {
   const ViewTransactionsScreen({super.key});
 
   @override
   State<ViewTransactionsScreen> createState() => _ViewTransactionsScreenState();
 }
 
-class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
+class _ViewTransactionsScreenState
+    extends LocalizedState<ViewTransactionsScreen> {
   @override
   void initState() {
     super.initState();
@@ -46,7 +49,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
       final mrn = stock.additionalFields?.fields
               .firstWhere(
                 (f) => f.key == 'materialNoteNumber',
-                orElse: () => AdditionalField('materialNoteNumber', ''),
+                orElse: () => const AdditionalField('materialNoteNumber', ''),
               )
               .value
               ?.toString() ??
@@ -70,7 +73,9 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
           }
 
           if (groupedData.isEmpty) {
-            return const Center(child: Text('No transactions available.'));
+            return Center(
+                child: Text(localizations
+                    .translate(i18_local.stockDetails.noTransactionsLabel)));
           }
 
           return ListView.builder(
@@ -92,7 +97,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
                                   .firstWhere(
                                     (field) =>
                                         field.key == 'materialNoteNumber',
-                                    orElse: () => AdditionalField(
+                                    orElse: () => const AdditionalField(
                                         'materialNoteNumber', ''),
                                   )
                                   .value
@@ -113,10 +118,10 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'MRN: ${firstStock.additionalFields?.fields.firstWhere(
+                              '${localizations.translate(i18_local.stockDetails.mrnLabel)}: ${firstStock.additionalFields?.fields.firstWhere(
                                     (field) =>
                                         field.key == 'materialNoteNumber',
-                                    orElse: () => AdditionalField(
+                                    orElse: () => const AdditionalField(
                                         'materialNoteNumber', ''),
                                   ).value?.toString() ?? 'N/A'}',
                               style: const TextStyle(
@@ -125,21 +130,21 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
                               ),
                             ),
                             Text(
-                              'Date: ${firstStock.dateOfEntryTime?.toLocal().toString().split(' ')[0] ?? 'N/A'}',
+                              '${localizations.translate(i18_local.stockDetails.dateLabel)}: ${firstStock.dateOfEntryTime?.toLocal().toString().split(' ')[0] ?? 'N/A'}',
                               style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'From: ${firstStock.senderId ?? firstStock.facilityId ?? 'N/A'}',
+                          '${localizations.translate(i18_local.stockDetails.fromLabel)}: ${firstStock.senderId ?? firstStock.facilityId ?? 'N/A'}',
                           style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 12),
 
                         const Divider(),
-                        const Text(
-                          'Commodities Received:',
+                        Text(
+                          '${localizations.translate(i18_local.stockDetails.commoditiesReceivedLabel)}:',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
@@ -154,15 +159,16 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
                                             .firstWhere(
                                               (field) =>
                                                   field.key == 'productName',
-                                              orElse: () => AdditionalField(
-                                                  'productName', 'N/A'),
+                                              orElse: () =>
+                                                  const AdditionalField(
+                                                      'productName', 'N/A'),
                                             )
                                             .value
                                             ?.toString() ??
                                         'N/A',
                                   ),
                                   Text(
-                                    'Qty: ${stock.quantity ?? 'N/A'}',
+                                    '${localizations.translate(i18_local.stockDetails.qtyLabel)}: ${stock.quantity ?? 'N/A'}',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.bold),
                                   ),
@@ -171,7 +177,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen> {
                             )),
                         const Divider(),
                         Text(
-                          'Waybill: ${firstStock.wayBillNumber ?? 'N/A'}',
+                          '${localizations.translate(i18_local.stockDetails.waybillLabel)}: ${firstStock.wayBillNumber ?? 'N/A'}',
                           style: const TextStyle(fontStyle: FontStyle.italic),
                         ),
                       ],
