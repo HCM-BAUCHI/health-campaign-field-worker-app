@@ -59,7 +59,7 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
       appBar: AppBar(
         bottom: TabBar(
           labelColor: Colors.white,
-          indicator: BoxDecoration(
+          indicator: const BoxDecoration(
             border: Border(
               left: BorderSide(color: Colors.orange),
               right: BorderSide(color: Colors.orange),
@@ -67,7 +67,7 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
               top: BorderSide(color: Colors.orange),
             ),
           ),
-          indicatorPadding: EdgeInsets.fromLTRB(0.1, 0, 0.1, 0.1),
+          indicatorPadding: const EdgeInsets.fromLTRB(0.1, 0, 0.1, 0.1),
           controller: _tabController,
           isScrollable: true,
           tabs: widget.stockRecords
@@ -75,7 +75,8 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                     text: stock.additionalFields?.fields
                             .firstWhere(
                               (field) => field.key == 'productName',
-                              orElse: () => AdditionalField('productName', ''),
+                              orElse: () =>
+                                  const AdditionalField('productName', ''),
                             )
                             .value
                             ?.toString() ??
@@ -209,24 +210,30 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Stock Receipt Details',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    localizations.translate(
+                        i18_local.stockDetails.stockReceiptDetailsLabel),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                           child: Text(entryType == StockRecordEntryType.dispatch
-                              ? 'MIN Number'
-                              : 'MRN Number')),
+                              ? localizations.translate(
+                                  i18_local.stockDetails.minNumberText)
+                              : localizations.translate(
+                                  i18_local.stockDetails.mrnNumberText))),
                       Expanded(child: Text(widget.mrnNumber)),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Expanded(child: Text('Resource')),
+                      Expanded(
+                          child: Text(localizations.translate(
+                              i18_local.stockDetails.resourceLabel))),
                       Expanded(
                         child: Text(
                           stock.additionalFields?.fields
@@ -273,8 +280,9 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Stock Details',
+                  Text(
+                    localizations
+                        .translate(i18_local.stockDetails.stockDetailsLabel),
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
@@ -282,7 +290,8 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                     // Waybill Number
                     InputField(
                       type: InputType.text,
-                      label: 'Waybill Number *',
+                      label:
+                          '${localizations.translate(i18_local.stockDetails.waybillNumberLabel)} *',
                       initialValue: stock.wayBillNumber ?? '',
                       isDisabled: true,
                       readOnly: true,
@@ -295,7 +304,8 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                         entryType != StockRecordEntryType.returned)
                       InputField(
                         type: InputType.text,
-                        label: 'Batch Number',
+                        label: localizations
+                            .translate(i18_local.stockDetails.batchNumberLabel),
                         initialValue: (() {
                           final value = stock.additionalFields?.fields
                               .firstWhere(
@@ -437,11 +447,13 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                   // Comments
                   InputField(
                     type: InputType.textArea,
-                    label: 'Comments',
+                    label: localizations.translate(
+                        i18_local.inventoryReportDetails.commentsLabel),
                     initialValue: stock.additionalFields?.fields
                             .firstWhere(
                               (field) => field.key == 'comments',
-                              orElse: () => AdditionalField('comments', ''),
+                              orElse: () =>
+                                  const AdditionalField('comments', ''),
                             )
                             .value
                             ?.toString() ??

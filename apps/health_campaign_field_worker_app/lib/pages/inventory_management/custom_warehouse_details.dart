@@ -302,7 +302,8 @@ class CustomWarehouseDetailsPageState
                                         stockState.entryType !=
                                             StockRecordEntryType.dispatch)
                                       DigitButton(
-                                        label: "Scan Resource",
+                                        label: localizations.translate(i18_local
+                                            .stockDetails.scanResourceLabel),
                                         onPressed: _handleSubmission,
                                         type: DigitButtonType.primary,
                                         mainAxisSize: MainAxisSize.max,

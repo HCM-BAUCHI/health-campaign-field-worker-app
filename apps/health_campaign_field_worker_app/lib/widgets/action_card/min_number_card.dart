@@ -7,7 +7,10 @@ import 'package:inventory_management/utils/utils.dart';
 
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../blocs/localization/app_localization.dart';
+import '../../main.dart';
 import '../../utils/utils.dart';
+import '../../utils/i18_key_constants.dart' as i18_local;
 
 class MinNumberCard extends StatelessWidget {
   final String minNumber;
@@ -34,6 +37,8 @@ class MinNumberCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.digitTextTheme(context);
+
+    final localizations = AppLocalizations.of(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -127,7 +132,9 @@ class MinNumberCard extends StatelessWidget {
             if (waybillNumber != null && waybillNumber!.trim().isNotEmpty)
               Row(
                 children: [
-                  Text("Waybill",
+                  Text(
+                      localizations
+                          .translate(i18_local.stockDetails.waybillLabel),
                       style: textTheme.bodyL.copyWith(
                         fontWeight: FontWeight.bold,
                       )),

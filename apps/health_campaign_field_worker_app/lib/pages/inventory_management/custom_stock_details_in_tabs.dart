@@ -634,28 +634,44 @@ class _DynamicTabsPageState extends LocalizedState<DynamicTabsPage>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Stock Details',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    Text(
+                      localizations.translate(
+                        i18_local.stockDetails.stockDetailsLabel,
+                      ),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     if (isWareHouseMgr)
                       ReactiveWrapperField(
                           formControlName: _waybillNumberKey,
                           validationMessages: {
-                            'required': (object) =>
-                                'Waybill number is required',
-                            'minLength': (object) =>
-                                'Waybill number must be at least 2 characters',
-                            'maxLength': (object) =>
-                                'Waybill number cannot exceed 200 characters',
-                            'noEmojis': (object) =>
-                                'Waybill number cannot contain emoji characters',
+                            'required': (object) => localizations.translate(
+                                  i18_local
+                                      .stockDetails.waybillNumberRequiredLabel,
+                                ),
+                            'minLength': (object) => localizations.translate(
+                                  i18_local
+                                      .stockDetails.waybillNumberMinLengthError,
+                                ),
+                            'maxLength': (object) => localizations.translate(
+                                  i18_local
+                                      .stockDetails.waybillNumberMaxLengthError,
+                                ),
+                            'noEmojis': (object) => localizations.translate(
+                                  i18_local
+                                      .stockDetails.waybillNumberNoEmojisError,
+                                ),
                             'invalidCharacters': (object) =>
-                                'Waybill number contains invalid characters. Only use letters, numbers, and basic punctuation',
+                                localizations.translate(
+                                  i18_local.stockDetails
+                                      .waybillNumberInvalidCharactersError,
+                                ),
                             'repeatedChars': (object) =>
-                                'Waybill number cannot contain excessive repetition of the same character',
+                                localizations.translate(
+                                  i18_local.stockDetails
+                                      .waybillNumberRepeatedCharactersError,
+                                ),
                           },
                           builder: (field) {
                             return LabeledField(

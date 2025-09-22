@@ -90,14 +90,19 @@ class _ViewStockRecordsCDDPageState
                     quantityReceived < stockQuantity)) &&
             (currentComment == null || currentComment.trim() == '')) {
           await DigitToast.show(context,
-              options: DigitToastOptions('Comment is required', true, theme));
+              options: DigitToastOptions(
+                  localizations
+                      .translate(i18_local.common.commentRequiredLabel),
+                  true,
+                  theme));
           return;
         }
         if (quantityReceived == null ||
             (quantityReceived is int && quantityReceived > stockQuantity)) {
           await DigitToast.show(context,
               options: DigitToastOptions(
-                  'Received quantity can not be more than issued quantity',
+                  localizations.translate(i18_local.inventoryReportDetails
+                      .receivedQuantityExceedsIssuedQuantityError),
                   true,
                   theme));
           return;
@@ -398,9 +403,12 @@ class _ViewStockRecordsCDDPageState
                       },
                     ),
                     validationMessages: {
-                      'required': (_) => 'Quantity is required',
-                      'min': (_) => 'Must be at least 1',
-                      'number': (_) => 'Must be a valid number',
+                      'required': (_) => localizations.translate(i18_local
+                          .inventoryReportDetails.quantityRequiredError),
+                      'min': (_) => localizations.translate(
+                          i18_local.inventoryReportDetails.quantityMinError),
+                      'number': (_) => localizations.translate(
+                          i18_local.inventoryReportDetails.quantityNumberError),
                     },
                   ),
                   const SizedBox(height: 12),
@@ -430,7 +438,8 @@ class _ViewStockRecordsCDDPageState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Stock Records - ${widget.mrnNumber}'),
+        title: Text(
+            '${localizations.translate(i18_local.inventoryReportDetails.stockRecordsLabel)} - ${widget.mrnNumber}'),
         bottom: TabBar(
           controller: _tabController,
           tabs: widget.stockRecords.map((stock) {

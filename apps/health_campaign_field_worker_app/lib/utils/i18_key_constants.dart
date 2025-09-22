@@ -151,6 +151,14 @@ class Common {
   String get ageInMonths => 'AGE_IN_MONTHS_LABEL';
   String get locationCapturing => 'CAPTURING_LOCATION';
   String get profileUpdateSuccess => 'PROFILE_UPDATE_SUCCESS';
+
+  String get invalidCodeFormatError => 'INVALID_CODE_FORMAT_ERROR';
+  String get codeNotApplicableError => 'CODE_NOT_APPLICABLE_ERROR';
+
+  String get toggleFlash => 'TOGGLE_FLASH';
+  String get testScanLabel => 'TEST_SCAN_LABEL';
+
+  String get commentRequiredLabel => 'CORE_COMMON_COMMENT_REQUIRED_LABEL';
 }
 
 class HouseholdOverView {
@@ -515,12 +523,72 @@ class HomeShowcase {
 class StockDetails {
   const StockDetails();
 
+  String get stockDetailsLabel => 'STOCK_DETAILS_LABEL';
+
+  String get transactionDetailsLabel =>
+      'STOCK_DETAILS_TRANSACTION_DETAILS_LABEL';
+
+  String get createNewTransactionLabel =>
+      'STOCK_DETAILS_CREATE_NEW_TRANSACTION_LABEL';
+
+  String get viewcreatedTransactionLabel =>
+      'STOCK_DETAILS_VIEW_CREATED_TRANSACTION_LABEL';
+
+  String get noTransactionsFoundLabel => 'STOCK_DETAILS_NO_TRANSACTIONS_FOUND';
+
   String get selectTransactingPartyReturnedFrom =>
       'STOCK_DETAILS_RETURNED_FROM';
 
+  String get selectMinNumberLabel => 'STOCK_DETAILS_SELECT_MIN_NUMBER_LABEL';
+  String get selectMrnNumberLabel => 'STOCK_DETAILS_SELECT_MRN_NUMBER_LABEL';
+
+  String get waybillNumberRequiredLabel =>
+      'STOCK_DETAILS_WAYBILL_NUMBER_IS_REQUIRED';
+  String get waybillNumberMaxLengthError =>
+      'STOCK_DETAILS_WAYBILL_NUMBER_MAX_LENGTH_ERROR';
+  String get waybillNumberMinLengthError =>
+      'STOCK_DETAILS_WAYBILL_NUMBER_MIN_LENGTH_ERROR';
+  String get waybillNumberNoEmojisError =>
+      'STOCK_DETAILS_WAYBILL_NUMBER_NO_EMOJIS_ERROR';
+  String get waybillNumberInvalidCharactersError =>
+      'STOCK_DETAILS_WAYBILL_NUMBER_INVALID_CHARACTERS_ERROR';
+  String get waybillNumberRepeatedCharactersError =>
+      'STOCK_DETAILS_WAYBILL_NUMBER_REPEATED_CHARACTERS_ERROR';
+
+  String get scanResourceLabel => 'SCAN_RESOURCE_LABEL';
+
   String get cddCodeLabel => 'CDD_CODE_LABEL';
 
+  String get alreadyReceivedError => 'STOCK_DETAILS_ALREADY_RECEIVED_ERROR';
+
+  String get stockReceiptDetailsLabel =>
+      'STOCK_DETAILS_STOCK_RECEIPT_DETAILS_LABEL';
+
+  String get minNumberText => 'STOCK_DETAILS_MIN_NUMBER_TEXT';
+  String get mrnNumberText => 'STOCK_DETAILS_MRN_NUMBER_TEXT';
+
   String get returnedTo => 'STOCK_DETAILS_RETURNED_TO';
+
+  String get receivedFromLabel => 'STOCK_DETAILS_RECEIVED_FROM_LABEL';
+
+  String get waybillNumberLabel => 'STOCK_DETAILS_WAYBILL_NUMBER_LABEL';
+
+  String get quantitySentByWarehouseLabel =>
+      'STOCK_DETAILS_QUANTITY_SENT_BY_WAREHOUSE_LABEL';
+
+  String get actualQuantityReceivedLabel =>
+      'STOCK_DETAILS_ACTUAL_QUANTITY_RECEIVED_LABEL';
+
+  String get resourceLabel => 'STOCK_DETAILS_RESOURCE_LABEL';
+
+  String get noTransactionsLabel => 'STOCK_DETAILS_NO_TRANSACTIONS_LABEL';
+  String get commoditiesReceivedLabel =>
+      'STOCK_DETAILS_COMMODITIES_RECEIVED_LABEL';
+  String get fromLabel => 'STOCK_DETAILS_FROM_LABEL';
+  String get dateLabel => 'STOCK_DETAILS_DATE_LABEL';
+  String get mrnLabel => 'STOCK_DETAILS_MRN_LABEL';
+  String get waybillLabel => 'STOCK_DETAILS_WAYBILL_LABEL';
+  String get qtyLabel => 'STOCK_DETAILS_QTY_LABEL';
 
   String get quantityCapsuleReceivedLabel =>
       'STOCK_DETAILS_CAPSULE_QUANTITY_RECEIVED';
@@ -610,6 +678,18 @@ class InventoryReportDetails {
   String get waybillNumberText => 'WAYBILL_NUMBER_TEXT';
 
   String get batchNumberText => 'BATCH_NUMBER_TEXT';
+
+  String get receivedQuantityExceedsIssuedQuantityError =>
+      'RECEIVED_QUANTITY_EXCEEDS_ISSUED_QUANTITY_ERROR';
+
+  String get quantityRequiredError => 'QUANTITY_IS_REQUIRED_ERROR';
+  String get quantityMinError => 'QUANTITY_MIN_ERROR';
+  String get quantityNumberError => 'QUANTITY_NUMBER_ERROR';
+
+  String get stockRecordsLabel => 'STOCK_RECORDS_LABEL';
+
+  String get commentRequiredIfShortError => 'COMMENT_REQUIRED_IF_SHORT_ERROR';
+  String get commentsLabel => 'COMMENTS_LABEL';
 }
 
 class SelectStockShowcase {

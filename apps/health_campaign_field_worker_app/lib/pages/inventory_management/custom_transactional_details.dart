@@ -772,7 +772,8 @@ class CustomTransactionalDetailsPageState
                             margin: const EdgeInsets.all(spacer2),
                             children: [
                               Text(
-                                "Transaction Details",
+                                localizations.translate(i18_local
+                                    .stockDetails.transactionDetailsLabel),
                                 style: textTheme.headingXl,
                               ),
                               BlocBuilder<InventoryProductVariantBloc,

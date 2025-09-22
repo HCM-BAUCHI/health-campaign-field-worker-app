@@ -157,15 +157,19 @@ class CustomMinNumberPageState extends LocalizedState<CustomMinNumberPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: groupedEntries.isEmpty
-                      ? const Center(child: Text("No transactions found."))
+                      ? Center(
+                          child: Text(localizations.translate(
+                              i18_local.stockDetails.noTransactionsFoundLabel)))
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 16.0),
                             Text(
                                 widget.type == StockRecordEntryType.dispatch
-                                    ? "Select the MIN number"
-                                    : "Select the MRN number",
+                                    ? localizations.translate(i18_local
+                                        .stockDetails.selectMinNumberLabel)
+                                    : localizations.translate(i18_local
+                                        .stockDetails.selectMrnNumberLabel),
                                 style: textTheme.headingL),
                             const SizedBox(height: 16.0),
                             Expanded(
