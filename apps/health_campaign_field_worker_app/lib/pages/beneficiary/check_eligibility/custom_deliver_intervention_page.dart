@@ -109,7 +109,7 @@ class CustomDeliverInterventionPageState
     //   latitude: lat,
     //   longitude: long,
     // );
-        TaskModel taskModel = _getTaskModel(context,
+    TaskModel taskModel = _getTaskModel(context,
         form: form,
         oldTask: RegistrationDeliverySingleton().beneficiaryType ==
                 BeneficiaryType.household
@@ -133,7 +133,7 @@ class CustomDeliverInterventionPageState
                   ? true
                   : false,
               boundaryModel: RegistrationDeliverySingleton().boundary!,
-              navigateToSummary: true,
+              navigateToSummary: false,
               householdMemberWrapper: householdMember),
         );
 
@@ -207,18 +207,6 @@ class CustomDeliverInterventionPageState
     TaskModel taskModel,
     DeliverInterventionState deliverState,
   ) async {
-    context.read<DeliverInterventionBloc>().add(
-          DeliverInterventionSubmitEvent(
-            task: deliverState.oldTask ?? taskModel,
-            isEditing: (deliverState.tasks ?? []).isNotEmpty &&
-                    RegistrationDeliverySingleton().beneficiaryType ==
-                        BeneficiaryType.household
-                ? true
-                : false,
-            boundaryModel: RegistrationDeliverySingleton().boundary!,
-          ),
-        );
-
     ProjectTypeModel? projectTypeModel =
         widget.eligibilityAssessmentType == EligibilityAssessmentType.smc
             ? RegistrationDeliverySingleton()
@@ -806,19 +794,17 @@ class CustomDeliverInterventionPageState
   }
 
   // ignore: long-parameter-list
-  TaskModel _getTaskModel(
-    BuildContext context, {
-    required FormGroup form,
-    TaskModel? oldTask,
-    int? cycle,
-    int? dose,
-    String? deliveryStrategy,
-    String? projectBeneficiaryClientReferenceId,
-    AddressModel? address,
-    double? latitude,
-    double? longitude,
-    IndividualModel? selectedIndividual
-  }) {
+  TaskModel _getTaskModel(BuildContext context,
+      {required FormGroup form,
+      TaskModel? oldTask,
+      int? cycle,
+      int? dose,
+      String? deliveryStrategy,
+      String? projectBeneficiaryClientReferenceId,
+      AddressModel? address,
+      double? latitude,
+      double? longitude,
+      IndividualModel? selectedIndividual}) {
     // Initialize task with oldTask if available, or create a new one
     var task = oldTask;
     var clientReferenceId = task?.clientReferenceId ?? IdGen.i.identifier;
@@ -921,7 +907,7 @@ class CustomDeliverInterventionPageState
                 ? EligibilityAssessmentStatus.smcDone.name
                 : EligibilityAssessmentStatus.vasDone.name,
           ),
-           ...getIndividualAdditionalFields(
+          ...getIndividualAdditionalFields(
             selectedIndividual,
           ),
           if (widget.eligibilityAssessmentType == EligibilityAssessmentType.vas)

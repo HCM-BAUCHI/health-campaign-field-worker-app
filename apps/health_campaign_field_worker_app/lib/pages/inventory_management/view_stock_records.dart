@@ -199,6 +199,13 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
         break;
     }
 
+    String? batchNumber = stock.additionalFields?.fields
+        .firstWhere(
+          (field) => field.key == 'batchNumber',
+          orElse: () => const AdditionalField('batchNumber', ''),
+        )
+        .value;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -296,31 +303,22 @@ class _ViewStockRecordsPageState extends LocalizedState<ViewStockRecordsPage>
                       isDisabled: true,
                       readOnly: true,
                     ),
-                    if (isWareHouseMgr &&
-                        entryType != StockRecordEntryType.returned)
-                      const SizedBox(height: 12),
+
                     // Batch Number
                     if (isWareHouseMgr &&
-                        entryType != StockRecordEntryType.returned)
+                        entryType != StockRecordEntryType.returned &&
+                        batchNumber != null &&
+                        batchNumber.isNotEmpty) ...[
+                      const SizedBox(height: 12),
                       InputField(
                         type: InputType.text,
                         label: localizations
                             .translate(i18_local.stockDetails.batchNumberLabel),
-                        initialValue: (() {
-                          final value = stock.additionalFields?.fields
-                              .firstWhere(
-                                (field) => field.key == 'batchNumber',
-                                orElse: () =>
-                                    const AdditionalField('batchNumber', ''),
-                              )
-                              .value
-                              ?.toString();
-
-                          return value == '0' ? '' : value ?? '';
-                        })(),
+                        initialValue: batchNumber ?? '',
                         isDisabled: true,
                         readOnly: true,
                       ),
+                    ],
                     const SizedBox(height: 12),
                   ],
 

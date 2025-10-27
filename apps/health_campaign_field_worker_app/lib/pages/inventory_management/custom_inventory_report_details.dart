@@ -135,7 +135,8 @@ class CustomInventoryReportDetailsPageState
               size: DigitButtonSize.large,
               type: DigitButtonType.secondary,
               mainAxisSize: MainAxisSize.max,
-              onPressed: () => context.router.popUntilRoot(),
+              // pop and take user to report selection home page
+              onPressed: () => context.router.maybePop(),
               label: localizations.translate(
                 i18.inventoryReportDetails.backToHomeButtonLabel,
               ),
